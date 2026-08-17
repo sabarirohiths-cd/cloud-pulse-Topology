@@ -180,7 +180,12 @@ export default function TopologyDetailModal({ node, onClose }) {
               {activeTab === 'overview' ? (
                 <div className="grid grid-cols-2 gap-3">
                   {Object.entries(data)
-                    .filter(([key]) => !['label', 'type', 'Id', 'VpcId', 'SubnetId'].includes(key))
+                    .filter(([key, value]) => {
+                      if (['label', 'type', 'Id', 'VpcId', 'SubnetId'].includes(key)) return false;
+                      if (value === null || value === undefined || value === '') return false;
+                      if (Array.isArray(value) && value.length === 0) return false;
+                      return true;
+                    })
                     .map(([key, value]) => {
                       const isComplex = typeof value === 'object' && value !== null;
                       return (

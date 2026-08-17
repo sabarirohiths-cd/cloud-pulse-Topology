@@ -45,9 +45,12 @@ class TopologyService:
             return boto3.Session(region_name=region)
 
     def scan_topology(self, request: TopologyScanRequest):
-        session = self.get_aws_session(request.account_id, request.region)
+        # We still initialize the boto3.Session with a default region,
+        # but the builder takes the list of target regions to scan.
+        default_region = request.regions[0] if request.regions else 'ap-south-1'
+        session = self.get_aws_session(request.account_id, default_region)
         
-        builder = AWSTopologyBuilder(session=session, region=request.region)
+        builder = AWSTopologyBuilder(session=session, regions=request.regions)
         builder.build()
         
         # Save output for dev/sample viewing
@@ -61,7 +64,15 @@ class TopologyService:
         output_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'output', 'final_complete_topology.json')
         try:
             with open(output_file, 'r') as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, list):
+                    return {
+                        "Regions": {
+                            "ap-south-1": data
+                        },
+                        "GlobalResources": {}
+                    }
+                return data
         except Exception as e:
             print(f"Failed to read sample topology: {e}")
-            return []
+            return {}

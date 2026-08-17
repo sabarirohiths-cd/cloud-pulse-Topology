@@ -13,7 +13,7 @@ def scan_aws_topology(request: TopologyScanRequest, service: TopologyService = D
         data = service.scan_topology(request)
         return TopologyResponse(
             status="success",
-            message=f"Topology successfully scanned for region {request.region}",
+            message=f"Topology successfully scanned for regions {', '.join(request.regions)}",
             data=data
         )
     except Exception as e:

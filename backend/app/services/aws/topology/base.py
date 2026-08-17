@@ -9,6 +9,24 @@ class BaseTopologyBuilder:
         self.session = session
         self.vpcs = {}
         
+        self.raw_data = {
+            'Vpcs': [], 'Subnets': [], 'InternetGateways': [], 'RouteTables': [], 'NatGateways': [],
+            'VpcEndpoints': [], 'PeeringConnections': [], 'NetworkAcls': [], 'TransitGatewayAttachments': [],
+            'VpnGateways': [], 'VpnConnections': [], 'UnclassifiedENIs': [], 'NetworkFirewalls': [],
+            'NetworkFirewallEndpoints': [], 'Route53ResolverEndpoints': [], 'LoadBalancers': [],
+            'SecurityGroups': [], 'Instances': [], 'AutoScalingGroups': [], 'ElasticIps': [],
+            'EbsVolumes': [], 'EKSClusters': [], 'ECSClusters': [], 'LambdaFunctions': [],
+            'SageMakerNotebooks': [], 'WorkSpaces': [], 'RDSInstances': [], 'ElastiCacheNodes': [],
+            'DocumentDBClusters': [], 'RedshiftClusters': [], 'EFSMountTargets': [], 'FSxFileSystems': [],
+            'RegionalQueues': [], 'AmazonMQBrokers': [], 'MSKClusters': [], 'OpenSearchDomains': [],
+            'NeptuneClusters': [], 'DirectoryServices': [], 'AppRunnerVpcConnectors': [], 'EMRClusters': [],
+            'GlueConnections': [], 'GatewayLoadBalancers': [], 'GWLBEndpoints': [],
+            'TransitGatewayRouteTables': [], 'MemoryDBClusters': [],
+            'EgressOnlyInternetGateways': [], 'CarrierGateways': [], 'DhcpOptions': [],
+            'FlowLogs': [], 'BatchComputeEnvironments': [], 'SecurityAndCompliance': [],
+            'HybridConnectivity': []
+        }
+        
         print(f"Initializing AWS Clients for region {self.region} from session...")
         self.ec2 = self.session.client('ec2', region_name=self.region)
         self.elbv2 = self.session.client('elbv2', region_name=self.region)
@@ -32,6 +50,17 @@ class BaseTopologyBuilder:
         self.opensearch = self.session.client('opensearch', region_name=self.region)
         self.network_firewall = self.session.client('network-firewall', region_name=self.region)
         self.route53resolver = self.session.client('route53resolver', region_name=self.region)
+        self.neptune = self.session.client('neptune', region_name=self.region)
+        self.ds = self.session.client('ds', region_name=self.region)
+        self.apprunner = self.session.client('apprunner', region_name=self.region)
+        self.emr = self.session.client('emr', region_name=self.region)
+        self.glue = self.session.client('glue', region_name=self.region)
+        self.memorydb = self.session.client('memorydb', region_name=self.region)
+        self.batch = self.session.client('batch', region_name=self.region)
+        self.guardduty = self.session.client('guardduty', region_name=self.region)
+        self.config = self.session.client('config', region_name=self.region)
+        self.directconnect = self.session.client('directconnect', region_name=self.region)
+        self.networkmanager = self.session.client('networkmanager', region_name=self.region)
 
     def _safe_get_tag(self, tags, key):
         if tags:
@@ -39,13 +68,6 @@ class BaseTopologyBuilder:
                 if tag.get('Key') == key:
                     return tag.get('Value')
         return None
-
-    def _get_subnet_map(self):
-        subnet_map = {}
-        for vpc in self.vpcs.values():
-            for sub in vpc.get('Subnets', []):
-                subnet_map[sub['SubnetId']] = sub
-        return subnet_map
 
     def get_topology(self):
         return list(self.vpcs.values())

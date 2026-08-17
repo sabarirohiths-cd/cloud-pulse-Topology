@@ -36,7 +36,7 @@ export default function App() {
           </nav>
         </aside>
         {/* Main content */}
-        <main id="main-scroll-container" className="flex-1 overflow-y-auto p-6 bg-[#0a0a0f]">
+        <main id="main-scroll-container" className="flex-1 bg-[#0a0a0f] flex flex-col min-h-0 relative">
           <Routes>
             <Route path="/" element={<Navigate to="/topology" replace />} />
             <Route path="/topology" element={<TopologyPage />} />

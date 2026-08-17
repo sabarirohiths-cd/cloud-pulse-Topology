@@ -2,12 +2,14 @@
 	"Version": "2012-10-17",
 	"Statement": [
 		{
-			"Sid": "Phase1ResourceExplorer",
+			"Sid": "GlobalDiscoveryRead",
 			"Effect": "Allow",
 			"Action": [
-				"resource-explorer-2:ListIndexes",
-				"resource-explorer-2:ListViews",
-				"resource-explorer-2:Search"
+				"iam:ListRoles",
+				"iam:ListUsers",
+				"cloudfront:ListDistributions",
+				"route53:ListHostedZones",
+				"s3:ListAllMyBuckets"
 			],
 			"Resource": "*"
 		},
@@ -72,7 +74,28 @@
 				"network-firewall:ListFirewalls",
 				"network-firewall:DescribeFirewall",
 				"route53resolver:ListResolverEndpoints",
-				"route53resolver:ListResolverEndpointIpAddresses"
+				"route53resolver:ListResolverEndpointIpAddresses",
+				"ds:DescribeDirectories",
+				"apprunner:ListVpcConnectors",
+				"apprunner:DescribeVpcConnector",
+				"elasticmapreduce:ListClusters",
+				"elasticmapreduce:DescribeCluster",
+				"glue:GetConnections",
+				"memorydb:DescribeClusters",
+				"memorydb:DescribeSubnetGroups",
+				"ec2:GetTransitGatewayRouteTableAssociations",
+				"ec2:DescribeEgressOnlyInternetGateways",
+				"ec2:DescribeCarrierGateways",
+				"ec2:DescribeDhcpOptions",
+				"ec2:DescribeFlowLogs",
+				"batch:DescribeComputeEnvironments",
+				"guardduty:ListDetectors",
+				"guardduty:GetDetector",
+				"config:DescribeConfigurationRecorders",
+				"config:DescribeConfigurationRecorderStatus",
+				"directconnect:DescribeConnections",
+				"directconnect:DescribeVirtualInterfaces",
+				"networkmanager:ListCoreNetworks"
 			],
 			"Resource": "*"
 		}

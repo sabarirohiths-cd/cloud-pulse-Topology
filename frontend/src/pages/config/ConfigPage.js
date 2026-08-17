@@ -126,7 +126,7 @@ export default function ConfigPage() {
   };
 
   return (
-    <div className="space-y-5 w-full">
+    <div className="space-y-5 w-full h-full overflow-y-auto p-6">
       <div className="flex items-center justify-between">
         <div><h1 className="text-2xl font-bold">Cloud Configuration</h1><p className="text-sm text-zinc-500">Add AWS, Azure, or GCP credentials for resource discovery</p></div>
         <button onClick={() => { setShowForm(!showForm); if (showForm) setProviderForm(initialProviderForm); }} className="flex items-center gap-2 px-4 py-2 text-xs font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700">

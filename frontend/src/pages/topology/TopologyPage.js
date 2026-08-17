@@ -1,46 +1,30 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { 
-  ReactFlow, 
-  MiniMap, 
-  Controls, 
-  Background, 
-  useNodesState, 
-  useEdgesState,
-  ReactFlowProvider
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
 import { toast } from 'sonner';
 import { scanTopology, getSampleTopology } from '../../api/topology';
-import { transformTopologyToGraph } from '../../utils/topologyLayout';
-import VpcNode from '../../components/topology/nodes/VpcNode';
-import SubnetNode from '../../components/topology/nodes/SubnetNode';
-import ResourceNode from '../../components/topology/nodes/ResourceNode';
+import { listConfigs } from '../../api/config';
 import TopologyDetailModal from '../../components/topology/TopologyDetailModal';
 import ScanConfigurationModal from '../../components/topology/ScanConfigurationModal';
 import InfrastructureTreeView from '../../components/topology/InfrastructureTreeView';
-import CanvasController from '../../components/topology/CanvasController';
+import TopologyDashboard from '../../components/topology/TopologyDashboard';
 
 export default function TopologyPage() {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [loading, setLoading] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [globals, setGlobals] = useState(null);
   
-  const [viewRegion, setViewRegion] = useState('ALL');
+  const [viewRegion, setViewRegion] = useState('');
+  const [viewProvider, setViewProvider] = useState('');
+  const [availableProviders, setAvailableProviders] = useState([]);
+  const [viewAccount, setViewAccount] = useState('');
+  const [availableAccounts, setAvailableAccounts] = useState([]);
+  const [configs, setConfigs] = useState([]);
   const [showScanModal, setShowScanModal] = useState(false);
   const [availableRegions, setAvailableRegions] = useState([]);
   const [rawTopologyData, setRawTopologyData] = useState(null);
   
   const [focusedNodeId, setFocusedNodeId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const nodeTypes = useMemo(() => ({
-    vpcNode: VpcNode,
-    subnetNode: SubnetNode,
-    resourceNode: ResourceNode
-  }), []);
 
   const loadData = useCallback(async (isLive = false, regions = ['ap-south-1']) => {
     setLoading(true);
@@ -50,6 +34,10 @@ export default function TopologyPage() {
       
       const extractedRegions = topologyData.Regions ? Object.keys(topologyData.Regions) : [];
       setAvailableRegions(extractedRegions);
+      if (extractedRegions.length > 0) {
+        setViewRegion(prev => extractedRegions.includes(prev) ? prev : extractedRegions[0]);
+      }
+      
       setRawTopologyData(topologyData);
       
       toast.success(isLive ? 'Live scan complete!' : 'Loaded sample topology.');
@@ -62,13 +50,47 @@ export default function TopologyPage() {
   }, []);
 
   useEffect(() => {
-    if (rawTopologyData) {
-      const { nodes: layoutedNodes, edges: layoutedEdges, globalResources } = transformTopologyToGraph(rawTopologyData, viewRegion);
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
-      setGlobals(globalResources);
+    async function fetchConfigs() {
+      try {
+        const res = await listConfigs();
+        const confs = res.data?.configs || [];
+        setConfigs(confs);
+        
+        const providers = [...new Set(confs.map(c => c.provider.toUpperCase()))];
+        if (providers.length > 0) {
+          setAvailableProviders(providers);
+          setViewProvider(providers[0]);
+        }
+      } catch (error) {
+        console.error("Failed to load configs", error);
+      }
     }
-  }, [rawTopologyData, viewRegion, setNodes, setEdges]);
+    fetchConfigs();
+  }, []);
+
+  useEffect(() => {
+    if (configs.length > 0 && viewProvider) {
+      const accountsForProvider = configs
+        .filter(c => c.provider.toUpperCase() === viewProvider)
+        .map(c => c.account_name);
+      
+      setAvailableAccounts(accountsForProvider);
+      if (accountsForProvider.length > 0) {
+        setViewAccount(accountsForProvider[0]);
+      } else {
+        setViewAccount('');
+      }
+    } else {
+      setAvailableAccounts([]);
+      setViewAccount('');
+    }
+  }, [viewProvider, configs]);
+
+  useEffect(() => {
+    if (rawTopologyData) {
+      setGlobals(rawTopologyData.GlobalResources || null);
+    }
+  }, [rawTopologyData]);
 
   useEffect(() => {
     loadData(false);
@@ -85,21 +107,48 @@ export default function TopologyPage() {
         </div>
         
         <div className="flex items-center gap-4">
-          {availableRegions.length > 0 && (
+          <div className="flex items-center space-x-4">
+            
             <div className="flex items-center space-x-2">
-              <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Region:</label>
+              <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Provider:</label>
               <select 
-                value={viewRegion} 
-                onChange={(e) => setViewRegion(e.target.value)}
+                value={viewProvider} 
+                onChange={(e) => setViewProvider(e.target.value)}
                 className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
               >
-                <option value="ALL">ALL Regions</option>
-                {availableRegions.map(r => (
-                  <option key={r} value={r}>{r}</option>
+                {availableProviders.map(p => (
+                  <option key={p} value={p}>{p}</option>
                 ))}
               </select>
             </div>
-          )}
+            <div className="flex items-center space-x-2">
+              <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Account:</label>
+              <select 
+                value={viewAccount} 
+                onChange={(e) => setViewAccount(e.target.value)}
+                className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
+              >
+                {availableAccounts.map(a => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            </div>
+
+            {availableRegions.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Region:</label>
+                <select 
+                  value={viewRegion} 
+                  onChange={(e) => setViewRegion(e.target.value)}
+                  className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
+                >
+                  {availableRegions.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
 
           <div className="h-6 w-px bg-[#2d333b] mx-1"></div>
 
@@ -164,36 +213,15 @@ export default function TopologyPage() {
           />
         )}
 
-        <div className="flex-1 relative">
-          <ReactFlowProvider>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              onNodeClick={(e, node) => {
-                setSelectedNode(node);
-                setFocusedNodeId(node.id);
-              }}
-              fitView
-              className="bg-[#0a0a0f]"
-              defaultEdgeOptions={{ 
-                style: { stroke: '#4b5563', strokeWidth: 2 },
-                animated: true 
-              }}
-            >
-              <Background color="#1e232b" gap={16} />
-              <Controls className="bg-[#1a1d24] border-[#2d333b] fill-gray-400" />
-              <MiniMap 
-                nodeStrokeColor="#2d333b"
-                nodeColor="#1a1d24"
-                maskColor="rgba(10, 10, 15, 0.7)"
-                style={{ backgroundColor: '#0e1015' }}
-              />
-              <CanvasController focusedNodeId={focusedNodeId} />
-            </ReactFlow>
-          </ReactFlowProvider>
+        <div className="flex-1 relative min-h-0">
+          <TopologyDashboard 
+            data={rawTopologyData} 
+            viewRegion={viewRegion} 
+            onNodeClick={(node) => {
+              setSelectedNode(node);
+              setFocusedNodeId(node.id);
+            }} 
+          />
           {loading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0a0a0f] bg-opacity-80 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-4">

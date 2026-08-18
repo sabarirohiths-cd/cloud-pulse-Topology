@@ -1,18 +1,19 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { scanTopology, getSampleTopology } from '../../api/topology';
 import { listConfigs } from '../../api/config';
-import TopologyDetailModal from '../../components/topology/TopologyDetailModal';
-import ScanConfigurationModal from '../../components/topology/ScanConfigurationModal';
-import InfrastructureTreeView from '../../components/topology/InfrastructureTreeView';
-import TopologyDashboard from '../../components/topology/TopologyDashboard'; // Trigger rebuild
+import TopologyDetailModal from './components/TopologyDetailModal';
+import ScanConfigurationModal from './components/ScanConfigurationModal';
+import InfrastructureTreeView from './components/InfrastructureTreeView';
+import TopologyDashboard from './components/TopologyDashboard';
+import { FilterBar } from '../../components/ui/FilterBar';
 
 export default function TopologyPage() {
   const [loading, setLoading] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [globals, setGlobals] = useState(null);
-  
+
   const [viewRegion, setViewRegion] = useState('');
   const [viewProvider, setViewProvider] = useState('');
   const [availableProviders, setAvailableProviders] = useState([]);
@@ -22,25 +23,96 @@ export default function TopologyPage() {
   const [showScanModal, setShowScanModal] = useState(false);
   const [availableRegions, setAvailableRegions] = useState([]);
   const [rawTopologyData, setRawTopologyData] = useState(null);
-  
+
   const [focusedNodeId, setFocusedNodeId] = useState(null);
+  const [drillDownState, setDrillDownState] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [currentVpcIndex, setCurrentVpcIndex] = useState(0);
+
+  const handleSidebarSelect = (payload) => {
+    if (!payload || typeof payload !== 'object') {
+      setFocusedNodeId(payload);
+      return;
+    }
+    
+    if (payload.drillParent) {
+      // It's a VPC resource: auto drill-down and glow, but DON'T open the modal
+      setDrillDownState(payload.drillParent);
+      setSelectedNode(null);
+    } else {
+      // It's a Global resource (not on canvas): close drill-down, open the modal
+      setDrillDownState(null);
+      setSelectedNode(payload.node);
+    }
+    
+    setTimeout(() => {
+      setFocusedNodeId(payload.node.id);
+    }, 100);
+  };
+
+  useEffect(() => {
+    setCurrentVpcIndex(0);
+  }, [viewRegion]);
+
+  // Reset scroll position when entering/exiting drill-down
+  useEffect(() => {
+    const container = document.getElementById('dashboard-scroll-container');
+    if (container) {
+      container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [drillDownState]);
+
+  // Scroll into view and flash when a node is focused via the sidebar
+  useEffect(() => {
+    if (focusedNodeId) {
+      // Small delay to ensure the DOM has updated (if switching VPCs)
+      setTimeout(() => {
+        const el = document.getElementById(focusedNodeId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          // Add a temporary purple glow effect to highlight it
+          el.classList.add('shadow-[0_0_25px_rgba(168,85,247,0.8)]', 'border-purple-400', 'bg-purple-900/20');
+          setTimeout(() => {
+            el.classList.remove('shadow-[0_0_25px_rgba(168,85,247,0.8)]', 'border-purple-400', 'bg-purple-900/20');
+            setFocusedNodeId(null);
+          }, 2000);
+        } else {
+          // In case it wasn't found, still reset it so we can try again later
+          setFocusedNodeId(null);
+        }
+      }, 50);
+    }
+  }, [focusedNodeId, currentVpcIndex]);
+
+  let filteredDataForTree = { GlobalResources: null, Regions: {} };
+  if (rawTopologyData) {
+    filteredDataForTree.GlobalResources = rawTopologyData.GlobalResources;
+    if (rawTopologyData.Regions) {
+      let targetRegions = viewRegion === 'ALL' ? Object.values(rawTopologyData.Regions) : (rawTopologyData.Regions[viewRegion] ? [rawTopologyData.Regions[viewRegion]] : []);
+      const allVpcs = targetRegions.flat();
+      if (allVpcs.length > currentVpcIndex) {
+        const activeVpc = allVpcs[currentVpcIndex];
+        filteredDataForTree.Regions[viewRegion === 'ALL' ? 'Selected Region' : viewRegion] = [activeVpc];
+      }
+    }
+  }
 
   const loadData = useCallback(async (isLive = false, regions = ['ap-south-1']) => {
     setLoading(true);
     try {
       const response = isLive ? await scanTopology(regions) : await getSampleTopology();
       const topologyData = response.data || {};
-      
+
       const extractedRegions = topologyData.Regions ? Object.keys(topologyData.Regions) : [];
       setAvailableRegions(extractedRegions);
       if (extractedRegions.length > 0) {
         setViewRegion(prev => extractedRegions.includes(prev) ? prev : extractedRegions[0]);
       }
-      
+
       setRawTopologyData(topologyData);
-      
-      toast.success(isLive ? 'Live scan complete!' : 'Loaded sample topology.');
+      if (isLive) {
+        toast.success('Live scan complete!');
+      }
     } catch (error) {
       toast.error('Failed to load topology: ' + error.message);
     } finally {
@@ -55,7 +127,7 @@ export default function TopologyPage() {
         const res = await listConfigs();
         const confs = res.data?.configs || [];
         setConfigs(confs);
-        
+
         const providers = [...new Set(confs.map(c => c.provider.toUpperCase()))];
         if (providers.length > 0) {
           setAvailableProviders(providers);
@@ -73,7 +145,7 @@ export default function TopologyPage() {
       const accountsForProvider = configs
         .filter(c => c.provider.toUpperCase() === viewProvider)
         .map(c => c.account_name);
-      
+
       setAvailableAccounts(accountsForProvider);
       if (accountsForProvider.length > 0) {
         setViewAccount(accountsForProvider[0]);
@@ -98,106 +170,89 @@ export default function TopologyPage() {
 
   return (
     <div className="flex flex-col h-full w-full bg-[#0a0a0f] text-gray-200 overflow-hidden relative">
-      
-      {/* Global Page Header */}
-      <div className="px-6 py-5 border-b border-[#1e232b] bg-[#0a0a0f] flex items-center justify-between z-30 flex-shrink-0 shadow-sm">
-        <div>
-          <h1 className="text-2xl font-bold text-[#e4e4e7] tracking-tight">AWS Infrastructure Topology</h1>
-          <p className="text-sm text-zinc-500 mt-1">Interactive visual map of your cloud environment</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-4">
-            
-            <div className="flex items-center space-x-2">
-              <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Provider:</label>
-              <select 
-                value={viewProvider} 
-                onChange={(e) => setViewProvider(e.target.value)}
-                className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
-              >
-                {availableProviders.map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Account:</label>
-              <select 
-                value={viewAccount} 
-                onChange={(e) => setViewAccount(e.target.value)}
-                className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
-              >
-                {availableAccounts.map(a => (
-                  <option key={a} value={a}>{a}</option>
-                ))}
-              </select>
-            </div>
 
-            {availableRegions.length > 0 && (
-              <div className="flex items-center space-x-2">
-                <label className="text-zinc-500 text-xs uppercase tracking-wider font-medium">Region:</label>
-                <select 
-                  value={viewRegion} 
-                  onChange={(e) => setViewRegion(e.target.value)}
-                  className="bg-[#1a1d24] text-white border border-[#2d333b] rounded-lg py-1.5 px-3 text-xs outline-none focus:border-blue-500 transition-colors"
-                >
-                  {availableRegions.map(r => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              </div>
+      {/* Global Page Header */}
+      <div className="px-6 py-5 border-b border-[#1e232b] bg-[#0a0a0f] flex flex-col z-30 flex-shrink-0 shadow-sm gap-5">
+
+        {/* Title Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {viewProvider && (
+              <img src={`/${viewProvider.toLowerCase()}-logo.svg`} alt="" className="h-10 w-10 object-contain shrink-0" />
             )}
+            <div>
+              <h1 className="text-xl font-semibold flex items-center gap-3 text-[#e4e4e7] tracking-tight">
+                {viewProvider || 'Cloud'} - Infrastructure Topology ({viewAccount || 'None'})
+              </h1>
+              <p className="text-[11px] text-[#a1a1aa] mt-1">Interactive visual map of your cloud environment</p>
+            </div>
           </div>
 
-          <div className="h-6 w-px bg-[#2d333b] mx-1"></div>
-
-          <button 
-            onClick={() => loadData(false)}
-            disabled={loading}
-            className="px-4 py-2 bg-[#1a1d24] text-zinc-300 rounded-lg text-xs font-medium hover:bg-[#2d333b] hover:text-white transition-colors border border-[#2d333b]"
-          >
-            Load Mock Data
-          </button>
-          <button 
-            onClick={() => setShowScanModal(true)}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-500 transition-colors flex items-center gap-2 shadow-lg shadow-blue-900/20"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowScanModal(true)}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 text-[11px] uppercase tracking-wider font-semibold bg-transparent border border-zinc-700 text-zinc-300 rounded-md hover:bg-zinc-800 disabled:opacity-50 transition-colors"
+            >
+              {loading ? (
+                <svg className="animate-spin h-3 w-3 text-zinc-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Scanning...
-              </>
-            ) : (
-              'Live Scan'
-            )}
-          </button>
+              ) : (
+                <Zap className="h-3 w-3" />
+              )}
+              {loading ? 'Scanning...' : 'Scan Now'}
+            </button>
+          </div>
         </div>
+
+        {/* Filter Bar */}
+        <FilterBar
+          filters={[
+            {
+              label: "Provider:",
+              value: viewProvider,
+              onChange: setViewProvider,
+              options: availableProviders.map(p => ({ label: p, value: p })),
+              width: "max-w-[110px]"
+            },
+            {
+              label: "Account:",
+              value: viewAccount,
+              onChange: setViewAccount,
+              options: availableAccounts.map(a => ({ label: a, value: a })),
+              width: "max-w-[150px]"
+            },
+            ...(availableRegions.length > 0 ? [{
+              label: "Region:",
+              value: viewRegion,
+              onChange: setViewRegion,
+              options: availableRegions.map(r => ({ label: r, value: r })),
+              width: "max-w-[120px]"
+            }] : [])
+          ]}
+        />
       </div>
 
       {/* Workspace Area */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar: Infrastructure Tree View */}
-        <aside 
-          className={`border-r border-[#1e232b] bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out ${
-            isSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full opacity-0 overflow-hidden border-none'
-          }`}
+        <aside
+          className={`border-r border-[#1e232b] bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full opacity-0 overflow-hidden border-none'
+            }`}
         >
           <div className="w-72 h-full flex flex-col">
-            <InfrastructureTreeView data={rawTopologyData} onNodeSelect={setFocusedNodeId} />
+            <InfrastructureTreeView data={filteredDataForTree} onNodeSelect={handleSidebarSelect} />
           </div>
         </aside>
 
         {/* Right Main Area: React Flow Canvas */}
         <main className={`flex flex-col relative transition-all duration-300 ease-in-out flex-1 bg-[#0a0a0f]`}>
-          
+
           {/* Floating Sidebar Toggle on the Canvas */}
           <div className="absolute top-4 left-4 z-10">
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               className="p-2 text-gray-400 hover:text-white hover:bg-[#2d333b] bg-[#1a1d24]/80 backdrop-blur border border-[#2d333b] rounded-lg transition-colors flex items-center justify-center focus:outline-none shadow-md"
               title={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
@@ -205,40 +260,43 @@ export default function TopologyPage() {
               {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
             </button>
           </div>
-        
-        {showScanModal && (
-          <ScanConfigurationModal 
-            onClose={() => setShowScanModal(false)}
-            onStartScan={(regions) => loadData(true, regions)}
-          />
-        )}
 
-        <div className="flex-1 relative min-h-0">
-          <TopologyDashboard 
-            data={rawTopologyData} 
-            viewRegion={viewRegion} 
-            onNodeClick={(node) => {
-              setSelectedNode(node);
-              setFocusedNodeId(node.id);
-            }} 
-          />
-          {loading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0a0a0f] bg-opacity-80 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                <div className="text-white font-medium">Scanning AWS Infrastructure...</div>
-              </div>
-            </div>
+          {showScanModal && (
+            <ScanConfigurationModal
+              onClose={() => setShowScanModal(false)}
+              onStartScan={(regions) => loadData(true, regions)}
+            />
           )}
-        </div>
+
+          <div className="flex-1 relative min-h-0">
+            <TopologyDashboard
+              data={rawTopologyData}
+              viewRegion={viewRegion}
+              currentVpcIndex={currentVpcIndex}
+              setCurrentVpcIndex={setCurrentVpcIndex}
+              drillDownState={drillDownState}
+              setDrillDownState={setDrillDownState}
+              onNodeClick={(node) => {
+                setSelectedNode(node);
+              }}
+            />
+            {loading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0a0a0f] bg-opacity-80 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500"></div>
+                  <div className="text-white font-medium">Scanning AWS Infrastructure...</div>
+                </div>
+              </div>
+            )}
+          </div>
         </main>
       </div>
 
       {/* Render Modal Outside Flex to overlay everything */}
       {selectedNode && (
-        <TopologyDetailModal 
-          node={selectedNode} 
-          onClose={() => setSelectedNode(null)} 
+        <TopologyDetailModal
+          node={selectedNode}
+          onClose={() => setSelectedNode(null)}
           globalResources={globals}
         />
       )}

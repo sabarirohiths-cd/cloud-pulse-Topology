@@ -14,8 +14,31 @@ class DatabaseMixin(BaseTopologyBuilder):
                     'DBInstanceStatus': db.get('DBInstanceStatus'),
                     'Endpoint': db.get('Endpoint', {}).get('Address')
                 })
-        except Exception:
-            pass
+                
+            cluster_resp = self.rds.describe_db_clusters()
+            for cluster in cluster_resp.get('DBClusters', []):
+                sub_group = cluster.get('DBSubnetGroup', {})
+                vpc_id = None
+                if isinstance(sub_group, dict):
+                    vpc_id = sub_group.get('VpcId')
+                elif isinstance(sub_group, str):
+                    try:
+                        g_info = self.rds.describe_db_subnet_groups(DBSubnetGroupName=sub_group)
+                        vpc_id = g_info.get('DBSubnetGroups', [{}])[0].get('VpcId')
+                    except Exception:
+                        pass
+                
+                # Some serverless clusters don't have VPC networking enabled directly
+                # but users expect to see them. Let mapper handle it or fallback later.
+                self.raw_data['RDSInstances'].append({
+                    'VpcId': vpc_id or "FALLBACK_TO_FIRST_VPC",
+                    'DBClusterIdentifier': cluster.get('DBClusterIdentifier'),
+                    'Engine': cluster.get('Engine'),
+                    'DBInstanceStatus': cluster.get('Status'),
+                    'Endpoint': cluster.get('Endpoint')
+                })
+        except Exception as e:
+            print(f"Error fetching RDS: {e}")
 
     def _fetch_elasticache(self):
         print("Fetching ElastiCache...")

@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Server, Database, Zap, Activity, Cloud, Network } from 'lucide-react';
+import { getIcon, getColorClasses } from '../../../utils/iconMap';
 
 const colorizeJson = (jsonObj) => {
   if (!jsonObj) return '';
@@ -15,7 +16,7 @@ const colorizeJson = (jsonObj) => {
     coloredLine = coloredLine.replace(/"([^"]+)":/g, '<span class="text-sky-300">"$1"</span>:');
     coloredLine = coloredLine.replace(/: "([^"]*)"/g, ': <span class="text-zinc-100">"$1"</span>');
     coloredLine = coloredLine.replace(/: (-?\d+\.?\d*)/g, ': <span class="text-emerald-300">$1</span>');
-    coloredLine = coloredLine.replace(/: (true|false|null)/g, ': <span class="text-purple-400 font-medium">$1</span>');
+    coloredLine = coloredLine.replace(/: (true|false|null)/g, ': <span class="text-sky-400 font-medium">$1</span>');
 
     return (
       <div key={i} className="table-row">
@@ -36,17 +37,18 @@ export default function TopologyDetailModal({ node, onClose }) {
   if (!node) return null;
   const data = node.data || {};
   const type = data.type || 'Resource';
-  
-  const getIcon = () => {
-    if (type === 'VPC') return <Cloud className="w-5 h-5 text-purple-400" />;
-    if (type === 'Subnet') return <Network className="w-5 h-5 text-blue-400" />;
-    if (type === 'EC2' || type === 'Instance') return <Server className="w-5 h-5 text-green-400" />;
-    if (type === 'RDS' || type === 'RDSInstance') return <Database className="w-5 h-5 text-blue-400" />;
-    if (type === 'Lambda' || type === 'LambdaFunction') return <Zap className="w-5 h-5 text-orange-400" />;
-    return <Activity className="w-5 h-5 text-gray-400" />;
-  };
+  const colors = getColorClasses(type);
 
   const formatKey = (key) => key.replace(/([A-Z])/g, ' $1').trim();
+  
+  const getLayer = (key) => {
+    if (['Subnets', 'RouteTables', 'InternetGateways', 'NatGateways', 'TransitGatewayAttachments', 'CustomerGateways', 'VpnConnections'].includes(key)) return 'Network & Edge Layer';
+    if (['RDSInstances', 'ElastiCacheNodes', 'DynamoDBTables', 'RedshiftClusters', 'NeptuneClusters'].includes(key)) return 'Data Layer';
+    if (['SecurityGroups', 'NetworkAcls', 'NetworkFirewalls'].includes(key)) return 'Security Layer';
+    if (['Name', 'CidrBlock', 'State', 'IsDefault', 'InstanceTenancy', 'DhcpOptionsId'].includes(key)) return 'VPC Configuration';
+    return 'Other Resources';
+  };
+  
   
   const renderValue = (key, value) => {
     if (value === null || value === undefined) return <span className="text-gray-500 italic">None</span>;
@@ -57,10 +59,21 @@ export default function TopologyDetailModal({ node, onClose }) {
       if (Array.isArray(value)) {
         if (value.length === 0) return <span className="text-gray-500 italic">Empty</span>;
         
-        // If it's an array of objects (like SecurityGroups, Rules, Subnets), render as a table
+        // If it's an array of objects (like SecurityGroups, Rules, Subnets)
         if (typeof value[0] === 'object' && value[0] !== null) {
+          if (type === 'VPC') {
+            return (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="bg-[#1c2128] px-2 py-1 rounded text-xs border border-[#2d333b] text-purple-400 font-bold">
+                  {value.length} Resources
+                </span>
+                <span className="text-gray-500 text-[10px] italic">View in Dashboard</span>
+              </div>
+            );
+          }
+          
+          // Render as a table for everything else
           const allKeys = Array.from(new Set(value.flatMap(item => Object.keys(item))));
-          // Filter out complex nested arrays/objects for the table headers to keep it clean
           const displayKeys = allKeys.filter(k => typeof value[0][k] !== 'object' || Array.isArray(value[0][k]));
           
           return (
@@ -136,13 +149,13 @@ export default function TopologyDetailModal({ node, onClose }) {
             <div className="px-4 py-3 bg-[#131315] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-[#1c2128] p-2 rounded-lg border border-[#26262b]">
-                  {getIcon()}
+                  {getIcon(type, 20)}
                 </div>
                 <div>
                   <h2 className="text-[13px] font-bold text-zinc-100 truncate max-w-[300px]">
                     {data.label || 'Resource Details'}
                   </h2>
-                  <p className="text-[11px] text-zinc-500 mt-0.5 uppercase tracking-wider font-semibold">
+                  <p className={`text-[11px] ${colors.text} opacity-80 mt-0.5 uppercase tracking-wider font-semibold`}>
                     {type}
                   </p>
                 </div>
@@ -179,24 +192,60 @@ export default function TopologyDetailModal({ node, onClose }) {
             <div className="p-4 overflow-y-auto bg-[#0a0a0f] flex-1 min-h-0">
               {activeTab === 'overview' ? (
                 <div className="grid grid-cols-2 gap-3">
-                  {Object.entries(data)
-                    .filter(([key, value]) => {
-                      if (['label', 'type', 'Id', 'VpcId', 'SubnetId'].includes(key)) return false;
-                      if (value === null || value === undefined || value === '') return false;
-                      if (Array.isArray(value) && value.length === 0) return false;
-                      return true;
-                    })
-                    .map(([key, value]) => {
-                      const isComplex = typeof value === 'object' && value !== null;
-                      return (
-                        <div key={key} className={`bg-[#161b22] p-3 rounded-xl border border-[#26262b] shadow-sm ${isComplex ? 'col-span-2' : 'col-span-1'}`}>
-                          <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1 block">{formatKey(key)}</label>
-                          <div className="text-[12px] font-bold text-zinc-200">
-                            {renderValue(key, value)}
+                  {type === 'VPC' ? (
+                    (() => {
+                      const layers = {};
+                      Object.entries(data).forEach(([key, value]) => {
+                        if (['label', 'type', 'Id', 'VpcId', 'SubnetId', 'Tags'].includes(key)) return;
+                        if (value === null || value === undefined || value === '') return;
+                        if (Array.isArray(value) && value.length === 0) return;
+                        
+                        const layerName = getLayer(key);
+                        if (!layers[layerName]) layers[layerName] = [];
+                        layers[layerName].push({ key, value });
+                      });
+                      
+                      return Object.entries(layers)
+                        .sort(([a], [b]) => a.localeCompare(b))
+                        .map(([layerName, items]) => (
+                          <div key={layerName} className="col-span-2 mb-2">
+                            <h3 className="text-purple-400 text-[11px] uppercase tracking-wider font-bold mb-3 border-b border-zinc-800 pb-1">{layerName}</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                              {items.map(({key, value}) => {
+                                const isComplex = typeof value === 'object' && value !== null;
+                                return (
+                                  <div key={key} className={`bg-[#161b22] p-3 rounded-xl border border-[#26262b] shadow-sm ${isComplex ? 'col-span-2' : 'col-span-1'}`}>
+                                    <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1 block">{formatKey(key)}</label>
+                                    <div className="text-[12px] font-bold text-zinc-200">
+                                      {renderValue(key, value)}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                      ));
+                    })()
+                  ) : (
+                    Object.entries(data)
+                      .filter(([key, value]) => {
+                        if (['label', 'type', 'Id', 'VpcId', 'SubnetId'].includes(key)) return false;
+                        if (value === null || value === undefined || value === '') return false;
+                        if (Array.isArray(value) && value.length === 0) return false;
+                        return true;
+                      })
+                      .map(([key, value]) => {
+                        const isComplex = typeof value === 'object' && value !== null;
+                        return (
+                          <div key={key} className={`bg-[#161b22] p-3 rounded-xl border border-[#26262b] shadow-sm ${isComplex ? 'col-span-2' : 'col-span-1'}`}>
+                            <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1 block">{formatKey(key)}</label>
+                            <div className="text-[12px] font-bold text-zinc-200">
+                              {renderValue(key, value)}
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
                 </div>
               ) : (
                 <div className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f]">

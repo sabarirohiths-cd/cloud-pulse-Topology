@@ -60,19 +60,46 @@ class TopologyService:
         return topology_data
 
     def get_sample_topology(self):
-        # Read from output/final_complete_topology.json
-        output_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'output', 'final_complete_topology.json')
-        try:
-            with open(output_file, 'r') as f:
-                data = json.load(f)
-                if isinstance(data, list):
-                    return {
-                        "Regions": {
-                            "ap-south-1": data
-                        },
-                        "GlobalResources": {}
-                    }
-                return data
-        except Exception as e:
-            print(f"Failed to read sample topology: {e}")
-            return {}
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'output')
+        mock_file = os.path.join(output_dir, 'mock_enterprise_topology.json')
+        live_file = os.path.join(output_dir, 'final_complete_topology.json')
+        
+        merged_regions = {}
+        merged_global = {}
+        
+        # Load mock data
+        if os.path.exists(mock_file):
+            try:
+                with open(mock_file, 'r') as f:
+                    mock_data = json.load(f)
+                    if isinstance(mock_data, dict) and "Regions" in mock_data:
+                        for region, vpcs in mock_data["Regions"].items():
+                            merged_regions.setdefault(region, []).extend(vpcs)
+                    if isinstance(mock_data, dict) and "GlobalResources" in mock_data:
+                        for res_type, resources in mock_data["GlobalResources"].items():
+                            merged_global.setdefault(res_type, []).extend(resources)
+                    elif isinstance(mock_data, list):
+                        merged_regions.setdefault("ap-south-1", []).extend(mock_data)
+            except Exception as e:
+                print(f"Failed to read mock topology: {e}")
+
+        # Load live scanned data
+        if os.path.exists(live_file):
+            try:
+                with open(live_file, 'r') as f:
+                    live_data = json.load(f)
+                    if isinstance(live_data, dict) and "Regions" in live_data:
+                        for region, vpcs in live_data["Regions"].items():
+                            merged_regions.setdefault(region, []).extend(vpcs)
+                    if isinstance(live_data, dict) and "GlobalResources" in live_data:
+                        for res_type, resources in live_data["GlobalResources"].items():
+                            merged_global.setdefault(res_type, []).extend(resources)
+                    elif isinstance(live_data, list):
+                        merged_regions.setdefault("ap-south-1", []).extend(live_data)
+            except Exception as e:
+                print(f"Failed to read live topology: {e}")
+                
+        return {
+            "Regions": merged_regions,
+            "GlobalResources": merged_global
+        }

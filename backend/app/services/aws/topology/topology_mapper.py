@@ -142,7 +142,11 @@ class TopologyMapper:
                 
         for rds in self.raw.get('RDSInstances', []):
             vpc_id = rds.pop('VpcId', None)
-            if vpc_id in self.vpcs:
+            if vpc_id == "FALLBACK_TO_FIRST_VPC":
+                if self.vpcs:
+                    first_vpc_id = list(self.vpcs.keys())[0]
+                    self.vpcs[first_vpc_id]['RDSInstances'].append(rds)
+            elif vpc_id in self.vpcs:
                 self.vpcs[vpc_id]['RDSInstances'].append(rds)
                 
         for eigw in self.raw.get('EgressOnlyInternetGateways', []):

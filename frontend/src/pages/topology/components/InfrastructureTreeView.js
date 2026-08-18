@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  ChevronRight, 
-  ChevronDown, 
-  Globe, 
-  Server, 
-  Database, 
-  Shield, 
-  Network, 
-  Cloud, 
-  Lock, 
-  Box, 
-  HardDrive,
-  FolderOpen
+import { getIcon } from '../../../utils/iconMap';
+import {
+  ChevronRight,
+  ChevronDown,
+  FolderOpen,
+  Globe
 } from 'lucide-react';
 
 // Reusable ID extractor to guarantee sync with Canvas
@@ -39,30 +32,11 @@ const getResourceId = (resource, key) => {
   if (singularId) return singularId;
   if (resource.Name) return resource.Name;
   if (resource.Arn) return resource.Arn;
-  return `res-${Math.random()}`; 
-};
-
-// Map resource keys to beautiful Lucide icons
-const getIcon = (key) => {
-  const iconMap = {
-    'Instances': <Server size={14} className="text-blue-400" />,
-    'RDSInstances': <Database size={14} className="text-green-400" />,
-    'SecurityGroups': <Shield size={14} className="text-red-400" />,
-    'NetworkAcls': <Lock size={14} className="text-red-300" />,
-    'LoadBalancers': <Network size={14} className="text-purple-400" />,
-    'S3Buckets': <HardDrive size={14} className="text-yellow-400" />,
-    'CloudFrontDistributions': <Cloud size={14} className="text-blue-300" />,
-    'IAMRoles': <Shield size={14} className="text-orange-400" />,
-    'VPCs': <Box size={14} className="text-purple-500" />,
-    'Subnets': <Network size={14} className="text-blue-500" />,
-    'RouteTables': <Network size={14} className="text-cyan-400" />,
-    'InternetGateways': <Globe size={14} className="text-indigo-400" />
-  };
-  return iconMap[key] || <Box size={14} className="text-gray-400" />;
+  return `res-${Math.random()}`;
 };
 
 // Recursive Tree Node Component
-const TreeNode = ({ label, id, icon, children, onNodeSelect, defaultExpanded = false, isResource = false }) => {
+const TreeNode = ({ label, id, icon, children, onNodeSelect, defaultExpanded = false, isResource = false, fullNodeData }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const hasChildren = children && children.length > 0;
 
@@ -71,32 +45,33 @@ const TreeNode = ({ label, id, icon, children, onNodeSelect, defaultExpanded = f
     if (hasChildren && !isResource) {
       setIsExpanded(!isExpanded);
     }
-    if (isResource && id) {
+    if (isResource && onNodeSelect && fullNodeData) {
+      onNodeSelect(fullNodeData);
+    } else if (isResource && onNodeSelect && id) {
       onNodeSelect(id);
     }
   };
 
   return (
     <div className="select-none">
-      <div 
+      <div
         onClick={handleClick}
-        className={`flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer transition-colors ${
-          isResource ? 'hover:bg-[#2d333b] text-gray-300' : 'hover:bg-[#1a1d24] text-gray-200 font-medium'
-        }`}
+        className={`flex items-center gap-2 py-1.5 px-2 rounded cursor-pointer transition-colors ${isResource ? 'hover:bg-[#2d333b] text-gray-300' : 'hover:bg-[#1a1d24] text-gray-200 font-medium'
+          }`}
       >
         <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 text-gray-500">
           {hasChildren && !isResource ? (
             isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />
           ) : null}
         </div>
-        
+
         {icon && <div className="flex items-center justify-center flex-shrink-0 w-4 h-4">{icon}</div>}
-        
+
         <span className={`text-sm truncate leading-tight ${isResource ? 'opacity-90' : ''}`}>
           {label}
         </span>
       </div>
-      
+
       {hasChildren && isExpanded && (
         <div className="ml-4 pl-2 border-l border-[#2d333b] mt-1 flex flex-col gap-0.5">
           {children.map((child, index) => (
@@ -137,7 +112,17 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
         const name = res.Name || res.GroupName || res.AutoScalingGroupName || res.ClusterName || res.RoleName || res.DistributionId || res.BucketName || id;
         return {
           id,
-          node: <TreeNode label={name} id={id} isResource={true} icon={getIcon(key)} onNodeSelect={onNodeSelect} />
+          node: <TreeNode 
+                  label={name} 
+                  id={id} 
+                  isResource={true} 
+                  icon={getIcon(key)} 
+                  onNodeSelect={onNodeSelect} 
+                  fullNodeData={{
+                    drillParent: null,
+                    node: { id, data: { label: name, type: key.replace(/s$/, ''), ...res } }
+                  }}
+                />
         };
       });
 
@@ -147,7 +132,7 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
       };
     });
 
-    return <TreeNode label="Global Resources" icon={<Globe size={14} className="text-blue-300" />} defaultExpanded={true} children={children} />;
+    return <TreeNode label="Global Resources" icon={<Globe size={14} className="text-sky-300" />} defaultExpanded={true} children={children} />;
   };
 
   // Parse Regions and VPCs
@@ -155,11 +140,11 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
     if (!data.Regions) return null;
     return Object.keys(data.Regions).map(regionName => {
       const vpcs = data.Regions[regionName] || [];
-      
+
       const vpcChildren = vpcs.map(vpc => {
         const vpcId = vpc.VpcId || 'Unknown VPC';
         const vpcName = vpc.Name || vpcId;
-        
+
         // 1. VPC Level Configurations (Security Groups, IGWs, Route Tables)
         const vpcConfigKeys = Object.keys(vpc).filter(k => Array.isArray(vpc[k]) && k !== 'Subnets' && vpc[k].length > 0);
         const configNodes = vpcConfigKeys.map(key => {
@@ -168,7 +153,17 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
             const name = res.Name || res.GroupName || res.AutoScalingGroupName || res.ClusterName || res.GroupId || res.RouteTableId || id;
             return {
               id,
-              node: <TreeNode label={name} id={id} isResource={true} icon={getIcon(key)} onNodeSelect={onNodeSelect} />
+              node: <TreeNode 
+                      label={name} 
+                      id={id} 
+                      isResource={true} 
+                      icon={getIcon(key)} 
+                      onNodeSelect={onNodeSelect} 
+                      fullNodeData={{
+                        drillParent: { type: key, title: key, drillData: vpc[key] },
+                        node: { id, data: { label: name, type: key.replace(/s$/, ''), ...res } }
+                      }}
+                    />
             };
           });
           return {
@@ -181,7 +176,7 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
         const subnets = vpc.Subnets || [];
         const subnetNodes = subnets.map(subnet => {
           const subnetId = subnet.SubnetId || 'Unknown Subnet';
-          
+
           const subnetResKeys = Object.keys(subnet).filter(k => Array.isArray(subnet[k]) && subnet[k].length > 0);
           const resNodes = subnetResKeys.map(key => {
             const leafNodes = subnet[key].map(res => {
@@ -189,7 +184,17 @@ export default function InfrastructureTreeView({ data, onNodeSelect }) {
               const name = res.Name || res.GroupName || res.AutoScalingGroupName || res.ClusterName || res.InstanceId || res.DBInstanceIdentifier || res.CacheClusterId || id;
               return {
                 id,
-                node: <TreeNode label={name} id={id} isResource={true} icon={getIcon(key)} onNodeSelect={onNodeSelect} />
+                node: <TreeNode 
+                        label={name} 
+                        id={id} 
+                        isResource={true} 
+                        icon={getIcon(key)} 
+                        onNodeSelect={onNodeSelect} 
+                        fullNodeData={{
+                          drillParent: { type: 'Subnet', title: subnet.Name || subnetId, drillData: subnet },
+                          node: { id, data: { label: name, type: key.replace(/s$/, ''), ...res } }
+                        }}
+                      />
               };
             });
             return {

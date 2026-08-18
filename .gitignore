@@ -23,3 +23,7 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+
+# ref
+ui-ref/*

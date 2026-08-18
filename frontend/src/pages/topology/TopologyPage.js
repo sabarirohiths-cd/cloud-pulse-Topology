@@ -6,7 +6,7 @@ import { listConfigs } from '../../api/config';
 import TopologyDetailModal from '../../components/topology/TopologyDetailModal';
 import ScanConfigurationModal from '../../components/topology/ScanConfigurationModal';
 import InfrastructureTreeView from '../../components/topology/InfrastructureTreeView';
-import TopologyDashboard from '../../components/topology/TopologyDashboard';
+import TopologyDashboard from '../../components/topology/TopologyDashboard'; // Trigger rebuild
 
 export default function TopologyPage() {
   const [loading, setLoading] = useState(false);

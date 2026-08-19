@@ -8,9 +8,9 @@ def get_topology_service():
     return TopologyService()
 
 @router.post("/scan", response_model=TopologyResponse)
-def scan_aws_topology(request: TopologyScanRequest, service: TopologyService = Depends(get_topology_service)):
+async def scan_aws_topology(request: TopologyScanRequest, service: TopologyService = Depends(get_topology_service)):
     try:
-        data = service.scan_topology(request)
+        data = await service.scan_topology(request)
         return TopologyResponse(
             status="success",
             message=f"Topology successfully scanned for regions {', '.join(request.regions)}",
@@ -19,26 +19,14 @@ def scan_aws_topology(request: TopologyScanRequest, service: TopologyService = D
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/sample", response_model=TopologyResponse)
-def get_sample_topology(service: TopologyService = Depends(get_topology_service)):
-    try:
-        data = service.get_sample_topology()
-        return TopologyResponse(
-            status="success",
-            message="Sample topology successfully retrieved",
-            data=data
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{account_id}", response_model=TopologyResponse)
-def get_topology_by_account(account_id: str, service: TopologyService = Depends(get_topology_service)):
-    # Mocking fetching a saved topology for a specific account. Here we just return sample for now.
+async def get_topology_by_account(account_id: str, service: TopologyService = Depends(get_topology_service)):
     try:
-        data = service.get_sample_topology()
+        data = await service.get_saved_topology(account_name=account_id)
         return TopologyResponse(
             status="success",
-            message=f"Topology successfully retrieved for account {account_id}",
+            message=f"Topology successfully retrieved for account {account_id} from Database",
             data=data
         )
     except Exception as e:

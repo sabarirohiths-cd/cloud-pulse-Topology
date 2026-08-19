@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import { scanTopology, getSampleTopology } from '../../api/topology';
+import { scanTopology, getTopologyByAccount } from '../../api/topology';
 import { listConfigs } from '../../api/config';
 import TopologyDetailModal from './components/TopologyDetailModal';
 import ScanConfigurationModal from './components/ScanConfigurationModal';
@@ -97,10 +97,19 @@ export default function TopologyPage() {
     }
   }
 
-  const loadData = useCallback(async (isLive = false, regions = ['ap-south-1']) => {
+  const loadData = useCallback(async (isLive = false, regions = ['ap-south-1'], accountToFetch = null) => {
     setLoading(true);
     try {
-      const response = isLive ? await scanTopology(regions) : await getSampleTopology();
+      const targetAccount = accountToFetch || viewAccount;
+      if (!targetAccount && !isLive) {
+        setLoading(false);
+        return;
+      }
+      
+      const response = isLive 
+          ? await scanTopology(targetAccount, regions) 
+          : await getTopologyByAccount(targetAccount);
+          
       const topologyData = response.data || {};
 
       const extractedRegions = topologyData.Regions ? Object.keys(topologyData.Regions) : [];
@@ -165,8 +174,15 @@ export default function TopologyPage() {
   }, [rawTopologyData]);
 
   useEffect(() => {
+    // Initial load will just fetch the default account via API
     loadData(false);
   }, [loadData]);
+
+  useEffect(() => {
+    if (viewAccount) {
+      loadData(false, ['ap-south-1'], viewAccount);
+    }
+  }, [viewAccount, loadData]);
 
   return (
     <div className="flex flex-col h-full w-full bg-[#0a0a0f] text-gray-200 overflow-hidden relative">

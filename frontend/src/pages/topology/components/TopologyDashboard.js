@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Cloud, ChevronLeft, ChevronRight } from 'lucide-react';
+import { 
+  Network, Server, Database, Lock, Globe, HardDrive, Cpu, 
+  Layers, Cloud, Workflow, Shield, ChevronLeft, ChevronRight, Activity, X, ChevronDown, Info
+} from 'lucide-react';
 
 import { getIcon, getColorClasses } from '../../../utils/iconMap';
 
@@ -120,6 +123,7 @@ const Badge = ({ resource, resourceKey, onClick }) => {
 };
 
 export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, setCurrentVpcIndex, onNodeClick, drillDownState, setDrillDownState }) {
+  const [showVpcDropdown, setShowVpcDropdown] = useState(false);
 
   if (!data || !data.Regions) {
     return (
@@ -144,6 +148,19 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
     'RDSInstances', 'ElastiCacheNodes', 'RegionalQueues', 'RedshiftClusters', 
     'DocumentDBClusters', 'MemoryDBClusters', 'OpenSearchDomains', 
     'NeptuneClusters', 'AmazonMQBrokers', 'MSKClusters'
+  ];
+
+  // Dynamic Application Flow categorizations for Subnet deep-view
+  const subnetEdgeKeys = [
+    'NatGateways', 'VpcEndpoints', 'NetworkFirewallEndpoints', 'Route53ResolverEndpoints', 'GatewayLoadBalancers', 'GWLBEndpoints'
+  ];
+  
+  const subnetComputeKeys = [
+    'Instances', 'EKSClusters', 'ECSClusters', 'LambdaFunctions', 'AutoScalingGroups', 'BatchComputeEnvironments', 'WorkSpaces', 'AppRunnerVpcConnectors', 'EMRClusters'
+  ];
+  
+  const subnetDataKeys = [
+    'ElastiCacheNodes', 'DocumentDBClusters', 'RedshiftClusters', 'SageMakerNotebooks', 'FSxFileSystems', 'OpenSearchDomains', 'NeptuneClusters', 'DirectoryServices', 'GlueConnections', 'MemoryDBClusters', 'AmazonMQBrokers', 'MSKClusters'
   ];
 
   const targetRegions = viewRegion === 'Global' 
@@ -175,12 +192,20 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
     const { type, title, drillData } = drillDownState;
     return (
       <div id="dashboard-scroll-container" className="flex flex-col gap-6 p-6 pb-24 overflow-y-auto w-full h-full custom-scrollbar bg-[#0a0a0f]">
-        <button 
-          onClick={() => setDrillDownState(null)}
-          className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors w-fit mb-2 mt-12 bg-[#161b22] px-4 py-2 rounded-lg border border-zinc-800 shadow-lg relative z-10"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back to Topology Overview
-        </button>
+        <div className="flex items-center gap-2 text-sm font-medium w-fit mb-2 mt-12 bg-[#161b22] px-4 py-2 rounded-lg border border-zinc-800 shadow-lg relative z-10">
+          <button 
+            onClick={() => setDrillDownState(null)}
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
+          >
+            <Cloud className="w-4 h-4" /> 
+            <span className="truncate max-w-[150px]">{vpc.Name || vpcId}</span>
+          </button>
+          <span className="text-zinc-600">/</span>
+          <div className="flex items-center gap-1.5 text-purple-400">
+            <span className="w-4 h-4 flex items-center justify-center">{getIcon(type, 14)}</span>
+            <span className="truncate max-w-[200px]">{title}</span>
+          </div>
+        </div>
         
         <div className={`bg-[#0e1015]/80 backdrop-blur border-[2px] ${getColorClasses(type).borderStatic} border-dashed rounded-xl flex flex-col p-6 pb-12 shadow-xl relative min-h-[500px] shrink-0`}>
            <div className="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
@@ -191,21 +216,41 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
              </div>
            </div>
            
-           {/* If Subnet, we map through its keys and render MicroCards */}
-           {type === 'Subnet' && (
-             <div className="flex flex-col gap-6">
-               {Object.keys(drillData).filter(k => Array.isArray(drillData[k]) && drillData[k].length > 0 && k !== 'Tags').map(key => (
-                 <div key={key}>
-                   <h3 className="text-zinc-400 text-sm font-bold mb-3">{key}</h3>
-                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                     {drillData[key].map(res => (
-                       <MicroCard key={getResourceId(res, key)} resource={res} resourceKey={key} onClick={onNodeClick} />
+           {/* If Subnet, we map through keys by Layer to show Application Flow */}
+           {type === 'Subnet' && (() => {
+             const renderSubnetLayer = (title, keys) => {
+               const activeKeys = keys.filter(k => Array.isArray(drillData[k]) && drillData[k].length > 0 && k !== 'Tags');
+               if (activeKeys.length === 0) return null;
+               return (
+                 <div className="mb-6 bg-[#13171e]/50 p-4 rounded-xl border border-zinc-800/50">
+                   <h3 className="text-[12px] uppercase tracking-wider text-zinc-400 font-bold mb-4 flex items-center gap-2">{title}</h3>
+                   <div className="flex flex-col gap-4">
+                     {activeKeys.map(key => (
+                       <div key={key}>
+                         <h4 className="text-zinc-300 text-xs font-bold mb-2">{key}</h4>
+                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                           {drillData[key].map(res => (
+                             <MicroCard key={getResourceId(res, key)} resource={res} resourceKey={key} onClick={onNodeClick} />
+                           ))}
+                         </div>
+                       </div>
                      ))}
                    </div>
                  </div>
-               ))}
-             </div>
-           )}
+               );
+             };
+
+             const otherKeys = Object.keys(drillData).filter(k => !subnetEdgeKeys.includes(k) && !subnetComputeKeys.includes(k) && !subnetDataKeys.includes(k) && k !== 'Tags' && Array.isArray(drillData[k]));
+
+             return (
+               <div className="flex flex-col">
+                 {renderSubnetLayer('🌐 Edge & Network Flow', subnetEdgeKeys)}
+                 {renderSubnetLayer('⚙️ Compute & Application Layer', subnetComputeKeys)}
+                 {renderSubnetLayer('🗄️ Data & Storage Layer', subnetDataKeys)}
+                 {renderSubnetLayer('🛡️ Management & Other', otherKeys)}
+               </div>
+             );
+           })()}
            
            {/* If Layer Group, we map through its resources directly */}
            {type !== 'Subnet' && (
@@ -241,17 +286,45 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
           )}
 
           <div className="flex flex-col items-center relative">
-            {/* Clickable VPC Title */}
-            <div
-              id={vpcId}
-              className="flex items-center gap-3 bg-[#0a0a0f] py-2 px-5 rounded-xl border-[2px] border-purple-500/80 shadow-2xl shadow-purple-900/20 cursor-pointer hover:border-purple-400 transition-all duration-500"
-              onClick={() => onNodeClick({ id: vpcId, data: { label: vpc.Name || vpcId, type: 'VPC', ...vpc } })}
-            >
-              <Cloud className="w-5 h-5 text-purple-400" />
-              <div className="flex flex-col items-start">
-                <div className="text-white text-sm font-bold truncate max-w-[250px] leading-tight">{vpc.Name || vpcId}</div>
-                <div className="text-purple-400/80 text-[9px] uppercase tracking-wider font-bold">Virtual Private Cloud</div>
+            {/* Clickable VPC Title / Dropdown */}
+            <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-3 bg-[#0a0a0f] py-2 px-5 rounded-xl border-[2px] border-purple-500/80 shadow-2xl shadow-purple-900/20 cursor-pointer hover:border-purple-400 transition-all duration-500 relative"
+                onClick={() => setShowVpcDropdown(!showVpcDropdown)}
+              >
+                <Cloud className="w-5 h-5 text-purple-400" />
+                <div className="flex flex-col items-start">
+                  <div className="text-white text-sm font-bold truncate max-w-[250px] leading-tight flex items-center gap-1.5">
+                    {vpc.Name || vpcId}
+                    <ChevronDown size={14} className="text-zinc-500" />
+                  </div>
+                  <div className="text-purple-400/80 text-[9px] uppercase tracking-wider font-bold">Virtual Private Cloud</div>
+                </div>
+
+                {showVpcDropdown && (
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-max min-w-[240px] bg-[#1a1d24] border border-[#2d333b] rounded-lg shadow-2xl py-1 z-50">
+                    <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-zinc-500 border-b border-[#2d333b] mb-1">Select VPC</div>
+                    {allVpcs.map((v, idx) => (
+                      <div
+                        key={v.VpcId || idx}
+                        className={`px-4 py-2 hover:bg-[#2d333b] text-sm text-zinc-300 transition-colors flex items-center gap-2 ${idx === currentVpcIndex ? 'bg-purple-500/10 text-purple-300 border-l-2 border-purple-500' : 'border-l-2 border-transparent'}`}
+                        onClick={(e) => { e.stopPropagation(); setCurrentVpcIndex(idx); setShowVpcDropdown(false); }}
+                      >
+                        <Cloud size={14} className={idx === currentVpcIndex ? 'text-purple-400' : 'text-zinc-500'} />
+                        {v.Name || v.VpcId || 'Unknown VPC'}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+              
+              <button 
+                onClick={() => onNodeClick({ id: vpcId, data: { label: vpc.Name || vpcId, type: 'VPC', ...vpc } })}
+                className="p-2 bg-[#1a1d24] border border-[#2d333b] rounded-lg text-zinc-400 hover:text-white hover:border-purple-500 transition-colors shadow-lg"
+                title="View VPC Details"
+              >
+                <Info size={16} />
+              </button>
             </div>
 
             {/* Subtle Counter */}

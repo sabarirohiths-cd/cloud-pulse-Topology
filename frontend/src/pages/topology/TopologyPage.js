@@ -239,11 +239,12 @@ export default function TopologyPage() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar: Infrastructure Tree View */}
         <aside
-          className={`border-r border-[#1e232b] bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-in-out ${isSidebarOpen ? 'w-72 translate-x-0' : 'w-0 -translate-x-full opacity-0 overflow-hidden border-none'
-            }`}
+          className={`bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shrink-0 ${
+            isSidebarOpen ? 'w-60 border-r border-[#1e232b]' : 'w-0 border-r-0 border-transparent'
+          }`}
         >
-          <div className="w-72 h-full flex flex-col">
-            <InfrastructureTreeView data={filteredDataForTree} onNodeSelect={handleSidebarSelect} />
+          <div className="w-60 h-full flex flex-col">
+            <InfrastructureTreeView data={filteredDataForTree} onNodeSelect={handleSidebarSelect} selectedNodeId={selectedNode?.id} />
           </div>
         </aside>
 

@@ -172,66 +172,53 @@ export default function TopologyDetailModal({ node, onClose }) {
 
             <div className="px-4 pb-3 border-b border-[#26262b] bg-[#131315] shrink-0">
               <div className="flex items-center gap-1 bg-[#0a0a0f] p-1 rounded-lg w-fit border border-[#26262b]">
-                <button 
-                  onClick={() => setActiveTab('overview')} 
-                  className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 ${activeTab === 'overview' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  {activeTab === 'overview' && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
-                  Overview
-                </button>
-                <button 
-                  onClick={() => setActiveTab('json')} 
-                  className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 ${activeTab === 'json' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                >
-                  {activeTab === 'json' && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
-                  Raw JSON
-                </button>
+                {['overview', 'networking', 'tags', 'raw json'].map((tab) => (
+                  <button 
+                    key={tab}
+                    onClick={() => setActiveTab(tab)} 
+                    className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 capitalize ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                    {activeTab === tab && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
+                    {tab}
+                  </button>
+                ))}
               </div>
             </div>
 
             <div className="p-4 overflow-y-auto bg-[#0a0a0f] flex-1 min-h-0">
-              {activeTab === 'overview' ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {type === 'VPC' ? (
-                    (() => {
-                      const layers = {};
-                      Object.entries(data).forEach(([key, value]) => {
-                        if (['label', 'type', 'Id', 'VpcId', 'SubnetId', 'Tags'].includes(key)) return;
-                        if (value === null || value === undefined || value === '') return;
-                        if (Array.isArray(value) && value.length === 0) return;
-                        
-                        const layerName = getLayer(key);
-                        if (!layers[layerName]) layers[layerName] = [];
-                        layers[layerName].push({ key, value });
-                      });
-                      
-                      return Object.entries(layers)
-                        .sort(([a], [b]) => a.localeCompare(b))
-                        .map(([layerName, items]) => (
-                          <div key={layerName} className="col-span-2 mb-2">
-                            <h3 className="text-purple-400 text-[11px] uppercase tracking-wider font-bold mb-3 border-b border-zinc-800 pb-1">{layerName}</h3>
-                            <div className="grid grid-cols-2 gap-3">
-                              {items.map(({key, value}) => {
-                                const isComplex = typeof value === 'object' && value !== null;
-                                return (
-                                  <div key={key} className={`bg-[#161b22] p-3 rounded-xl border border-[#26262b] shadow-sm ${isComplex ? 'col-span-2' : 'col-span-1'}`}>
-                                    <label className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-1 block">{formatKey(key)}</label>
-                                    <div className="text-[12px] font-bold text-zinc-200">
-                                      {renderValue(key, value)}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                      ));
-                    })()
+              {activeTab === 'raw json' ? (
+                <div className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f]">
+                  <div className="p-4 m-0 text-[11px] font-mono table w-full">
+                    {colorizeJson(data)}
+                  </div>
+                </div>
+              ) : activeTab === 'tags' ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {!data.Tags || data.Tags.length === 0 ? (
+                    <div className="text-zinc-500 text-sm italic">No tags assigned to this resource.</div>
                   ) : (
-                    Object.entries(data)
+                    data.Tags.map((tag, idx) => (
+                      <div key={idx} className="bg-[#161b22] px-4 py-3 rounded-xl border border-[#26262b] shadow-sm flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-zinc-400">{tag.Key}</span>
+                        <span className="text-[12px] text-zinc-100">{tag.Value}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {(() => {
+                    const networkingKeys = ['VpcId', 'SubnetId', 'PrivateIpAddress', 'PublicIpAddress', 'CidrBlock', 'SecurityGroups', 'NetworkInterfaces', 'MacAddress', 'IpAddress', 'Port', 'Endpoint', 'VpcSecurityGroups', 'SubnetIds', 'AvailabilityZones'];
+                    
+                    return Object.entries(data)
                       .filter(([key, value]) => {
-                        if (['label', 'type', 'Id', 'VpcId', 'SubnetId'].includes(key)) return false;
+                        if (['label', 'type', 'Id', 'Tags'].includes(key)) return false;
                         if (value === null || value === undefined || value === '') return false;
                         if (Array.isArray(value) && value.length === 0) return false;
+                        
+                        const isNetworking = networkingKeys.some(nk => key.includes(nk) || nk.includes(key));
+                        if (activeTab === 'networking' && !isNetworking) return false;
+                        if (activeTab === 'overview' && isNetworking) return false;
                         return true;
                       })
                       .map(([key, value]) => {
@@ -245,13 +232,7 @@ export default function TopologyDetailModal({ node, onClose }) {
                           </div>
                         );
                       })
-                  )}
-                </div>
-              ) : (
-                <div className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f]">
-                  <div className="p-4 m-0 text-[11px] font-mono table w-full">
-                    {colorizeJson(data)}
-                  </div>
+                  })()}
                 </div>
               )}
             </div>

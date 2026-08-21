@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { getGlowColors } from '../../utils/iconMap';
 import { scanTopology, getTopologyByAccount } from '../../api/topology';
 import { listConfigs } from '../../api/config';
 import TopologyDetailModal from './components/TopologyDetailModal';
@@ -26,7 +27,7 @@ export default function TopologyPage() {
 
   const [focusedNodeId, setFocusedNodeId] = useState(null);
   const [drillDownState, setDrillDownState] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentVpcIndex, setCurrentVpcIndex] = useState(0);
 
   const handleSidebarSelect = (payload) => {
@@ -46,12 +47,14 @@ export default function TopologyPage() {
     }
     
     setTimeout(() => {
-      setFocusedNodeId(payload.node.id);
+      setFocusedNodeId({ id: payload.node.id, type: payload.node.data?.type || payload.node.type || 'Unknown' });
     }, 100);
   };
 
   useEffect(() => {
     setCurrentVpcIndex(0);
+    setDrillDownState(null);
+    setSelectedNode(null);
   }, [viewRegion]);
 
   // Reset scroll position when entering/exiting drill-down
@@ -67,13 +70,23 @@ export default function TopologyPage() {
     if (focusedNodeId) {
       // Small delay to ensure the DOM has updated (if switching VPCs)
       setTimeout(() => {
-        const el = document.getElementById(focusedNodeId);
+        const id = typeof focusedNodeId === 'object' ? focusedNodeId.id : focusedNodeId;
+        const type = typeof focusedNodeId === 'object' ? focusedNodeId.type : 'Unknown';
+        
+        const el = document.getElementById(id);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          // Add a temporary purple glow effect to highlight it
-          el.classList.add('shadow-[0_0_25px_rgba(168,85,247,0.8)]', 'border-purple-400', 'bg-purple-900/20');
+          
+          const [c1, c2] = getGlowColors(type);
+          
+          el.style.setProperty('--glow-c1', c1);
+          el.style.setProperty('--glow-c2', c2);
+          el.classList.add('premium-spin-glow');
+          
           setTimeout(() => {
-            el.classList.remove('shadow-[0_0_25px_rgba(168,85,247,0.8)]', 'border-purple-400', 'bg-purple-900/20');
+            el.classList.remove('premium-spin-glow');
+            el.style.removeProperty('--glow-c1');
+            el.style.removeProperty('--glow-c2');
             setFocusedNodeId(null);
           }, 2000);
         } else {
@@ -128,7 +141,7 @@ export default function TopologyPage() {
       setLoading(false);
       setShowScanModal(false);
     }
-  }, []);
+  }, [viewAccount]);
 
   useEffect(() => {
     async function fetchConfigs() {
@@ -313,6 +326,7 @@ export default function TopologyPage() {
       {selectedNode && (
         <TopologyDetailModal
           node={selectedNode}
+          edges={rawTopologyData?.Edges || []}
           onClose={() => setSelectedNode(null)}
           globalResources={globals}
         />

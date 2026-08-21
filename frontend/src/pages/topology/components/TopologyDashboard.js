@@ -1,47 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  Network, Server, Database, Lock, Globe, HardDrive, Cpu, 
-  Layers, Cloud, Workflow, Shield, ChevronLeft, ChevronRight, Activity, X, ChevronDown, Info
+import {
+  Cloud, ChevronLeft, ChevronRight, ChevronDown, Info, BarChart2
 } from 'lucide-react';
 
 import { getIcon, getColorClasses } from '../../../utils/iconMap';
-
-const getResourceId = (resource, key) => {
-  if (resource.Id) return resource.Id;
-  const overrides = {
-    'SecurityGroups': resource.GroupId,
-    'DhcpOptions': resource.DhcpOptionsId,
-    'ElasticIps': resource.AllocationId || resource.PublicIp,
-    'GatewayLoadBalancers': resource.LoadBalancerArn,
-    'MemoryDBClusters': resource.Name,
-    'EMRClusters': resource.Id,
-    'DirectoryServices': resource.DirectoryId,
-    'AppRunnerVpcConnectors': resource.VpcConnectorArn,
-    'GlueConnections': resource.Name,
-    'BatchComputeEnvironments': resource.ComputeEnvironmentArn,
-    'SecurityAndCompliance': `sec-comp-${resource.GuardDutyStatus || 'none'}`,
-    'HybridConnectivity': resource.ConnectionId || resource.CoreNetworkId,
-    'AutoScalingGroups': resource.AutoScalingGroupName || resource.AutoScalingGroupARN,
-    'EKSClusters': resource.Name || resource.Arn,
-    'ECSClusters': resource.ClusterName || resource.ClusterArn,
-  };
-  if (overrides[key]) return overrides[key];
-  const singularId = resource[`${key.slice(0, -1)}Id`];
-  if (singularId) return singularId;
-  if (resource.Name) return resource.Name;
-  if (resource.Arn) return resource.Arn;
-  return `res-${Math.random()}`;
-};
-
-const getLabel = (resource, key) => {
-  return resource.Name || resource.GroupName || resource.AutoScalingGroupName || resource.ClusterName || resource.DBInstanceIdentifier || resource.DBClusterIdentifier || resource.FunctionName || resource.CacheClusterId || resource.InstanceId || resource.GroupId || resource.RouteTableId || resource.LoadBalancerName || resource.DistributionId || resource.BucketName || 'Resource';
-};
+import { getResourceId, getResourceLabel, RESOURCE_CATEGORIES } from '../../../utils/resourceUtils';
 
 const MicroCard = ({ resource, resourceKey, onClick }) => {
-  const label = getLabel(resource, resourceKey);
+  const label = getResourceLabel(resource, resourceKey);
   const type = resourceKey.replace(/s$/, ''); // singularize
   const colors = getColorClasses(type);
-  
+
   return (
     <div
       id={getResourceId(resource, resourceKey)}
@@ -61,9 +30,9 @@ const MicroCard = ({ resource, resourceKey, onClick }) => {
 
 const SummaryCard = ({ title, count, type, onClick }) => {
   const colors = getColorClasses(type);
-  
+
   return (
-    <div 
+    <div
       className={`bg-[#161b22] hover:bg-[#1f2630] border ${colors.borderStatic} ${colors.border} rounded-lg p-2.5 flex items-center gap-3 shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 group`}
       onClick={onClick}
     >
@@ -78,24 +47,35 @@ const SummaryCard = ({ title, count, type, onClick }) => {
   );
 };
 
-const SubnetSummaryCard = ({ subnet, onClick }) => {
+const SubnetSummaryCard = ({ subnet, onClick, onNodeClick }) => {
   const subnetId = subnet.Id || subnet.SubnetId;
   const subnetResourceKeys = Object.keys(subnet).filter(k => Array.isArray(subnet[k]) && subnet[k].length > 0 && k !== 'Tags');
   const resourceCount = subnetResourceKeys.reduce((acc, key) => acc + (subnet[key]?.length || 0), 0);
   const colors = getColorClasses('Subnet');
-  
+
   return (
-    <div 
-      className={`bg-[#161b22] hover:bg-[#1f2630] border ${colors.borderStatic} ${colors.border} rounded-lg p-3 flex flex-col shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 group min-h-[90px]`}
+    <div
+      className={`bg-[#161b22] hover:bg-[#1f2630] border ${colors.borderStatic} ${colors.border} rounded-lg p-3 flex flex-col shadow-sm hover:shadow-md cursor-pointer transition-all duration-300 group min-h-[90px] relative overflow-hidden`}
       onClick={() => onClick(subnet)}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="bg-[#2d333b] p-1.5 rounded-md group-hover:scale-110 transition-transform duration-300 border border-black/20">
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onNodeClick({ id: subnetId, data: { label: subnet.Name || subnetId, type: 'Subnet', ...subnet } });
+        }}
+        className="absolute top-2 right-2 p-1.5 rounded-md bg-[#2d333b]/80 text-zinc-400 hover:text-white hover:bg-sky-500/80 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm backdrop-blur-sm z-10 translate-x-2 group-hover:translate-x-0"
+        title="View Subnet JSON Details"
+      >
+        <Info size={14} />
+      </button>
+
+      <div className="flex items-center gap-2 mb-3 w-[85%]">
+        <div className="bg-[#2d333b] p-1.5 rounded-md group-hover:scale-110 transition-transform duration-300 border border-black/20 shrink-0">
           {getIcon('Subnet', 14)}
         </div>
-        <div className="flex flex-col overflow-hidden">
-          <div className="text-[12px] text-gray-200 font-bold truncate leading-tight group-hover:text-white transition-colors">{subnet.Name || subnetId}</div>
-          <div className={`${colors.text} opacity-70 text-[9px] uppercase tracking-wider font-semibold`}>Subnet</div>
+        <div className="flex flex-col overflow-hidden w-full">
+          <div className="text-[12px] text-gray-200 font-bold truncate leading-tight group-hover:text-white transition-colors" title={subnet.Name || subnetId}>{subnet.Name || subnetId}</div>
+          <div className={`${colors.text} opacity-70 text-[9px] uppercase tracking-wider font-semibold mt-0.5`}>Subnet</div>
         </div>
       </div>
       <div className="mt-auto flex items-end justify-between border-t border-zinc-800/50 pt-2">
@@ -106,21 +86,7 @@ const SubnetSummaryCard = ({ subnet, onClick }) => {
   );
 };
 
-const Badge = ({ resource, resourceKey, onClick }) => {
-  const label = getLabel(resource, resourceKey);
-  const type = resourceKey.replace(/s$/, '');
-  return (
-    <div
-      id={getResourceId(resource, resourceKey)}
-      onClick={() => onClick({ id: getResourceId(resource, resourceKey), data: { label, type, ...resource } })}
-      className="bg-[#1a1d24] border border-[#2d333b] rounded-full px-3 py-1 flex items-center gap-2 shadow-sm hover:border-gray-400 transition-colors cursor-pointer shrink-0 transition-shadow duration-500"
-    >
-      {getIcon(type)}
-      <span className="text-white text-[10px] font-bold whitespace-nowrap">{label}</span>
-      <span className="text-zinc-500 text-[9px] uppercase tracking-wider whitespace-nowrap hidden sm:inline ml-1 border-l border-[#2d333b] pl-2">{type}</span>
-    </div>
-  );
-};
+
 
 export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, setCurrentVpcIndex, onNodeClick, drillDownState, setDrillDownState }) {
   const [showVpcDropdown, setShowVpcDropdown] = useState(false);
@@ -133,40 +99,12 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
     );
   }
 
-  const vpcConfigKeys = [
-    'RouteTables', 'InternetGateways', 'NetworkAcls', 'SecurityGroups',
-    'DhcpOptions', 'FlowLogs', 'ElasticIps'
-  ];
+  const { vpcConfigKeys, vpcResourceKeys, vpcDataKeys, subnetEdgeKeys, subnetComputeKeys, subnetDataKeys } = RESOURCE_CATEGORIES;
 
-  const vpcResourceKeys = [
-    'LoadBalancers', 'PeeringConnections', 'TransitGatewayAttachments',
-    'VpnGateways', 'VpnConnections', 'NetworkFirewalls',
-    'EgressOnlyInternetGateways', 'CarrierGateways', 'HybridConnectivity'
-  ];
-
-  const vpcDataKeys = [
-    'RDSInstances', 'ElastiCacheNodes', 'RegionalQueues', 'RedshiftClusters', 
-    'DocumentDBClusters', 'MemoryDBClusters', 'OpenSearchDomains', 
-    'NeptuneClusters', 'AmazonMQBrokers', 'MSKClusters'
-  ];
-
-  // Dynamic Application Flow categorizations for Subnet deep-view
-  const subnetEdgeKeys = [
-    'NatGateways', 'VpcEndpoints', 'NetworkFirewallEndpoints', 'Route53ResolverEndpoints', 'GatewayLoadBalancers', 'GWLBEndpoints'
-  ];
-  
-  const subnetComputeKeys = [
-    'Instances', 'EKSClusters', 'ECSClusters', 'LambdaFunctions', 'AutoScalingGroups', 'BatchComputeEnvironments', 'WorkSpaces', 'AppRunnerVpcConnectors', 'EMRClusters'
-  ];
-  
-  const subnetDataKeys = [
-    'ElastiCacheNodes', 'DocumentDBClusters', 'RedshiftClusters', 'SageMakerNotebooks', 'FSxFileSystems', 'OpenSearchDomains', 'NeptuneClusters', 'DirectoryServices', 'GlueConnections', 'MemoryDBClusters', 'AmazonMQBrokers', 'MSKClusters'
-  ];
-
-  const targetRegions = viewRegion === 'Global' 
-    ? Object.values(data.Regions || {}) 
+  const targetRegions = viewRegion === 'Global'
+    ? Object.values(data.Regions || {})
     : [data.Regions[viewRegion] || []];
-  
+
   const allVpcs = targetRegions.flat();
 
   // Handle empty state if no VPCs exist
@@ -193,73 +131,73 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
     return (
       <div id="dashboard-scroll-container" className="flex flex-col gap-6 p-6 pb-24 overflow-y-auto w-full h-full custom-scrollbar bg-[#0a0a0f]">
         <div className="flex items-center gap-2 text-sm font-medium w-fit mb-2 mt-12 bg-[#161b22] px-4 py-2 rounded-lg border border-zinc-800 shadow-lg relative z-10">
-          <button 
+          <button
             onClick={() => setDrillDownState(null)}
             className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors"
           >
-            <Cloud className="w-4 h-4" /> 
+            <Cloud className="w-4 h-4" />
             <span className="truncate max-w-[150px]">{vpc.Name || vpcId}</span>
           </button>
           <span className="text-zinc-600">/</span>
-          <div className="flex items-center gap-1.5 text-purple-400">
+          <div className={`flex items-center gap-1.5 ${getColorClasses(type).text}`}>
             <span className="w-4 h-4 flex items-center justify-center">{getIcon(type, 14)}</span>
             <span className="truncate max-w-[200px]">{title}</span>
           </div>
         </div>
-        
+
         <div className={`bg-[#0e1015]/80 backdrop-blur border-[2px] ${getColorClasses(type).borderStatic} border-dashed rounded-xl flex flex-col p-6 pb-12 shadow-xl relative min-h-[500px] shrink-0`}>
-           <div className="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
-             {getIcon(type, 28)}
-             <div>
-               <h2 className="text-white text-2xl font-bold">{title}</h2>
-               <p className={`text-xs uppercase tracking-wider font-semibold ${getColorClasses(type).text}`}>{type} Detailed View</p>
-             </div>
-           </div>
-           
-           {/* If Subnet, we map through keys by Layer to show Application Flow */}
-           {type === 'Subnet' && (() => {
-             const renderSubnetLayer = (title, keys) => {
-               const activeKeys = keys.filter(k => Array.isArray(drillData[k]) && drillData[k].length > 0 && k !== 'Tags');
-               if (activeKeys.length === 0) return null;
-               return (
-                 <div className="mb-6 bg-[#13171e]/50 p-4 rounded-xl border border-zinc-800/50">
-                   <h3 className="text-[12px] uppercase tracking-wider text-zinc-400 font-bold mb-4 flex items-center gap-2">{title}</h3>
-                   <div className="flex flex-col gap-4">
-                     {activeKeys.map(key => (
-                       <div key={key}>
-                         <h4 className="text-zinc-300 text-xs font-bold mb-2">{key}</h4>
-                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                           {drillData[key].map(res => (
-                             <MicroCard key={getResourceId(res, key)} resource={res} resourceKey={key} onClick={onNodeClick} />
-                           ))}
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                 </div>
-               );
-             };
+          <div className="flex items-center gap-3 mb-6 border-b border-zinc-800 pb-4">
+            {getIcon(type, 28)}
+            <div>
+              <h2 className="text-white text-2xl font-bold">{title}</h2>
+              <p className={`text-xs uppercase tracking-wider font-semibold ${getColorClasses(type).text}`}>{type} Detailed View</p>
+            </div>
+          </div>
 
-             const otherKeys = Object.keys(drillData).filter(k => !subnetEdgeKeys.includes(k) && !subnetComputeKeys.includes(k) && !subnetDataKeys.includes(k) && k !== 'Tags' && Array.isArray(drillData[k]));
+          {/* If Subnet, we map through keys by Layer to show Application Flow */}
+          {type === 'Subnet' && (() => {
+            const renderSubnetLayer = (title, keys) => {
+              const activeKeys = keys.filter(k => Array.isArray(drillData[k]) && drillData[k].length > 0 && k !== 'Tags');
+              if (activeKeys.length === 0) return null;
+              return (
+                <div className="mb-6 bg-[#13171e]/50 p-4 rounded-xl border border-zinc-800/50">
+                  <h3 className="text-[12px] uppercase tracking-wider text-zinc-400 font-bold mb-4 flex items-center gap-2">{title}</h3>
+                  <div className="flex flex-col gap-4">
+                    {activeKeys.map(key => (
+                      <div key={key}>
+                        <h4 className="text-zinc-300 text-xs font-bold mb-2">{key}</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                          {drillData[key].map(res => (
+                            <MicroCard key={getResourceId(res, key)} resource={res} resourceKey={key} onClick={onNodeClick} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            };
 
-             return (
-               <div className="flex flex-col">
-                 {renderSubnetLayer('🌐 Edge & Network Flow', subnetEdgeKeys)}
-                 {renderSubnetLayer('⚙️ Compute & Application Layer', subnetComputeKeys)}
-                 {renderSubnetLayer('🗄️ Data & Storage Layer', subnetDataKeys)}
-                 {renderSubnetLayer('🛡️ Management & Other', otherKeys)}
-               </div>
-             );
-           })()}
-           
-           {/* If Layer Group, we map through its resources directly */}
-           {type !== 'Subnet' && (
-             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-               {drillData.map(res => (
-                 <MicroCard key={getResourceId(res, type)} resource={res} resourceKey={type} onClick={onNodeClick} />
-               ))}
-             </div>
-           )}
+            const otherKeys = Object.keys(drillData).filter(k => !subnetEdgeKeys.includes(k) && !subnetComputeKeys.includes(k) && !subnetDataKeys.includes(k) && k !== 'Tags' && Array.isArray(drillData[k]));
+
+            return (
+              <div className="flex flex-col">
+                {renderSubnetLayer('🌐 Edge & Network Flow', subnetEdgeKeys)}
+                {renderSubnetLayer('⚙️ Compute & Application Layer', subnetComputeKeys)}
+                {renderSubnetLayer('🗄️ Data & Storage Layer', subnetDataKeys)}
+                {renderSubnetLayer('🛡️ Management & Other', otherKeys)}
+              </div>
+            );
+          })()}
+
+          {/* If Layer Group, we map through its resources directly */}
+          {type !== 'Subnet' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {drillData.map(res => (
+                <MicroCard key={getResourceId(res, type)} resource={res} resourceKey={type} onClick={onNodeClick} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -310,20 +248,24 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
                         className={`px-4 py-2 hover:bg-[#2d333b] text-sm text-zinc-300 transition-colors flex items-center gap-2 ${idx === currentVpcIndex ? 'bg-purple-500/10 text-purple-300 border-l-2 border-purple-500' : 'border-l-2 border-transparent'}`}
                         onClick={(e) => { e.stopPropagation(); setCurrentVpcIndex(idx); setShowVpcDropdown(false); }}
                       >
-                        <Cloud size={14} className={idx === currentVpcIndex ? 'text-purple-400' : 'text-zinc-500'} />
-                        {v.Name || v.VpcId || 'Unknown VPC'}
+                        <Cloud className={`w-4 h-4 ${idx === currentVpcIndex ? 'text-purple-400' : 'text-zinc-500'}`} />
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-white">{v.Name || v.VpcId}</span>
+                          <span className="text-[10px] text-zinc-500">{v.CidrBlock}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
               
-              <button 
-                onClick={() => onNodeClick({ id: vpcId, data: { label: vpc.Name || vpcId, type: 'VPC', ...vpc } })}
-                className="p-2 bg-[#1a1d24] border border-[#2d333b] rounded-lg text-zinc-400 hover:text-white hover:border-purple-500 transition-colors shadow-lg"
-                title="View VPC Details"
+              {/* Analytics & Details Button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onNodeClick({ id: vpcId, data: { label: vpc.Name || vpcId, type: 'VPC', ...vpc } }); }}
+                className="p-2 bg-[#161b22] border-2 border-purple-500/30 rounded-xl hover:border-purple-500 hover:text-purple-400 transition-colors text-purple-400/80 shadow-lg ml-2"
+                title="VPC Analytics & Details"
               >
-                <Info size={16} />
+                <BarChart2 className="w-5 h-5" />
               </button>
             </div>
 
@@ -356,12 +298,12 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
                 const resources = vpc[key] || [];
                 if (resources.length === 0) return null;
                 return (
-                  <SummaryCard 
-                    key={key} 
-                    title={key} 
-                    count={resources.length} 
+                  <SummaryCard
+                    key={key}
+                    title={key}
+                    count={resources.length}
                     type={key.replace(/s$/, '')}
-                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })} 
+                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })}
                   />
                 );
               })}
@@ -378,12 +320,12 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
                 const resources = vpc[key] || [];
                 if (resources.length === 0) return null;
                 return (
-                  <SummaryCard 
-                    key={key} 
-                    title={key} 
-                    count={resources.length} 
+                  <SummaryCard
+                    key={key}
+                    title={key}
+                    count={resources.length}
                     type={key.replace(/s$/, '')}
-                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })} 
+                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })}
                   />
                 );
               })}
@@ -400,12 +342,12 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
                 const resources = vpc[key] || [];
                 if (resources.length === 0) return null;
                 return (
-                  <SummaryCard 
-                    key={key} 
-                    title={key} 
-                    count={resources.length} 
+                  <SummaryCard
+                    key={key}
+                    title={key}
+                    count={resources.length}
                     type={key.replace(/s$/, '')}
-                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })} 
+                    onClick={() => setDrillDownState({ type: key, title: key, drillData: resources })}
                   />
                 );
               })}
@@ -419,13 +361,14 @@ export default function TopologyDashboard({ data, viewRegion, currentVpcIndex, s
             <h3 className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mb-3">
               Subnets ({vpc.Subnets.length})
             </h3>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {vpc.Subnets.map(subnet => (
-                <SubnetSummaryCard 
-                  key={subnet.Id || subnet.SubnetId} 
-                  subnet={subnet} 
-                  onClick={(s) => setDrillDownState({ type: 'Subnet', title: s.Name || s.SubnetId, drillData: s })} 
+                <SubnetSummaryCard
+                  key={subnet.Id || subnet.SubnetId}
+                  subnet={subnet}
+                  onClick={(s) => setDrillDownState({ type: 'Subnet', title: s.Name || s.SubnetId, drillData: s })}
+                  onNodeClick={onNodeClick}
                 />
               ))}
             </div>

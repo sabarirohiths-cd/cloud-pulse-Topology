@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 import boto3
 import json
 import os
@@ -24,10 +27,10 @@ class BaseTopologyBuilder:
             'TransitGatewayRouteTables': [], 'MemoryDBClusters': [],
             'EgressOnlyInternetGateways': [], 'CarrierGateways': [], 'DhcpOptions': [],
             'FlowLogs': [], 'BatchComputeEnvironments': [], 'SecurityAndCompliance': [],
-            'HybridConnectivity': []
+            'HybridConnectivity': [], 'ElasticBeanstalkEnvironments': []
         }
         
-        print(f"Initializing AWS Clients for region {self.region} from session...")
+        logger.info(f"Initializing AWS Clients for region {self.region} from session...")
         self.ec2 = self.session.client('ec2', region_name=self.region)
         self.elbv2 = self.session.client('elbv2', region_name=self.region)
         self.rds = self.session.client('rds', region_name=self.region)
@@ -48,7 +51,8 @@ class BaseTopologyBuilder:
         self.workspaces = self.session.client('workspaces', region_name=self.region)
         self.fsx = self.session.client('fsx', region_name=self.region)
         self.opensearch = self.session.client('opensearch', region_name=self.region)
-        self.network_firewall = self.session.client('network-firewall', region_name=self.region)
+        self.neptune = self.session.client('neptune', region_name=self.region)
+        self.eb = self.session.client('elasticbeanstalk', region_name=self.region)
         self.route53resolver = self.session.client('route53resolver', region_name=self.region)
         self.neptune = self.session.client('neptune', region_name=self.region)
         self.ds = self.session.client('ds', region_name=self.region)
@@ -61,6 +65,7 @@ class BaseTopologyBuilder:
         self.config = self.session.client('config', region_name=self.region)
         self.directconnect = self.session.client('directconnect', region_name=self.region)
         self.networkmanager = self.session.client('networkmanager', region_name=self.region)
+        self.network_firewall = self.session.client('network-firewall', region_name=self.region)
 
     def _safe_get_tag(self, tags, key):
         if tags:
@@ -77,4 +82,4 @@ class BaseTopologyBuilder:
         path = os.path.join(output_dir, filename)
         with open(path, 'w') as f:
             json.dump(list(self.vpcs.values()), f, indent=4)
-        print(f"Topology JSON exported to {path}")
+        logger.info(f"Topology JSON exported to {path}")

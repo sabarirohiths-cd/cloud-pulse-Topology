@@ -1,3 +1,6 @@
+import logging
+logger = logging.getLogger(__name__)
+
 class TopologyMapper:
     def __init__(self, raw_data):
         self.raw = raw_data

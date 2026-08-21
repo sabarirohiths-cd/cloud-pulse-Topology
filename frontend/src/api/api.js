@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_BASE_URL = `http://${window.location.hostname}:8000/api/v1`;
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || `http://${window.location.hostname}:8000/api/v1`;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

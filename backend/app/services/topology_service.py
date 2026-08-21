@@ -98,6 +98,7 @@ class TopologyService:
     async def scan_topology(self, request: TopologyScanRequest):
         from app.models.topology_resource import TopologyResource
         from sqlalchemy import text
+        import json
         
         default_region = request.regions[0] if request.regions else 'ap-south-1'
         
@@ -117,6 +118,40 @@ class TopologyService:
         builder = AWSTopologyBuilder(session=session_aws, regions=request.regions)
         builder.build()
         topology_data = builder.get_topology()
+
+        if request.account_id == "cpi-topology-scanner":
+            print("Injecting Mock Enterprise Topology Data as extra VPCs...")
+            try:
+                with open("data/mock_enterprise_topology.json", "r") as f:
+                    mock_data = json.load(f)
+                    
+                    if "Regions" in mock_data:
+                        for region, vpcs in mock_data["Regions"].items():
+                            if region not in topology_data["Regions"]:
+                                topology_data["Regions"][region] = []
+                            topology_data["Regions"][region].extend(vpcs)
+                            
+                    if "GlobalResources" in mock_data:
+                        if "GlobalResources" not in topology_data:
+                            topology_data["GlobalResources"] = {}
+                        for rtype, resources in mock_data["GlobalResources"].items():
+                            if rtype not in topology_data["GlobalResources"]:
+                                topology_data["GlobalResources"][rtype] = []
+                            topology_data["GlobalResources"][rtype].extend(resources)
+                            
+                    if "Edges" in mock_data:
+                        if "Edges" not in topology_data:
+                            topology_data["Edges"] = []
+                        topology_data["Edges"].extend(mock_data["Edges"])
+            except Exception as e:
+                print(f"Failed to inject mock data: {e}")
+        
+        # Post-process: Filter out empty VPCs (VPCs with no subnets and no resources)
+        for region in list(topology_data.get("Regions", {}).keys()):
+            topology_data["Regions"][region] = [
+                vpc for vpc in topology_data["Regions"][region]
+                if vpc.get("Subnets") or vpc.get("EC2Instances") or vpc.get("RDSClusters") or vpc.get("LoadBalancers")
+            ]
         
         async with SessionLocal() as db_session:
             # Delete old scan data for this account and regions
@@ -136,7 +171,7 @@ class TopologyService:
                     vpc_record = TopologyResource(
                         resource_id=vpc_id, resource_name=vpc_name, resource_type='VPC',
                         cloud_provider=cloud_provider, account_name=account_name, region=region,
-                        vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(vpc)
+                        vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(vpc, default=str)
                     )
                     resources_to_insert.append(vpc_record)
                     
@@ -148,7 +183,7 @@ class TopologyService:
                         subnet_record = TopologyResource(
                             resource_id=subnet_id, resource_name=subnet_name, resource_type='Subnet',
                             cloud_provider=cloud_provider, account_name=account_name, region=region,
-                            vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(subnet)
+                            vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(subnet, default=str)
                         )
                         resources_to_insert.append(subnet_record)
                         
@@ -160,7 +195,7 @@ class TopologyService:
                                     res_record = TopologyResource(
                                         resource_id=res_id, resource_name=res_name, resource_type=key,
                                         cloud_provider=cloud_provider, account_name=account_name, region=region,
-                                        vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(res)
+                                        vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(res, default=str)
                                     )
                                     resources_to_insert.append(res_record)
                                     
@@ -172,7 +207,7 @@ class TopologyService:
                                 res_record = TopologyResource(
                                     resource_id=res_id, resource_name=res_name, resource_type=key,
                                     cloud_provider=cloud_provider, account_name=account_name, region=region,
-                                    vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(res)
+                                    vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(res, default=str)
                                 )
                                 resources_to_insert.append(res_record)
                                 
@@ -184,10 +219,20 @@ class TopologyService:
                     res_record = TopologyResource(
                         resource_id=res_id, resource_name=res_name, resource_type=res_type,
                         cloud_provider=cloud_provider, account_name=account_name, region='global',
-                        vpc_id=None, subnet_id=None, saved_config_json=json.dumps(res)
+                        vpc_id=None, subnet_id=None, saved_config_json=json.dumps(res, default=str)
                     )
                     resources_to_insert.append(res_record)
                     
+            # Save Graph Edges as a special global resource
+            edges_data = topology_data.get("Edges", [])
+            if edges_data:
+                edges_record = TopologyResource(
+                    resource_id=f"edges-{account_name}", resource_name="GraphEdges", resource_type="GraphEdges",
+                    cloud_provider=cloud_provider, account_name=account_name, region='global',
+                    vpc_id=None, subnet_id=None, saved_config_json=json.dumps(edges_data, default=str)
+                )
+                resources_to_insert.append(edges_record)
+
             db_session.add_all(resources_to_insert)
             await db_session.commit()
             
@@ -251,9 +296,18 @@ class TopologyService:
                 elif record.vpc_id and record.vpc_id in vpcs_map:
                     vpcs_map[record.vpc_id].setdefault(record.resource_type, []).append(data)
                     
+        # Extract GraphEdges from global
+        edges = []
+        if 'GraphEdges' in merged_global:
+            # We saved the entire array as one json blob
+            edges_blobs = merged_global.pop('GraphEdges')
+            for blob in edges_blobs:
+                edges.extend(blob)
+                    
         return {
             "Regions": merged_regions,
-            "GlobalResources": merged_global
+            "GlobalResources": merged_global,
+            "Edges": edges
         }
 
 

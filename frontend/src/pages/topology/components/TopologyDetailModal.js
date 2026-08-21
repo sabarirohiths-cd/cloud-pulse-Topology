@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Server, Database, Zap, Activity, Cloud, Network } from 'lucide-react';
+import { X, Layers } from 'lucide-react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { getIcon, getColorClasses } from '../../../utils/iconMap';
 
 const colorizeJson = (jsonObj) => {
@@ -27,12 +28,32 @@ const colorizeJson = (jsonObj) => {
   });
 };
 
-export default function TopologyDetailModal({ node, onClose }) {
-  const [activeTab, setActiveTab] = React.useState('overview');
+export default function TopologyDetailModal({ node, edges = [], onClose }) {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  useEffect(() => {
+    if (node?.data?.type === 'VPC') {
+      setActiveTab('analytics');
+    } else {
+      setActiveTab('overview');
+    }
+  }, [node]);
 
   React.useEffect(() => {
-    if (node) setActiveTab('overview');
-  }, [node]);
+    const handleWheel = (e) => {
+      const container = e.target.closest('.overflow-x-auto');
+      if (container) {
+        const isScrollable = container.scrollWidth > container.clientWidth;
+        if (isScrollable && e.deltaY !== 0) {
+          e.preventDefault();
+          container.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, []);
 
   if (!node) return null;
   const data = node.data || {};
@@ -41,25 +62,14 @@ export default function TopologyDetailModal({ node, onClose }) {
 
   const formatKey = (key) => key.replace(/([A-Z])/g, ' $1').trim();
   
-  const getLayer = (key) => {
-    if (['Subnets', 'RouteTables', 'InternetGateways', 'NatGateways', 'TransitGatewayAttachments', 'CustomerGateways', 'VpnConnections'].includes(key)) return 'Network & Edge Layer';
-    if (['RDSInstances', 'ElastiCacheNodes', 'DynamoDBTables', 'RedshiftClusters', 'NeptuneClusters'].includes(key)) return 'Data Layer';
-    if (['SecurityGroups', 'NetworkAcls', 'NetworkFirewalls'].includes(key)) return 'Security Layer';
-    if (['Name', 'CidrBlock', 'State', 'IsDefault', 'InstanceTenancy', 'DhcpOptionsId'].includes(key)) return 'VPC Configuration';
-    return 'Other Resources';
-  };
-  
-  
   const renderValue = (key, value) => {
     if (value === null || value === undefined) return <span className="text-gray-500 italic">None</span>;
     if (typeof value === 'boolean') return <span className={value ? "text-green-400" : "text-red-400"}>{value ? 'Yes' : 'No'}</span>;
     
     if (typeof value === 'object') {
-      // Arrays
       if (Array.isArray(value)) {
         if (value.length === 0) return <span className="text-gray-500 italic">Empty</span>;
         
-        // If it's an array of objects (like SecurityGroups, Rules, Subnets)
         if (typeof value[0] === 'object' && value[0] !== null) {
           if (type === 'VPC') {
             return (
@@ -72,7 +82,6 @@ export default function TopologyDetailModal({ node, onClose }) {
             );
           }
           
-          // Render as a table for everything else
           const allKeys = Array.from(new Set(value.flatMap(item => Object.keys(item))));
           const displayKeys = allKeys.filter(k => typeof value[0][k] !== 'object' || Array.isArray(value[0][k]));
           
@@ -102,7 +111,6 @@ export default function TopologyDetailModal({ node, onClose }) {
           );
         }
         
-        // Array of primitives (Strings, numbers)
         return (
           <div className="flex flex-wrap gap-2 mt-1">
             {value.map((item, idx) => (
@@ -114,7 +122,6 @@ export default function TopologyDetailModal({ node, onClose }) {
         );
       }
       
-      // Standard Object Map
       return (
         <div className="bg-[#1a1d24] p-2 rounded border border-[#2d333b] text-xs mt-1">
           {Object.entries(value).map(([k, v]) => (
@@ -127,6 +134,75 @@ export default function TopologyDetailModal({ node, onClose }) {
       );
     }
     return <span className="text-white break-all">{String(value)}</span>;
+  };
+
+  const renderVpcAnalytics = () => {
+    const vpcData = node.data;
+    
+    const chartData = [
+      { name: 'Subnets', value: vpcData.Subnets?.length || 0, color: '#3b82f6' },
+      { name: 'EC2 Instances', value: vpcData.EC2Instances?.length || 0, color: '#f59e0b' },
+      { name: 'RDS Clusters', value: vpcData.RDSClusters?.length || 0, color: '#10b981' },
+      { name: 'Load Balancers', value: vpcData.LoadBalancers?.length || 0, color: '#8b5cf6' },
+      { name: 'Security Groups', value: vpcData.SecurityGroups?.length || 0, color: '#ef4444' },
+      { name: 'NAT Gateways', value: vpcData.NatGateways?.length || 0, color: '#06b6d4' },
+      { name: 'Internet Gateways', value: vpcData.InternetGateways?.length || 0, color: '#f97316' },
+    ].filter(d => d.value > 0);
+
+    if (chartData.length === 0) {
+      return <div className="text-zinc-500 text-sm mt-8 text-center italic">No resources found in this VPC.</div>;
+    }
+
+    return (
+      <div className="flex flex-col h-full bg-[#0e1015]">
+        <div className="p-4 border-b border-[#1e232b]">
+          <h3 className="text-white font-medium text-sm flex items-center gap-2">
+            <Layers className="w-4 h-4 text-purple-400" />
+            Resource Distribution Analytics
+          </h3>
+          <p className="text-xs text-zinc-500 mt-1">A visual breakdown of all resources deployed within {node.data.label}</p>
+        </div>
+        
+        <div className="flex-1 min-h-[350px] p-4 relative">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                innerRadius={80}
+                outerRadius={120}
+                paddingAngle={4}
+                dataKey="value"
+                stroke="none"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#161b22', border: '1px solid #2d333b', borderRadius: '8px', color: '#fff' }}
+                itemStyle={{ color: '#fff', fontSize: '12px' }}
+                labelStyle={{ display: 'none' }}
+              />
+              <Legend 
+                verticalAlign="bottom" 
+                height={36} 
+                iconType="circle"
+                wrapperStyle={{ fontSize: '12px', color: '#a1a1aa' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+          
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none mt-[-18px]">
+            <span className="text-3xl font-bold text-white tracking-tighter">
+              {chartData.reduce((acc, curr) => acc + curr.value, 0)}
+            </span>
+            <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Total</span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return createPortal(
@@ -172,7 +248,16 @@ export default function TopologyDetailModal({ node, onClose }) {
 
             <div className="px-4 pb-3 border-b border-[#26262b] bg-[#131315] shrink-0">
               <div className="flex items-center gap-1 bg-[#0a0a0f] p-1 rounded-lg w-fit border border-[#26262b]">
-                {['overview', 'networking', 'tags', 'raw json'].map((tab) => (
+                {type === 'VPC' ? ['overview', 'analytics', 'networking', 'connections', 'tags', 'raw json'].map((tab) => (
+                  <button 
+                    key={tab}
+                    onClick={() => setActiveTab(tab)} 
+                    className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 capitalize ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                  >
+                    {activeTab === tab && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
+                    {tab}
+                  </button>
+                )) : ['overview', 'networking', 'connections', 'tags', 'raw json'].map((tab) => (
                   <button 
                     key={tab}
                     onClick={() => setActiveTab(tab)} 
@@ -185,9 +270,16 @@ export default function TopologyDetailModal({ node, onClose }) {
               </div>
             </div>
 
-            <div className="p-4 overflow-y-auto bg-[#0a0a0f] flex-1 min-h-0">
-              {activeTab === 'raw json' ? (
-                <div className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f]">
+            <div className="p-4 overflow-y-auto custom-scrollbar bg-[#0a0a0f] flex-1 min-h-0">
+              {activeTab === 'analytics' ? renderVpcAnalytics() : activeTab === 'raw json' ? (
+                <div 
+                  className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f] overflow-x-auto custom-scrollbar"
+                  onWheel={(e) => {
+                    if (e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
+                      e.currentTarget.scrollLeft += e.deltaY;
+                    }
+                  }}
+                >
                   <div className="p-4 m-0 text-[11px] font-mono table w-full">
                     {colorizeJson(data)}
                   </div>
@@ -204,6 +296,47 @@ export default function TopologyDetailModal({ node, onClose }) {
                       </div>
                     ))
                   )}
+
+                </div>
+              ) : activeTab === 'connections' ? (
+                <div 
+                  className="overflow-x-auto custom-scrollbar border border-[#2d333b] rounded-lg"
+                  onWheel={(e) => {
+                    if (e.currentTarget.scrollWidth > e.currentTarget.clientWidth) {
+                      e.currentTarget.scrollLeft += e.deltaY;
+                    }
+                  }}
+                >
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-[#1c2128]">
+                      <tr>
+                        <th className="p-2 text-xs font-semibold text-zinc-400 border-b border-[#2d333b]">Direction</th>
+                        <th className="p-2 text-xs font-semibold text-zinc-400 border-b border-[#2d333b]">Connected Node ID</th>
+                        <th className="p-2 text-xs font-semibold text-zinc-400 border-b border-[#2d333b]">Connection Type</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-[#161b22]">
+                      {edges.filter(e => e.source === node.id || e.target === node.id).map((edge, idx) => {
+                        const isOutbound = edge.source === node.id;
+                        return (
+                          <tr key={idx} className="border-b border-[#2d333b] last:border-0 hover:bg-[#1c2128] transition-colors">
+                            <td className="p-2 text-xs">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${isOutbound ? 'bg-blue-900/40 text-blue-400 border border-blue-800' : 'bg-emerald-900/40 text-emerald-400 border border-emerald-800'}`}>
+                                {isOutbound ? 'OUTBOUND' : 'INBOUND'}
+                              </span>
+                            </td>
+                            <td className="p-2 text-xs font-mono text-zinc-300">{isOutbound ? edge.target : edge.source}</td>
+                            <td className="p-2 text-xs text-purple-400">{edge.type}</td>
+                          </tr>
+                        );
+                      })}
+                      {edges.filter(e => e.source === node.id || e.target === node.id).length === 0 && (
+                        <tr>
+                          <td colSpan="3" className="p-4 text-xs text-zinc-500 text-center italic">No connected nodes found in graph flow.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">

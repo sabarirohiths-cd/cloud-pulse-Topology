@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getIcon } from '../../../utils/iconMap';
+import { getResourceId, getResourceLabel } from '../../../utils/resourceUtils';
 import {
   ChevronRight,
   ChevronDown,
@@ -7,34 +8,6 @@ import {
   Globe,
   Search
 } from 'lucide-react';
-
-// Reusable ID extractor to guarantee sync with Canvas
-const getResourceId = (resource, key) => {
-  if (resource.Id) return resource.Id;
-  const overrides = {
-    'SecurityGroups': resource.GroupId,
-    'DhcpOptions': resource.DhcpOptionsId,
-    'ElasticIps': resource.AllocationId || resource.PublicIp,
-    'GatewayLoadBalancers': resource.LoadBalancerArn,
-    'MemoryDBClusters': resource.Name,
-    'EMRClusters': resource.Id,
-    'DirectoryServices': resource.DirectoryId,
-    'AppRunnerVpcConnectors': resource.VpcConnectorArn,
-    'GlueConnections': resource.Name,
-    'BatchComputeEnvironments': resource.ComputeEnvironmentArn,
-    'SecurityAndCompliance': `sec-comp-${resource.GuardDutyStatus || 'none'}`,
-    'HybridConnectivity': resource.ConnectionId || resource.CoreNetworkId,
-    'AutoScalingGroups': resource.AutoScalingGroupName || resource.AutoScalingGroupARN,
-    'EKSClusters': resource.Name || resource.Arn,
-    'ECSClusters': resource.ClusterName || resource.ClusterArn,
-  };
-  if (overrides[key]) return overrides[key];
-  const singularId = resource[`${key.slice(0, -1)}Id`];
-  if (singularId) return singularId;
-  if (resource.Name) return resource.Name;
-  if (resource.Arn) return resource.Arn;
-  return `res-${Math.random()}`;
-};
 
 // Recursive Tree Node Component
 const TreeNode = ({ label, id, icon, children, onNodeSelect, defaultExpanded = false, isResource = false, fullNodeData, forceExpand, selectedNodeId }) => {
@@ -122,7 +95,7 @@ export default function InfrastructureTreeView({ data, onNodeSelect, selectedNod
       const resources = data.GlobalResources[key];
       const resourceNodes = resources.map(res => {
         const id = getResourceId(res, key);
-        const name = res.Name || res.GroupName || res.AutoScalingGroupName || res.ClusterName || res.RoleName || res.DistributionId || res.BucketName || id;
+        const name = getResourceLabel(res, key);
         
         const term = searchTerm.toLowerCase();
         if (searchTerm && !name.toLowerCase().includes(term) && !id.toLowerCase().includes(term) && !key.toLowerCase().includes(term)) return null;
@@ -173,7 +146,7 @@ export default function InfrastructureTreeView({ data, onNodeSelect, selectedNod
         const configNodes = vpcConfigKeys.map(key => {
           const resNodes = vpc[key].map(res => {
             const id = getResourceId(res, key);
-            const name = res.Name || res.GroupName || res.AutoScalingGroupName || res.ClusterName || res.GroupId || res.RouteTableId || id;
+            const name = getResourceLabel(res, key);
             
             const term = searchTerm.toLowerCase();
             if (searchTerm && !name.toLowerCase().includes(term) && !id.toLowerCase().includes(term) && !key.toLowerCase().includes(term)) return null;

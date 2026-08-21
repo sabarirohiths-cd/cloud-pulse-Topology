@@ -1,0 +1,3451 @@
+{
+    "Regions": {
+        "ap-south-1": [
+            {
+                "VpcId": "vpc-mock-enterprise",
+                "Name": "Generic Mock VPC (Fully Populated)",
+                "CidrBlock": "172.31.0.0/16",
+                "IsDefault": true,
+                "State": "available",
+                "Subnets": [
+                    {
+                        "SubnetId": "subnet-087668fb642e079f1",
+                        "Name": null,
+                        "CidrBlock": "172.31.0.0/20",
+                        "AvailabilityZone": "ap-south-1b",
+                        "State": "available",
+                        "MapPublicIpOnLaunch": true,
+                        "Instances": [
+                            {
+                                "InstanceId": "mock-instance-1",
+                                "Name": "Mock Instance 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "InstanceId": "mock-instance-2",
+                                "Name": "Mock Instance 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NatGateways": [
+                            {
+                                "NatGatewayId": "mock-natgateway-1",
+                                "Name": "Mock NatGateway 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NatGatewayId": "mock-natgateway-2",
+                                "Name": "Mock NatGateway 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EKSClusters": [
+                            {
+                                "EKSClusterId": "mock-ekscluster-1",
+                                "Name": "Mock EKSCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EKSClusterId": "mock-ekscluster-2",
+                                "Name": "Mock EKSCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ECSClusters": [
+                            {
+                                "ClusterName": "cloudpulse-ecs-test-cluster",
+                                "Status": "ACTIVE",
+                                "Services": 3,
+                                "Tasks": 0,
+                                "ServiceTypes": [
+                                    {
+                                        "ServiceName": "app-service-unmanaged",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "app-service-managed",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "web-service-fargate",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    }
+                                ]
+                            }
+                        ],
+                        "VpcEndpoints": [
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-1",
+                                "Name": "Mock VpcEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-2",
+                                "Name": "Mock VpcEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "LambdaFunctions": [
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-1",
+                                "Name": "Mock LambdaFunction 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-2",
+                                "Name": "Mock LambdaFunction 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ElastiCacheNodes": [
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-1",
+                                "Name": "Mock ElastiCacheNode 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-2",
+                                "Name": "Mock ElastiCacheNode 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EFSMountTargets": [
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-1",
+                                "Name": "Mock EFSMountTarget 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-2",
+                                "Name": "Mock EFSMountTarget 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AutoScalingGroups": [
+                            {
+                                "AutoScalingGroupName": "asg-managed-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "asg-unmanaged-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "awseb-e-y2abddunar-stack-AWSEBAutoScalingGroup-PoDvqDoPj1N3",
+                                "MinSize": 0,
+                                "MaxSize": 1,
+                                "DesiredCapacity": 0
+                            }
+                        ],
+                        "UnclassifiedENIs": [
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-1",
+                                "Name": "Mock UnclassifiedENI 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-2",
+                                "Name": "Mock UnclassifiedENI 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AmazonMQBrokers": [
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-1",
+                                "Name": "Mock AmazonMQBroker 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-2",
+                                "Name": "Mock AmazonMQBroker 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MSKClusters": [
+                            {
+                                "MSKClusterId": "mock-mskcluster-1",
+                                "Name": "Mock MSKCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MSKClusterId": "mock-mskcluster-2",
+                                "Name": "Mock MSKCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DocumentDBClusters": [
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-1",
+                                "Name": "Mock DocumentDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-2",
+                                "Name": "Mock DocumentDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "RedshiftClusters": [
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-1",
+                                "Name": "Mock RedshiftCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-2",
+                                "Name": "Mock RedshiftCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "SageMakerNotebooks": [
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-1",
+                                "Name": "Mock SageMakerNotebook 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-2",
+                                "Name": "Mock SageMakerNotebook 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "WorkSpaces": [
+                            {
+                                "WorkSpaceId": "mock-workspace-1",
+                                "Name": "Mock WorkSpace 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "WorkSpaceId": "mock-workspace-2",
+                                "Name": "Mock WorkSpace 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FSxFileSystems": [
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-1",
+                                "Name": "Mock FSxFileSystem 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-2",
+                                "Name": "Mock FSxFileSystem 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "OpenSearchDomains": [
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-1",
+                                "Name": "Mock OpenSearchDomain 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-2",
+                                "Name": "Mock OpenSearchDomain 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkFirewallEndpoints": [
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-1",
+                                "Name": "Mock NetworkFirewallEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-2",
+                                "Name": "Mock NetworkFirewallEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "Route53ResolverEndpoints": [
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-1",
+                                "Name": "Mock Route53ResolverEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-2",
+                                "Name": "Mock Route53ResolverEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NeptuneClusters": [
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-1",
+                                "Name": "Mock NeptuneCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-2",
+                                "Name": "Mock NeptuneCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DirectoryServices": [
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-1",
+                                "Name": "Mock DirectoryService 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-2",
+                                "Name": "Mock DirectoryService 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AppRunnerVpcConnectors": [
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-1",
+                                "Name": "Mock AppRunnerVpcConnector 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-2",
+                                "Name": "Mock AppRunnerVpcConnector 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EMRClusters": [
+                            {
+                                "EMRClusterId": "mock-emrcluster-1",
+                                "Name": "Mock EMRCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EMRClusterId": "mock-emrcluster-2",
+                                "Name": "Mock EMRCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GlueConnections": [
+                            {
+                                "GlueConnectionId": "mock-glueconnection-1",
+                                "Name": "Mock GlueConnection 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GlueConnectionId": "mock-glueconnection-2",
+                                "Name": "Mock GlueConnection 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GatewayLoadBalancers": [
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-1",
+                                "Name": "Mock GatewayLoadBalancer 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-2",
+                                "Name": "Mock GatewayLoadBalancer 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GWLBEndpoints": [
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-1",
+                                "Name": "Mock GWLBEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-2",
+                                "Name": "Mock GWLBEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MemoryDBClusters": [
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-1",
+                                "Name": "Mock MemoryDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-2",
+                                "Name": "Mock MemoryDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FlowLogs": [
+                            {
+                                "FlowLogId": "mock-flowlog-1",
+                                "Name": "Mock FlowLog 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FlowLogId": "mock-flowlog-2",
+                                "Name": "Mock FlowLog 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "BatchComputeEnvironments": [
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-1",
+                                "Name": "Mock BatchComputeEnvironment 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-2",
+                                "Name": "Mock BatchComputeEnvironment 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkAclId": "acl-032b476303ce5d769"
+                    },
+                    {
+                        "SubnetId": "subnet-062f795676cf751eb",
+                        "Name": null,
+                        "CidrBlock": "172.31.16.0/20",
+                        "AvailabilityZone": "ap-south-1c",
+                        "State": "available",
+                        "MapPublicIpOnLaunch": true,
+                        "Instances": [
+                            {
+                                "InstanceId": "mock-instance-1",
+                                "Name": "Mock Instance 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "InstanceId": "mock-instance-2",
+                                "Name": "Mock Instance 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NatGateways": [
+                            {
+                                "NatGatewayId": "mock-natgateway-1",
+                                "Name": "Mock NatGateway 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NatGatewayId": "mock-natgateway-2",
+                                "Name": "Mock NatGateway 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EKSClusters": [
+                            {
+                                "EKSClusterId": "mock-ekscluster-1",
+                                "Name": "Mock EKSCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EKSClusterId": "mock-ekscluster-2",
+                                "Name": "Mock EKSCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ECSClusters": [
+                            {
+                                "ClusterName": "cloudpulse-ecs-test-cluster",
+                                "Status": "ACTIVE",
+                                "Services": 3,
+                                "Tasks": 0,
+                                "ServiceTypes": [
+                                    {
+                                        "ServiceName": "app-service-unmanaged",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "app-service-managed",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "web-service-fargate",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    }
+                                ]
+                            }
+                        ],
+                        "VpcEndpoints": [
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-1",
+                                "Name": "Mock VpcEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-2",
+                                "Name": "Mock VpcEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "LambdaFunctions": [
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-1",
+                                "Name": "Mock LambdaFunction 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-2",
+                                "Name": "Mock LambdaFunction 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ElastiCacheNodes": [
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-1",
+                                "Name": "Mock ElastiCacheNode 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-2",
+                                "Name": "Mock ElastiCacheNode 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EFSMountTargets": [
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-1",
+                                "Name": "Mock EFSMountTarget 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-2",
+                                "Name": "Mock EFSMountTarget 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AutoScalingGroups": [
+                            {
+                                "AutoScalingGroupName": "asg-managed-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "asg-unmanaged-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "awseb-e-y2abddunar-stack-AWSEBAutoScalingGroup-PoDvqDoPj1N3",
+                                "MinSize": 0,
+                                "MaxSize": 1,
+                                "DesiredCapacity": 0
+                            }
+                        ],
+                        "UnclassifiedENIs": [
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-1",
+                                "Name": "Mock UnclassifiedENI 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-2",
+                                "Name": "Mock UnclassifiedENI 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AmazonMQBrokers": [
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-1",
+                                "Name": "Mock AmazonMQBroker 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-2",
+                                "Name": "Mock AmazonMQBroker 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MSKClusters": [
+                            {
+                                "MSKClusterId": "mock-mskcluster-1",
+                                "Name": "Mock MSKCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MSKClusterId": "mock-mskcluster-2",
+                                "Name": "Mock MSKCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DocumentDBClusters": [
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-1",
+                                "Name": "Mock DocumentDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-2",
+                                "Name": "Mock DocumentDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "RedshiftClusters": [
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-1",
+                                "Name": "Mock RedshiftCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-2",
+                                "Name": "Mock RedshiftCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "SageMakerNotebooks": [
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-1",
+                                "Name": "Mock SageMakerNotebook 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-2",
+                                "Name": "Mock SageMakerNotebook 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "WorkSpaces": [
+                            {
+                                "WorkSpaceId": "mock-workspace-1",
+                                "Name": "Mock WorkSpace 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "WorkSpaceId": "mock-workspace-2",
+                                "Name": "Mock WorkSpace 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FSxFileSystems": [
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-1",
+                                "Name": "Mock FSxFileSystem 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-2",
+                                "Name": "Mock FSxFileSystem 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "OpenSearchDomains": [
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-1",
+                                "Name": "Mock OpenSearchDomain 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-2",
+                                "Name": "Mock OpenSearchDomain 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkFirewallEndpoints": [
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-1",
+                                "Name": "Mock NetworkFirewallEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-2",
+                                "Name": "Mock NetworkFirewallEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "Route53ResolverEndpoints": [
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-1",
+                                "Name": "Mock Route53ResolverEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-2",
+                                "Name": "Mock Route53ResolverEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NeptuneClusters": [
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-1",
+                                "Name": "Mock NeptuneCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-2",
+                                "Name": "Mock NeptuneCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DirectoryServices": [
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-1",
+                                "Name": "Mock DirectoryService 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-2",
+                                "Name": "Mock DirectoryService 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AppRunnerVpcConnectors": [
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-1",
+                                "Name": "Mock AppRunnerVpcConnector 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-2",
+                                "Name": "Mock AppRunnerVpcConnector 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EMRClusters": [
+                            {
+                                "EMRClusterId": "mock-emrcluster-1",
+                                "Name": "Mock EMRCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EMRClusterId": "mock-emrcluster-2",
+                                "Name": "Mock EMRCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GlueConnections": [
+                            {
+                                "GlueConnectionId": "mock-glueconnection-1",
+                                "Name": "Mock GlueConnection 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GlueConnectionId": "mock-glueconnection-2",
+                                "Name": "Mock GlueConnection 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GatewayLoadBalancers": [
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-1",
+                                "Name": "Mock GatewayLoadBalancer 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-2",
+                                "Name": "Mock GatewayLoadBalancer 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GWLBEndpoints": [
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-1",
+                                "Name": "Mock GWLBEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-2",
+                                "Name": "Mock GWLBEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MemoryDBClusters": [
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-1",
+                                "Name": "Mock MemoryDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-2",
+                                "Name": "Mock MemoryDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FlowLogs": [
+                            {
+                                "FlowLogId": "mock-flowlog-1",
+                                "Name": "Mock FlowLog 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FlowLogId": "mock-flowlog-2",
+                                "Name": "Mock FlowLog 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "BatchComputeEnvironments": [
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-1",
+                                "Name": "Mock BatchComputeEnvironment 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-2",
+                                "Name": "Mock BatchComputeEnvironment 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkAclId": "acl-032b476303ce5d769"
+                    },
+                    {
+                        "SubnetId": "subnet-032e381a90a115989",
+                        "Name": null,
+                        "CidrBlock": "172.31.32.0/20",
+                        "AvailabilityZone": "ap-south-1a",
+                        "State": "available",
+                        "MapPublicIpOnLaunch": true,
+                        "Instances": [
+                            {
+                                "InstanceId": "mock-instance-1",
+                                "Name": "Mock Instance 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "InstanceId": "mock-instance-2",
+                                "Name": "Mock Instance 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NatGateways": [
+                            {
+                                "NatGatewayId": "mock-natgateway-1",
+                                "Name": "Mock NatGateway 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NatGatewayId": "mock-natgateway-2",
+                                "Name": "Mock NatGateway 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EKSClusters": [
+                            {
+                                "EKSClusterId": "mock-ekscluster-1",
+                                "Name": "Mock EKSCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EKSClusterId": "mock-ekscluster-2",
+                                "Name": "Mock EKSCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ECSClusters": [
+                            {
+                                "ClusterName": "cloudpulse-ecs-test-cluster",
+                                "Status": "ACTIVE",
+                                "Services": 3,
+                                "Tasks": 0,
+                                "ServiceTypes": [
+                                    {
+                                        "ServiceName": "app-service-unmanaged",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "app-service-managed",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    },
+                                    {
+                                        "ServiceName": "web-service-fargate",
+                                        "Status": "ACTIVE",
+                                        "DesiredCount": 0,
+                                        "RunningCount": 0,
+                                        "LaunchType": "UNKNOWN"
+                                    }
+                                ]
+                            }
+                        ],
+                        "VpcEndpoints": [
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-1",
+                                "Name": "Mock VpcEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "VpcEndpointId": "mock-vpcendpoint-2",
+                                "Name": "Mock VpcEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "LambdaFunctions": [
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-1",
+                                "Name": "Mock LambdaFunction 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "LambdaFunctionId": "mock-lambdafunction-2",
+                                "Name": "Mock LambdaFunction 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "ElastiCacheNodes": [
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-1",
+                                "Name": "Mock ElastiCacheNode 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "ElastiCacheNodeId": "mock-elasticachenode-2",
+                                "Name": "Mock ElastiCacheNode 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EFSMountTargets": [
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-1",
+                                "Name": "Mock EFSMountTarget 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EFSMountTargetId": "mock-efsmounttarget-2",
+                                "Name": "Mock EFSMountTarget 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AutoScalingGroups": [
+                            {
+                                "AutoScalingGroupName": "asg-managed-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "asg-unmanaged-test",
+                                "MinSize": 0,
+                                "MaxSize": 2,
+                                "DesiredCapacity": 0
+                            },
+                            {
+                                "AutoScalingGroupName": "awseb-e-y2abddunar-stack-AWSEBAutoScalingGroup-PoDvqDoPj1N3",
+                                "MinSize": 0,
+                                "MaxSize": 1,
+                                "DesiredCapacity": 0
+                            }
+                        ],
+                        "UnclassifiedENIs": [
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-1",
+                                "Name": "Mock UnclassifiedENI 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "UnclassifiedENIId": "mock-unclassifiedeni-2",
+                                "Name": "Mock UnclassifiedENI 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AmazonMQBrokers": [
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-1",
+                                "Name": "Mock AmazonMQBroker 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AmazonMQBrokerId": "mock-amazonmqbroker-2",
+                                "Name": "Mock AmazonMQBroker 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MSKClusters": [
+                            {
+                                "MSKClusterId": "mock-mskcluster-1",
+                                "Name": "Mock MSKCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MSKClusterId": "mock-mskcluster-2",
+                                "Name": "Mock MSKCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DocumentDBClusters": [
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-1",
+                                "Name": "Mock DocumentDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DocumentDBClusterId": "mock-documentdbcluster-2",
+                                "Name": "Mock DocumentDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "RedshiftClusters": [
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-1",
+                                "Name": "Mock RedshiftCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "RedshiftClusterId": "mock-redshiftcluster-2",
+                                "Name": "Mock RedshiftCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "SageMakerNotebooks": [
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-1",
+                                "Name": "Mock SageMakerNotebook 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "SageMakerNotebookId": "mock-sagemakernotebook-2",
+                                "Name": "Mock SageMakerNotebook 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "WorkSpaces": [
+                            {
+                                "WorkSpaceId": "mock-workspace-1",
+                                "Name": "Mock WorkSpace 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "WorkSpaceId": "mock-workspace-2",
+                                "Name": "Mock WorkSpace 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FSxFileSystems": [
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-1",
+                                "Name": "Mock FSxFileSystem 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FSxFileSystemId": "mock-fsxfilesystem-2",
+                                "Name": "Mock FSxFileSystem 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "OpenSearchDomains": [
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-1",
+                                "Name": "Mock OpenSearchDomain 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "OpenSearchDomainId": "mock-opensearchdomain-2",
+                                "Name": "Mock OpenSearchDomain 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkFirewallEndpoints": [
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-1",
+                                "Name": "Mock NetworkFirewallEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NetworkFirewallEndpointId": "mock-networkfirewallendpoint-2",
+                                "Name": "Mock NetworkFirewallEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "Route53ResolverEndpoints": [
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-1",
+                                "Name": "Mock Route53ResolverEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "Route53ResolverEndpointId": "mock-route53resolverendpoint-2",
+                                "Name": "Mock Route53ResolverEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NeptuneClusters": [
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-1",
+                                "Name": "Mock NeptuneCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "NeptuneClusterId": "mock-neptunecluster-2",
+                                "Name": "Mock NeptuneCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "DirectoryServices": [
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-1",
+                                "Name": "Mock DirectoryService 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "DirectoryServiceId": "mock-directoryservice-2",
+                                "Name": "Mock DirectoryService 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "AppRunnerVpcConnectors": [
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-1",
+                                "Name": "Mock AppRunnerVpcConnector 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "AppRunnerVpcConnectorId": "mock-apprunnervpcconnector-2",
+                                "Name": "Mock AppRunnerVpcConnector 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "EMRClusters": [
+                            {
+                                "EMRClusterId": "mock-emrcluster-1",
+                                "Name": "Mock EMRCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "EMRClusterId": "mock-emrcluster-2",
+                                "Name": "Mock EMRCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GlueConnections": [
+                            {
+                                "GlueConnectionId": "mock-glueconnection-1",
+                                "Name": "Mock GlueConnection 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GlueConnectionId": "mock-glueconnection-2",
+                                "Name": "Mock GlueConnection 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GatewayLoadBalancers": [
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-1",
+                                "Name": "Mock GatewayLoadBalancer 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GatewayLoadBalancerId": "mock-gatewayloadbalancer-2",
+                                "Name": "Mock GatewayLoadBalancer 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "GWLBEndpoints": [
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-1",
+                                "Name": "Mock GWLBEndpoint 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "GWLBEndpointId": "mock-gwlbendpoint-2",
+                                "Name": "Mock GWLBEndpoint 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "MemoryDBClusters": [
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-1",
+                                "Name": "Mock MemoryDBCluster 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "MemoryDBClusterId": "mock-memorydbcluster-2",
+                                "Name": "Mock MemoryDBCluster 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "FlowLogs": [
+                            {
+                                "FlowLogId": "mock-flowlog-1",
+                                "Name": "Mock FlowLog 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "FlowLogId": "mock-flowlog-2",
+                                "Name": "Mock FlowLog 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "BatchComputeEnvironments": [
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-1",
+                                "Name": "Mock BatchComputeEnvironment 1",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            },
+                            {
+                                "BatchComputeEnvironmentId": "mock-batchcomputeenvironment-2",
+                                "Name": "Mock BatchComputeEnvironment 2",
+                                "State": "available",
+                                "Status": "ACTIVE",
+                                "Mocked": true,
+                                "Description": "This is an auto-generated generic mock resource"
+                            }
+                        ],
+                        "NetworkAclId": "acl-032b476303ce5d769"
+                    }
+                ],
+                "InternetGateways": [
+                    {
+                        "InternetGatewayId": "igw-0d49182072c95b65a",
+                        "Name": null,
+                        "State": "available"
+                    }
+                ],
+                "RouteTables": [
+                    {
+                        "RouteTableId": "rtb-05d5bf520fa608bc1",
+                        "Name": null,
+                        "Routes": [
+                            {
+                                "DestinationCidrBlock": "172.31.0.0/16",
+                                "GatewayId": "local",
+                                "Origin": "CreateRouteTable",
+                                "State": "active"
+                            },
+                            {
+                                "DestinationCidrBlock": "0.0.0.0/0",
+                                "GatewayId": "igw-0d49182072c95b65a",
+                                "Origin": "CreateRoute",
+                                "State": "active"
+                            }
+                        ],
+                        "IsMain": true
+                    }
+                ],
+                "LoadBalancers": [
+                    {
+                        "LoadBalancerId": "mock-loadbalancer-1",
+                        "Name": "Mock LoadBalancer 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "LoadBalancerId": "mock-loadbalancer-2",
+                        "Name": "Mock LoadBalancer 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "RDSInstances": [
+                    {
+                        "RDSInstanceId": "mock-rdsinstance-1",
+                        "Name": "Mock RDSInstance 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "RDSInstanceId": "mock-rdsinstance-2",
+                        "Name": "Mock RDSInstance 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "PeeringConnections": [
+                    {
+                        "PeeringConnectionId": "mock-peeringconnection-1",
+                        "Name": "Mock PeeringConnection 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "PeeringConnectionId": "mock-peeringconnection-2",
+                        "Name": "Mock PeeringConnection 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "TransitGatewayAttachments": [
+                    {
+                        "TransitGatewayAttachmentId": "mock-transitgatewayattachment-1",
+                        "Name": "Mock TransitGatewayAttachment 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "TransitGatewayAttachmentId": "mock-transitgatewayattachment-2",
+                        "Name": "Mock TransitGatewayAttachment 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "VpnGateways": [
+                    {
+                        "VpnGatewayId": "mock-vpngateway-1",
+                        "Name": "Mock VpnGateway 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "VpnGatewayId": "mock-vpngateway-2",
+                        "Name": "Mock VpnGateway 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "VpnConnections": [
+                    {
+                        "VpnConnectionId": "mock-vpnconnection-1",
+                        "Name": "Mock VpnConnection 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "VpnConnectionId": "mock-vpnconnection-2",
+                        "Name": "Mock VpnConnection 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "RegionalQueues": [
+                    {
+                        "RegionalQueueId": "mock-regionalqueue-1",
+                        "Name": "Mock RegionalQueue 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "RegionalQueueId": "mock-regionalqueue-2",
+                        "Name": "Mock RegionalQueue 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "NetworkFirewalls": [
+                    {
+                        "NetworkFirewallId": "mock-networkfirewall-1",
+                        "Name": "Mock NetworkFirewall 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "NetworkFirewallId": "mock-networkfirewall-2",
+                        "Name": "Mock NetworkFirewall 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "EgressOnlyInternetGateways": [
+                    {
+                        "EgressOnlyInternetGatewayId": "mock-egressonlyinternetgateway-1",
+                        "Name": "Mock EgressOnlyInternetGateway 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "EgressOnlyInternetGatewayId": "mock-egressonlyinternetgateway-2",
+                        "Name": "Mock EgressOnlyInternetGateway 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "CarrierGateways": [
+                    {
+                        "CarrierGatewayId": "mock-carriergateway-1",
+                        "Name": "Mock CarrierGateway 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "CarrierGatewayId": "mock-carriergateway-2",
+                        "Name": "Mock CarrierGateway 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "DhcpOptions": [
+                    {
+                        "DhcpOptionsId": "dopt-0b2355b6b62deeaa2",
+                        "DhcpConfigurations": [
+                            {
+                                "Key": "domain-name",
+                                "Values": [
+                                    {
+                                        "Value": "ap-south-1.compute.internal"
+                                    }
+                                ]
+                            },
+                            {
+                                "Key": "domain-name-servers",
+                                "Values": [
+                                    {
+                                        "Value": "AmazonProvidedDNS"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "FlowLogs": [
+                    {
+                        "FlowLogId": "mock-flowlog-1",
+                        "Name": "Mock FlowLog 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "FlowLogId": "mock-flowlog-2",
+                        "Name": "Mock FlowLog 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "SecurityAndCompliance": [
+                    {
+                        "GuardDutyStatus": "NOT_ENABLED",
+                        "ConfigStatus": "NOT_RECORDING"
+                    }
+                ],
+                "HybridConnectivity": [
+                    {
+                        "HybridConnectivityId": "mock-hybridconnectivity-1",
+                        "Name": "Mock HybridConnectivity 1",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    },
+                    {
+                        "HybridConnectivityId": "mock-hybridconnectivity-2",
+                        "Name": "Mock HybridConnectivity 2",
+                        "State": "available",
+                        "Status": "ACTIVE",
+                        "Mocked": true,
+                        "Description": "This is an auto-generated generic mock resource"
+                    }
+                ],
+                "SecurityGroups": [
+                    {
+                        "GroupId": "sg-00a2150fff8400ec8",
+                        "GroupName": "awseb-e-y2abddunar-stack-AWSEBSecurityGroup-Yxc3gih3NdS4",
+                        "Description": "VPC Security Group",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 22,
+                                "ToPort": 22,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "GroupId": "sg-0333490e103f2048e",
+                        "GroupName": "k8s-elb-a52f01289cb10479f9d864711088ff7c",
+                        "Description": "Security group for Kubernetes ELB a52f01289cb10479f9d864711088ff7c (default/nginx-test)",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "icmp",
+                                "FromPort": 3,
+                                "ToPort": 4,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "GroupId": "sg-01ba7d634e6924fd3",
+                        "GroupName": "k8s-elb-ac2b57b2503954a618b0e2ea905d9a14",
+                        "Description": "Security group for Kubernetes ELB ac2b57b2503954a618b0e2ea905d9a14 (default/nginx-hello-service)",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "icmp",
+                                "FromPort": 3,
+                                "ToPort": 4,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "GroupId": "sg-013e1ff792d8f6478",
+                        "GroupName": "Ec2-ecs-securitygroup",
+                        "Description": "SSH and HTTP",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 22,
+                                "ToPort": 22,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "GroupId": "sg-0b12b5e3553abcc4a",
+                        "GroupName": "default",
+                        "Description": "default VPC security group",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 30000,
+                                "ToPort": 32767,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserId": "879343933129",
+                                        "GroupId": "sg-0b12b5e3553abcc4a"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "IpRangeId": "mock-iprange-1",
+                                        "Name": "Mock IpRange 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "IpRangeId": "mock-iprange-2",
+                                        "Name": "Mock IpRange 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "GroupId": "sg-0ace84362ab7456ee",
+                        "GroupName": "launch-wizard-1",
+                        "Description": "launch-wizard-1 created 2026-06-24T12:57:55.549Z",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "InboundRules": [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            },
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 22,
+                                "ToPort": 22,
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ],
+                        "OutboundRules": [
+                            {
+                                "IpProtocol": "-1",
+                                "UserIdGroupPairs": [
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-1",
+                                        "Name": "Mock UserIdGroupPair 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "UserIdGroupPairId": "mock-useridgrouppair-2",
+                                        "Name": "Mock UserIdGroupPair 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "IpRanges": [
+                                    {
+                                        "CidrIp": "0.0.0.0/0"
+                                    }
+                                ],
+                                "Ipv6Ranges": [
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-1",
+                                        "Name": "Mock Ipv6Range 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "Ipv6RangeId": "mock-ipv6range-2",
+                                        "Name": "Mock Ipv6Range 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ],
+                                "PrefixListIds": [
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-1",
+                                        "Name": "Mock PrefixListId 1",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    },
+                                    {
+                                        "PrefixListIdId": "mock-prefixlistid-2",
+                                        "Name": "Mock PrefixListId 2",
+                                        "State": "available",
+                                        "Status": "ACTIVE",
+                                        "Mocked": true,
+                                        "Description": "This is an auto-generated generic mock resource"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ],
+                "NetworkAcls": [
+                    {
+                        "NetworkAclId": "acl-032b476303ce5d769",
+                        "VpcId": "vpc-0b8f01d1f2af531b0",
+                        "Entries": [
+                            {
+                                "CidrBlock": "0.0.0.0/0",
+                                "Egress": true,
+                                "Protocol": "-1",
+                                "RuleAction": "allow",
+                                "RuleNumber": 100
+                            },
+                            {
+                                "CidrBlock": "0.0.0.0/0",
+                                "Egress": true,
+                                "Protocol": "-1",
+                                "RuleAction": "deny",
+                                "RuleNumber": 32767
+                            },
+                            {
+                                "CidrBlock": "0.0.0.0/0",
+                                "Egress": false,
+                                "Protocol": "-1",
+                                "RuleAction": "allow",
+                                "RuleNumber": 100
+                            },
+                            {
+                                "CidrBlock": "0.0.0.0/0",
+                                "Egress": false,
+                                "Protocol": "-1",
+                                "RuleAction": "deny",
+                                "RuleNumber": 32767
+                            }
+                        ],
+                        "Associations": [
+                            {
+                                "NetworkAclAssociationId": "aclassoc-0b8c36fe1f948fb2f",
+                                "NetworkAclId": "acl-032b476303ce5d769",
+                                "SubnetId": "mock-subnet-1"
+                            },
+                            {
+                                "NetworkAclAssociationId": "aclassoc-07aaf81659cf144ce",
+                                "NetworkAclId": "acl-032b476303ce5d769",
+                                "SubnetId": "mock-subnet-2"
+                            },
+                            {
+                                "NetworkAclAssociationId": "aclassoc-06b833d836a286798",
+                                "NetworkAclId": "acl-032b476303ce5d769",
+                                "SubnetId": "mock-subnet-3"
+                            }
+                        ]
+                    }
+                ],
+                "ElasticIps": [
+                    {
+                        "PublicIp": "13.207.229.184",
+                        "AllocationId": "eipalloc-09be87db8c237f5a3",
+                        "InstanceId": null,
+                        "NetworkInterfaceId": null,
+                        "PrivateIpAddress": null
+                    }
+                ]
+            }
+        ]
+    },
+    "GlobalResources": {
+        "IAMRoles": [
+            {
+                "RoleName": "aws-elasticbeanstalk-ec2-role",
+                "Arn": "arn:aws:iam::879343933129:role/aws-elasticbeanstalk-ec2-role",
+                "CreateDate": "2026-08-10T09:30:28+00:00"
+            },
+            {
+                "RoleName": "aws-elasticbeanstalk-service-role",
+                "Arn": "arn:aws:iam::879343933129:role/aws-elasticbeanstalk-service-role",
+                "CreateDate": "2026-08-10T09:30:22+00:00"
+            },
+            {
+                "RoleName": "AWS-QuickSetup-SSM-DefaultEC2MgmtRole-ap-south-1",
+                "Arn": "arn:aws:iam::879343933129:role/AWS-QuickSetup-SSM-DefaultEC2MgmtRole-ap-south-1",
+                "CreateDate": "2026-08-03T10:36:34+00:00"
+            },
+            {
+                "RoleName": "AWS-QuickSetup-SSM-LocalAdministrationRole",
+                "Arn": "arn:aws:iam::879343933129:role/AWS-QuickSetup-SSM-LocalAdministrationRole",
+                "CreateDate": "2026-08-03T10:33:59+00:00"
+            },
+            {
+                "RoleName": "AWS-QuickSetup-SSM-LocalExecutionRole",
+                "Arn": "arn:aws:iam::879343933129:role/AWS-QuickSetup-SSM-LocalExecutionRole",
+                "CreateDate": "2026-08-03T10:34:21+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForAmazonEKS",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS",
+                "CreateDate": "2026-08-03T09:49:56+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForAmazonEKSNodegroup",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/eks-nodegroup.amazonaws.com/AWSServiceRoleForAmazonEKSNodegroup",
+                "CreateDate": "2026-08-03T11:00:00+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForAmazonSSM",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM",
+                "CreateDate": "2026-08-03T10:35:27+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForAutoScaling",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+                "CreateDate": "2026-07-27T10:15:43+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForECS",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+                "CreateDate": "2026-07-28T09:54:59+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForElasticLoadBalancing",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing",
+                "CreateDate": "2026-08-04T09:51:22+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForRDS",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS",
+                "CreateDate": "2026-07-22T11:25:59+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForResourceExplorer",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/resource-explorer-2.amazonaws.com/AWSServiceRoleForResourceExplorer",
+                "CreateDate": "2026-06-22T09:56:40+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForSSMQuickSetup",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/ssm-quicksetup.amazonaws.com/AWSServiceRoleForSSMQuickSetup",
+                "CreateDate": "2026-08-03T10:35:17+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForSupport",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/support.amazonaws.com/AWSServiceRoleForSupport",
+                "CreateDate": "2026-06-22T08:45:32+00:00"
+            },
+            {
+                "RoleName": "AWSServiceRoleForTrustedAdvisor",
+                "Arn": "arn:aws:iam::879343933129:role/aws-service-role/trustedadvisor.amazonaws.com/AWSServiceRoleForTrustedAdvisor",
+                "CreateDate": "2026-06-22T08:45:32+00:00"
+            },
+            {
+                "RoleName": "DemoRoleforEC2",
+                "Arn": "arn:aws:iam::879343933129:role/DemoRoleforEC2",
+                "CreateDate": "2026-06-23T09:58:33+00:00"
+            },
+            {
+                "RoleName": "ecsInstanceRole",
+                "Arn": "arn:aws:iam::879343933129:role/ecsInstanceRole",
+                "CreateDate": "2026-07-28T10:23:17+00:00"
+            },
+            {
+                "RoleName": "ecsTaskExecutionRole",
+                "Arn": "arn:aws:iam::879343933129:role/ecsTaskExecutionRole",
+                "CreateDate": "2026-07-28T10:00:36+00:00"
+            },
+            {
+                "RoleName": "eks-cluster-role",
+                "Arn": "arn:aws:iam::879343933129:role/eks-cluster-role",
+                "CreateDate": "2026-08-03T09:06:05+00:00"
+            },
+            {
+                "RoleName": "eks-node-role",
+                "Arn": "arn:aws:iam::879343933129:role/eks-node-role",
+                "CreateDate": "2026-08-03T09:08:25+00:00"
+            },
+            {
+                "RoleName": "rds-monitoring-role",
+                "Arn": "arn:aws:iam::879343933129:role/rds-monitoring-role",
+                "CreateDate": "2026-07-22T11:25:57+00:00"
+            }
+        ],
+        "IAMUsers": [
+            {
+                "UserName": "cd-topology",
+                "Arn": "arn:aws:iam::879343933129:user/cd-topology",
+                "CreateDate": "2026-08-12T05:09:37+00:00"
+            },
+            {
+                "UserName": "cloudpulse-controlmodule",
+                "Arn": "arn:aws:iam::879343933129:user/cloudpulse-controlmodule",
+                "CreateDate": "2026-07-21T10:56:36+00:00"
+            },
+            {
+                "UserName": "cloud_pulse_scanner",
+                "Arn": "arn:aws:iam::879343933129:user/cloud_pulse_scanner",
+                "CreateDate": "2026-07-07T12:29:30+00:00"
+            },
+            {
+                "UserName": "rohith",
+                "Arn": "arn:aws:iam::879343933129:user/rohith",
+                "CreateDate": "2026-06-22T10:23:35+00:00"
+            }
+        ],
+        "CloudFrontDistributions": [],
+        "Route53HostedZones": [],
+        "S3Buckets": [
+            {
+                "Name": "elasticbeanstalk-ap-south-1-879343933129",
+                "CreationDate": "2026-08-10T09:27:51+00:00"
+            }
+        ]
+    }
+}

@@ -1,19 +1,18 @@
-from .base import BaseTopologyBuilder
+import logging
+logger = logging.getLogger(__name__)
+
+from ..core.base import BaseTopologyBuilder
 
 class DatabaseMixin(BaseTopologyBuilder):
     def _fetch_rds(self):
-        print("Fetching RDS...")
+        logger.debug("Fetching RDS...")
         try:
             rds_resp = self.rds.describe_db_instances()
             for db in rds_resp.get('DBInstances', []):
                 sub_group = db.get('DBSubnetGroup', {})
-                self.raw_data['RDSInstances'].append({
-                    'VpcId': sub_group.get('VpcId'),
-                    'DBInstanceIdentifier': db.get('DBInstanceIdentifier'),
-                    'Engine': db.get('Engine'),
-                    'DBInstanceStatus': db.get('DBInstanceStatus'),
-                    'Endpoint': db.get('Endpoint', {}).get('Address')
-                })
+                db_obj = db.copy()
+                db_obj['VpcId'] = sub_group.get('VpcId')
+                self.raw_data['RDSInstances'].append(db_obj)
                 
             cluster_resp = self.rds.describe_db_clusters()
             for cluster in cluster_resp.get('DBClusters', []):
@@ -25,8 +24,8 @@ class DatabaseMixin(BaseTopologyBuilder):
                     try:
                         g_info = self.rds.describe_db_subnet_groups(DBSubnetGroupName=sub_group)
                         vpc_id = g_info.get('DBSubnetGroups', [{}])[0].get('VpcId')
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
                 
                 # Some serverless clusters don't have VPC networking enabled directly
                 # but users expect to see them. Let mapper handle it or fallback later.
@@ -38,10 +37,10 @@ class DatabaseMixin(BaseTopologyBuilder):
                     'Endpoint': cluster.get('Endpoint')
                 })
         except Exception as e:
-            print(f"Error fetching RDS: {e}")
+            logger.debug(f"Error fetching RDS: {e}")
 
     def _fetch_elasticache(self):
-        print("Fetching ElastiCache...")
+        logger.debug("Fetching ElastiCache...")
         try:
             cache_clusters = self.elasticache.describe_cache_clusters().get('CacheClusters', [])
             for cluster in cache_clusters:
@@ -57,13 +56,13 @@ class DatabaseMixin(BaseTopologyBuilder):
                                 'Engine': cluster.get('Engine'),
                                 'CacheNodeType': cluster.get('CacheNodeType')
                             })
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_documentdb(self):
-        print("Fetching DocumentDB...")
+        logger.debug("Fetching DocumentDB...")
         try:
             docdb_resp = self.docdb.describe_db_clusters()
             for cluster in docdb_resp.get('DBClusters', []):
@@ -79,13 +78,13 @@ class DatabaseMixin(BaseTopologyBuilder):
                             'Engine': cluster.get('Engine'),
                             'Status': cluster.get('Status')
                         })
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_redshift(self):
-        print("Fetching Redshift...")
+        logger.debug("Fetching Redshift...")
         try:
             rs_resp = self.redshift.describe_clusters()
             for cluster in rs_resp.get('Clusters', []):
@@ -101,13 +100,13 @@ class DatabaseMixin(BaseTopologyBuilder):
                             'NodeType': cluster.get('NodeType'),
                             'ClusterStatus': cluster.get('ClusterStatus')
                         })
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_neptune(self):
-        print("Fetching Neptune...")
+        logger.debug("Fetching Neptune...")
         try:
             nep_resp = self.neptune.describe_db_clusters()
             for cluster in nep_resp.get('DBClusters', []):
@@ -124,13 +123,13 @@ class DatabaseMixin(BaseTopologyBuilder):
                             'Endpoint': cluster.get('Endpoint'),
                             'ReaderEndpoint': cluster.get('ReaderEndpoint')
                         })
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_memorydb(self):
-        print("Fetching MemoryDB...")
+        logger.debug("Fetching MemoryDB...")
         try:
             mem_resp = self.memorydb.describe_clusters()
             for cluster in mem_resp.get('Clusters', []):
@@ -147,7 +146,7 @@ class DatabaseMixin(BaseTopologyBuilder):
                             'NodeType': cluster.get('NodeType'),
                             'EngineVersion': cluster.get('EngineVersion')
                         })
-                    except Exception:
-                        pass
-        except Exception:
-            pass
+                    except Exception as e:
+                        logger.warning(f"Error during AWS discovery: {e}")
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")

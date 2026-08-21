@@ -1,8 +1,11 @@
-from .base import BaseTopologyBuilder
+import logging
+logger = logging.getLogger(__name__)
+
+from ..core.base import BaseTopologyBuilder
 
 class StorageMixin(BaseTopologyBuilder):
     def _fetch_efs(self):
-        print("Fetching EFS...")
+        logger.debug("Fetching EFS...")
         try:
             filesystems = self.efs.describe_file_systems().get('FileSystems', [])
             for fs in filesystems:
@@ -15,11 +18,11 @@ class StorageMixin(BaseTopologyBuilder):
                         'MountTargetId': mt.get('MountTargetId'),
                         'IpAddress': mt.get('IpAddress')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_fsx(self):
-        print("Fetching FSx...")
+        logger.debug("Fetching FSx...")
         try:
             fsx_resp = self.fsx.describe_file_systems()
             for fs in fsx_resp.get('FileSystems', []):
@@ -30,5 +33,5 @@ class StorageMixin(BaseTopologyBuilder):
                     'StorageCapacity': fs.get('StorageCapacity'),
                     'Lifecycle': fs.get('Lifecycle')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")

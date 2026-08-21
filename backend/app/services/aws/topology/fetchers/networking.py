@@ -1,8 +1,11 @@
-from .base import BaseTopologyBuilder
+import logging
+logger = logging.getLogger(__name__)
+
+from ..core.base import BaseTopologyBuilder
 
 class NetworkingMixin(BaseTopologyBuilder):
     def _fetch_vpcs_and_subnets(self):
-        print("Fetching Base VPCs and Subnets...")
+        logger.debug("Fetching Base VPCs and Subnets...")
         try:
             vpcs_resp = self.ec2.describe_vpcs()
             for vpc in vpcs_resp.get('Vpcs', []):
@@ -14,7 +17,7 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'State': vpc.get('State')
                 })
         except Exception as e:
-            print(f"Error fetching VPCs: {e}")
+            logger.debug(f"Error fetching VPCs: {e}")
             
         try:
             igw_resp = self.ec2.describe_internet_gateways()
@@ -27,7 +30,7 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'State': attachment.get('State')
                     })
         except Exception as e:
-            print(f"Error fetching IGWs: {e}")
+            logger.debug(f"Error fetching IGWs: {e}")
 
         try:
             subnets_resp = self.ec2.describe_subnets()
@@ -42,10 +45,10 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'MapPublicIpOnLaunch': subnet.get('MapPublicIpOnLaunch', False)
                 })
         except Exception as e:
-            print(f"Error fetching Subnets: {e}")
+            logger.debug(f"Error fetching Subnets: {e}")
 
     def _fetch_routes_nat(self):
-        print("Fetching Route Tables and NAT Gateways...")
+        logger.debug("Fetching Route Tables and NAT Gateways...")
         try:
             rt_resp = self.ec2.describe_route_tables()
             for rt in rt_resp.get('RouteTables', []):
@@ -66,8 +69,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'IsMain': is_main,
                     'AssociatedSubnetIds': assoc_subnets
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             nat_resp = self.ec2.describe_nat_gateways()
@@ -79,11 +82,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'NatGatewayAddresses': [a.get('PublicIp') for a in nat.get('NatGatewayAddresses', [])],
                     'Name': self._safe_get_tag(nat.get('Tags', []), 'Name')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_endpoints_peering(self):
-        print("Fetching Endpoints and Peering...")
+        logger.debug("Fetching Endpoints and Peering...")
         try:
             eps_resp = self.ec2.describe_vpc_endpoints()
             for ep in eps_resp.get('VpcEndpoints', []):
@@ -102,8 +105,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'ServiceName': ep.get('ServiceName'),
                         'VpcEndpointType': ep.get('VpcEndpointType')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             peer_resp = self.ec2.describe_vpc_peering_connections()
@@ -114,11 +117,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'Status': peer.get('Status', {}).get('Code'),
                     'AccepterVpcId': peer.get('AccepterVpcInfo', {}).get('VpcId')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_tgw(self):
-        print("Fetching TGWs...")
+        logger.debug("Fetching TGWs...")
 
         try:
             tgw_resp = self.ec2.describe_transit_gateway_vpc_attachments()
@@ -131,11 +134,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'State': att.get('State'),
                     'RouteTables': []
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_tgw_route_tables(self):
-        print("Fetching TGW Route Tables...")
+        logger.debug("Fetching TGW Route Tables...")
         try:
             rt_resp = self.ec2.describe_transit_gateway_route_tables()
             for rt in rt_resp.get('TransitGatewayRouteTables', []):
@@ -148,11 +151,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                             'TransitGatewayRouteTableId': rt_id,
                             'State': rt.get('State')
                         })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_vgw_vpn_eni(self):
-        print("Fetching VGW, VPN, and ENIs...")
+        logger.debug("Fetching VGW, VPN, and ENIs...")
         try:
             vgw_resp = self.ec2.describe_vpn_gateways()
             for vgw in vgw_resp.get('VpnGateways', []):
@@ -163,8 +166,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'State': vgw.get('State'),
                         'Type': vgw.get('Type')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             vpn_resp = self.ec2.describe_vpn_connections()
@@ -174,8 +177,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'State': vpn.get('State'),
                     'VpnGatewayId': vpn.get('VpnGatewayId')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             eni_resp = self.ec2.describe_network_interfaces()
@@ -195,11 +198,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'InterfaceType': type_,
                     'Description': eni.get('Description')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_network_firewall(self):
-        print("Fetching Network Firewall...")
+        logger.debug("Fetching Network Firewall...")
         try:
             nfw_resp = self.network_firewall.list_firewalls()
             for fw in nfw_resp.get('Firewalls', []):
@@ -221,11 +224,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'FirewallName': firewall.get('FirewallName'),
                         'IPAddressType': mapping.get('IPAddressType')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_route53_resolvers(self):
-        print("Fetching Route53 Resolvers...")
+        logger.debug("Fetching Route53 Resolvers...")
         try:
             r53_resp = self.route53resolver.list_resolver_endpoints()
             for ep in r53_resp.get('ResolverEndpoints', []):
@@ -240,26 +243,55 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'IpId': ip.get('IpId'),
                         'Ip': ip.get('Ip')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_elb(self):
-        print("Fetching Load Balancers...")
+        logger.debug("Fetching Load Balancers and Target Groups...")
         try:
             elb_resp = self.elbv2.describe_load_balancers()
             for elb in elb_resp.get('LoadBalancers', []):
+                elb_arn = elb.get('LoadBalancerArn')
+                tgs = []
+                try:
+                    tg_resp = self.elbv2.describe_target_groups(LoadBalancerArn=elb_arn)
+                    for tg in tg_resp.get('TargetGroups', []):
+                        tg_arn = tg.get('TargetGroupArn')
+                        targets = []
+                        try:
+                            health_resp = self.elbv2.describe_target_health(TargetGroupArn=tg_arn)
+                            for th in health_resp.get('TargetHealthDescriptions', []):
+                                target = th.get('Target', {})
+                                targets.append({
+                                    'Id': target.get('Id'),
+                                    'Port': target.get('Port'),
+                                    'Health': th.get('TargetHealth', {}).get('State')
+                                })
+                        except Exception as e:
+                            logger.debug(f"Error fetching target health for {tg_arn}: {e}")
+                            
+                        tgs.append({
+                            'TargetGroupName': tg.get('TargetGroupName'),
+                            'TargetGroupArn': tg_arn,
+                            'Targets': targets
+                        })
+                except Exception as e:
+                    logger.debug(f"Error fetching target groups for {elb_arn}: {e}")
+                    
                 self.raw_data['LoadBalancers'].append({
                     'VpcId': elb.get('VpcId'),
                     'LoadBalancerName': elb.get('LoadBalancerName'),
+                    'LoadBalancerArn': elb_arn,
                     'Scheme': elb.get('Scheme'),
                     'Type': elb.get('Type'),
-                    'DNSName': elb.get('DNSName')
+                    'DNSName': elb.get('DNSName'),
+                    'TargetGroups': tgs
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Error fetching ELB: {e}")
 
     def _fetch_gateway_load_balancers(self):
-        print("Fetching Gateway Load Balancers...")
+        logger.debug("Fetching Gateway Load Balancers...")
         try:
             elb_resp = self.elbv2.describe_load_balancers()
             for elb in elb_resp.get('LoadBalancers', []):
@@ -271,11 +303,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'DNSName': elb.get('DNSName'),
                         'State': elb.get('State', {}).get('Code')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_directory_service(self):
-        print("Fetching Directory Service...")
+        logger.debug("Fetching Directory Service...")
         try:
             ds_resp = self.ds.describe_directories()
             for ds in ds_resp.get('DirectoryDescriptions', []):
@@ -288,11 +320,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'Type': ds.get('Type'),
                     'Size': ds.get('Size')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_advanced_gateways_and_dhcp(self):
-        print("Fetching Advanced Gateways and DHCP...")
+        logger.debug("Fetching Advanced Gateways and DHCP...")
         try:
             eigw_resp = self.ec2.describe_egress_only_internet_gateways()
             for eigw in eigw_resp.get('EgressOnlyInternetGateways', []):
@@ -302,8 +334,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                         'EgressOnlyInternetGatewayId': eigw.get('EgressOnlyInternetGatewayId'),
                         'State': att.get('State')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             cgs_resp = self.ec2.describe_carrier_gateways()
@@ -313,8 +345,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'CarrierGatewayId': cg.get('CarrierGatewayId'),
                     'State': cg.get('State')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             dhcp_resp = self.ec2.describe_dhcp_options()
@@ -323,11 +355,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'DhcpOptionsId': dhcp.get('DhcpOptionsId'),
                     'DhcpConfigurations': dhcp.get('DhcpConfigurations', [])
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_flow_logs(self):
-        print("Fetching Flow Logs...")
+        logger.debug("Fetching Flow Logs...")
         try:
             fl_resp = self.ec2.describe_flow_logs()
             for fl in fl_resp.get('FlowLogs', []):
@@ -337,11 +369,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'FlowLogStatus': fl.get('FlowLogStatus'),
                     'LogGroupName': fl.get('LogGroupName')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_hybrid_connectivity(self):
-        print("Fetching Hybrid Connectivity...")
+        logger.debug("Fetching Hybrid Connectivity...")
         try:
             dc_resp = self.directconnect.describe_connections()
             for conn in dc_resp.get('connections', []):
@@ -352,8 +384,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'ConnectionState': conn.get('connectionState'),
                     'Bandwidth': conn.get('bandwidth')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             cn_resp = self.networkmanager.list_core_networks()
@@ -363,11 +395,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'CoreNetworkId': cn.get('CoreNetworkId'),
                     'State': cn.get('State')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_security_compliance(self):
-        print("Fetching Security & Compliance...")
+        logger.debug("Fetching Security & Compliance...")
         status = {'GuardDutyStatus': 'NOT_ENABLED', 'ConfigStatus': 'NOT_RECORDING'}
         
         try:
@@ -377,8 +409,8 @@ class NetworkingMixin(BaseTopologyBuilder):
                 det_info = self.guardduty.get_detector(DetectorId=detectors[0])
                 if det_info.get('Status') == 'ENABLED':
                     status['GuardDutyStatus'] = 'ACTIVE'
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             cfg_resp = self.config.describe_configuration_recorder_status()
@@ -386,13 +418,13 @@ class NetworkingMixin(BaseTopologyBuilder):
                 if rec.get('recording'):
                     status['ConfigStatus'] = 'RECORDING'
                     break
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         self.raw_data['SecurityAndCompliance'].append(status)
 
     def _fetch_security_groups(self):
-        print("Fetching Security Groups...")
+        logger.debug("Fetching Security Groups...")
         try:
             sg_resp = self.ec2.describe_security_groups()
             for sg in sg_resp.get('SecurityGroups', []):
@@ -404,11 +436,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'InboundRules': sg.get('IpPermissions', []),
                     'OutboundRules': sg.get('IpPermissionsEgress', [])
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_network_acls(self):
-        print("Fetching Network ACLs...")
+        logger.debug("Fetching Network ACLs...")
         try:
             nacl_resp = self.ec2.describe_network_acls()
             for nacl in nacl_resp.get('NetworkAcls', []):
@@ -418,11 +450,11 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'Entries': nacl.get('Entries', []),
                     'Associations': nacl.get('Associations', [])
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_elastic_ips(self):
-        print("Fetching Elastic IPs...")
+        logger.debug("Fetching Elastic IPs...")
         try:
             addr_resp = self.ec2.describe_addresses()
             for addr in addr_resp.get('Addresses', []):
@@ -433,5 +465,5 @@ class NetworkingMixin(BaseTopologyBuilder):
                     'NetworkInterfaceId': addr.get('NetworkInterfaceId'),
                     'PrivateIpAddress': addr.get('PrivateIpAddress')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")

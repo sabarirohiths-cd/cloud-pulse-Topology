@@ -1,29 +1,27 @@
-from .base import BaseTopologyBuilder
+import logging
+logger = logging.getLogger(__name__)
+
+from ..core.base import BaseTopologyBuilder
 
 class ComputeMixin(BaseTopologyBuilder):
     def _fetch_ec2(self):
-        print("Fetching EC2...")
+        logger.debug("Fetching EC2...")
 
         try:
             instances_resp = self.ec2.describe_instances()
             for reservation in instances_resp.get('Reservations', []):
                 for inst in reservation.get('Instances', []):
                     sg_ids = [isg['GroupId'] for isg in inst.get('SecurityGroups', [])]
-                    self.raw_data['Instances'].append({
-                        'SubnetId': inst.get('SubnetId'),
-                        'InstanceId': inst.get('InstanceId'),
-                        'InstanceType': inst.get('InstanceType'),
-                        'State': inst.get('State', {}).get('Name'),
-                        'PrivateIpAddress': inst.get('PrivateIpAddress'),
-                        'PublicIpAddress': inst.get('PublicIpAddress'),
-                        'SecurityGroupIds': sg_ids,
-                        'Name': self._safe_get_tag(inst.get('Tags', []), 'Name')
-                    })
-        except Exception:
-            pass
+                    inst_obj = inst.copy()
+                    inst_obj['Name'] = self._safe_get_tag(inst.get('Tags', []), 'Name')
+                    inst_obj['State'] = inst.get('State', {}).get('Name')
+                    inst_obj['SecurityGroupIds'] = sg_ids
+                    self.raw_data['Instances'].append(inst_obj)
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_asg_ebs(self):
-        print("Fetching ASG and EBS...")
+        logger.debug("Fetching ASG and EBS...")
         try:
             asg_resp = self.asg.describe_auto_scaling_groups()
             for asg in asg_resp.get('AutoScalingGroups', []):
@@ -43,8 +41,10 @@ class ComputeMixin(BaseTopologyBuilder):
                     'MaxSize': asg.get('MaxSize'),
                     'DesiredCapacity': asg.get('DesiredCapacity')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
+
+
 
 
 
@@ -58,23 +58,24 @@ class ComputeMixin(BaseTopologyBuilder):
                         'Size': vol.get('Size'),
                         'State': vol.get('State')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_eks_ecs(self):
-        print("Fetching EKS and ECS Clusters...")
+        logger.debug("Fetching EKS and ECS Clusters...")
         try:
             eks_list = self.eks.list_clusters().get('clusters', [])
             for cluster_name in eks_list:
                 c_detail = self.eks.describe_cluster(name=cluster_name).get('cluster', {})
                 self.raw_data['EKSClusters'].append({
                     'SubnetIds': c_detail.get('resourcesVpcConfig', {}).get('subnetIds', []),
+                    'SecurityGroupIds': c_detail.get('resourcesVpcConfig', {}).get('securityGroupIds', []),
                     'ClusterName': c_detail.get('name'),
                     'Status': c_detail.get('status'),
                     'Endpoint': c_detail.get('endpoint')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             ecs_list = self.ecs.list_clusters().get('clusterArns', [])
@@ -88,13 +89,15 @@ class ComputeMixin(BaseTopologyBuilder):
                         'Services': 0,
                         'Tasks': cluster.get('runningTasksCount', 0),
                         'ServiceTypes': [],
-                        'SubnetIds': []
+                        'SubnetIds': [],
+                        'SecurityGroupIds': []
                     }
                     services_list = self.ecs.list_services(cluster=c_name).get('serviceArns', [])
                     ecs_info['Services'] = len(services_list)
                     if services_list:
                         services = self.ecs.describe_services(cluster=c_name, services=services_list).get('services', [])
                         cluster_subnets = set()
+                        cluster_sgs = set()
                         for s in services:
                             ecs_info['ServiceTypes'].append({
                                 'ServiceName': s.get('serviceName'),
@@ -105,26 +108,29 @@ class ComputeMixin(BaseTopologyBuilder):
                             })
                             vpc_conf = s.get('networkConfiguration', {}).get('awsvpcConfiguration', {})
                             cluster_subnets.update(vpc_conf.get('subnets', []))
+                            cluster_sgs.update(vpc_conf.get('securityGroups', []))
                         ecs_info['SubnetIds'] = list(cluster_subnets)
+                        ecs_info['SecurityGroupIds'] = list(cluster_sgs)
                     self.raw_data['ECSClusters'].append(ecs_info)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_lambda(self):
-        print("Fetching Lambda Functions...")
+        logger.debug("Fetching Lambda Functions...")
         try:
             lambda_resp = self.lmbda.list_functions()
             for func in lambda_resp.get('Functions', []):
                 self.raw_data['LambdaFunctions'].append({
                     'SubnetIds': func.get('VpcConfig', {}).get('SubnetIds', []),
+                    'SecurityGroupIds': func.get('VpcConfig', {}).get('SecurityGroupIds', []),
                     'FunctionName': func.get('FunctionName'),
                     'Runtime': func.get('Runtime')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_sagemaker(self):
-        print("Fetching SageMaker...")
+        logger.debug("Fetching SageMaker...")
         try:
             sm_resp = self.sagemaker.list_notebook_instances()
             for nb in sm_resp.get('NotebookInstances', []):
@@ -136,11 +142,11 @@ class ComputeMixin(BaseTopologyBuilder):
                     'NotebookInstanceStatus': nb_det.get('NotebookInstanceStatus'),
                     'InstanceType': nb_det.get('InstanceType')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_workspaces(self):
-        print("Fetching WorkSpaces...")
+        logger.debug("Fetching WorkSpaces...")
         try:
             ws_resp = self.workspaces.describe_workspaces()
             for ws in ws_resp.get('Workspaces', []):
@@ -151,11 +157,11 @@ class ComputeMixin(BaseTopologyBuilder):
                     'UserName': ws.get('UserName'),
                     'BundleId': ws.get('BundleId')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_app_runner_vpc_connectors(self):
-        print("Fetching App Runner VPC Connectors...")
+        logger.debug("Fetching App Runner VPC Connectors...")
         try:
             ar_resp = self.apprunner.list_vpc_connectors()
             for vpc_conn in ar_resp.get('VpcConnectors', []):
@@ -167,11 +173,11 @@ class ComputeMixin(BaseTopologyBuilder):
                     'VpcConnectorArn': conn_det.get('VpcConnectorArn'),
                     'Status': conn_det.get('Status')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_emr(self):
-        print("Fetching EMR Clusters...")
+        logger.debug("Fetching EMR Clusters...")
         try:
             emr_resp = self.emr.list_clusters(ClusterStates=['STARTING', 'BOOTSTRAPPING', 'RUNNING', 'WAITING', 'TERMINATING'])
             for cluster in emr_resp.get('Clusters', []):
@@ -191,11 +197,11 @@ class ComputeMixin(BaseTopologyBuilder):
                     'Name': c_det.get('Name'),
                     'State': c_det.get('Status', {}).get('State')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_glue_connections(self):
-        print("Fetching Glue Connections...")
+        logger.debug("Fetching Glue Connections...")
         try:
             glue_resp = self.glue.get_connections()
             for conn in glue_resp.get('ConnectionList', []):
@@ -208,11 +214,11 @@ class ComputeMixin(BaseTopologyBuilder):
                         'ConnectionType': conn.get('ConnectionType'),
                         'SecurityGroupIdList': reqs.get('SecurityGroupIdList', [])
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_batch(self):
-        print("Fetching AWS Batch...")
+        logger.debug("Fetching AWS Batch...")
         try:
             batch_resp = self.batch.describe_compute_environments()
             for env in batch_resp.get('computeEnvironments', []):
@@ -226,5 +232,5 @@ class ComputeMixin(BaseTopologyBuilder):
                         'Status': env.get('status'),
                         'Type': resources.get('type')
                     })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")

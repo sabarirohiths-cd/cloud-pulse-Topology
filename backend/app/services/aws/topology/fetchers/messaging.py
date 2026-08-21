@@ -1,14 +1,17 @@
-from .base import BaseTopologyBuilder
+import logging
+logger = logging.getLogger(__name__)
+
+from ..core.base import BaseTopologyBuilder
 
 class MessagingMixin(BaseTopologyBuilder):
     def _fetch_messaging_queues(self):
-        print("Fetching SQS, MQ, MSK...")
+        logger.debug("Fetching SQS, MQ, MSK...")
         try:
             sqs_resp = self.sqs.list_queues()
             for q in sqs_resp.get('QueueUrls', []):
                 self.raw_data['RegionalQueues'].append({'QueueUrl': q})
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             mq_resp = self.mq.list_brokers()
@@ -21,8 +24,8 @@ class MessagingMixin(BaseTopologyBuilder):
                     'BrokerState': b_det.get('BrokerState'),
                     'EngineType': b_det.get('EngineType')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
         try:
             kafka_resp = self.kafka.list_clusters_v2()
@@ -40,11 +43,11 @@ class MessagingMixin(BaseTopologyBuilder):
                     'State': cluster.get('State'),
                     'ClusterType': cluster.get('ClusterType')
                 })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")
 
     def _fetch_opensearch(self):
-        print("Fetching OpenSearch...")
+        logger.debug("Fetching OpenSearch...")
         try:
             os_list = self.opensearch.list_domain_names()
             domain_names = [d.get('DomainName') for d in os_list.get('DomainNames', [])]
@@ -61,5 +64,5 @@ class MessagingMixin(BaseTopologyBuilder):
                                 'EngineVersion': domain.get('EngineVersion'),
                                 'Created': domain.get('Created')
                             })
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during AWS discovery: {e}")

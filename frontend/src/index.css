@@ -26,6 +26,17 @@ body {
   }
 }
 
+/* ReactFlow Dark Mode Controls Override */
+.react-flow__controls-button {
+  background-color: #161b22 !important;
+  fill: #a1a1aa !important;
+  border-bottom: 1px solid #2d333b !important;
+}
+.react-flow__controls-button:hover {
+  background-color: #1e232b !important;
+  fill: #ffffff !important;
+}
+
 /* Modern Webkit Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;

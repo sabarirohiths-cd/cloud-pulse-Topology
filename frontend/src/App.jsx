@@ -16,17 +16,17 @@ export default function App() {
               <Cloud className="h-6 w-6 text-white" strokeWidth={1.5} />
               <Activity className="h-3 w-3 text-white absolute" strokeWidth={3} />
             </div>
-            <span className="text-white font-bold tracking-tight text-[15px]">Cloud Pulse Agent</span>
+            <span className="text-white font-bold tracking-tight text-base whitespace-nowrap">Cloud Pulse Agent</span>
           </div>
           <nav className="space-y-1">
-            <NavLink to="/topology" className={({isActive}) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors ${isActive ? 'bg-[#1a1d24] text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#1a1d24]'}`}>
+            <NavLink to="/topology" className={({isActive}) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-[#1a1d24] text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#1a1d24]'}`}>
               {({isActive}) => (
                 <>
                   <Boxes className="h-4 w-4 text-purple-400" /> Topology
                 </>
               )}
             </NavLink>
-            <NavLink to="/config" className={({isActive}) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium transition-colors ${isActive ? 'bg-[#1a1d24] text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#1a1d24]'}`}>
+            <NavLink to="/config" className={({isActive}) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-[#1a1d24] text-white' : 'text-[#8b949e] hover:text-white hover:bg-[#1a1d24]'}`}>
               {({isActive}) => (
                 <>
                   <Settings className="h-4 w-4 text-gray-400" /> Configuration

@@ -1,14 +1,54 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
-export const scanTopology = async (accountId, regions = ['ap-south-1']) => {
-  const response = await axios.post(`${API_BASE_URL}/topology/scan`, { account_id: accountId, regions });
+export const getComputeResources = async (accountId, regions = ['ap-south-1'], computeType = 'EC2') => {
+  const promises = regions.map(region => 
+    axios.get(`${API_BASE_URL}/topology/scan/compute-resources`, {
+      params: {
+        account_id: accountId,
+        region,
+        compute_type: computeType
+      }
+    }).then(res => res.data?.resources || []).catch(err => {
+      console.warn(`Failed to load resources for region ${region}:`, err);
+      return [];
+    })
+  );
+
+  const results = await Promise.all(promises);
+  return { resources: results.flat() };
+};
+
+export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeType = 'EC2', resourceId) => {
+  const response = await axios.post(`${API_BASE_URL}/topology/scan/compute-flow`, {
+    account_id: accountId,
+    region: region,
+    compute_type: computeType,
+    resource_id: resourceId
+  });
+  return response.data;
+};
+export const getLocalComputeFlow = async (region = 'ap-south-1') => {
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local`, {
+    params: { region }
+  });
   return response.data;
 };
 
+export const getCachedRegions = async () => {
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/regions/cached`);
+  return response.data?.regions || [];
+};
 
-export const getTopologyByAccount = async (accountId) => {
-  const response = await axios.get(`${API_BASE_URL}/topology/${accountId}`);
+export const getLocalTrace = async (computeId) => {
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local/${computeId}`);
   return response.data;
+};
+
+export const getLocalComputeResources = async (region) => {
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-resources/local`, {
+    params: { region }
+  });
+  return response.data?.resources || [];
 };

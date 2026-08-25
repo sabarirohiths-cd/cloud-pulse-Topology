@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Server, Database, Shield, Lock, Network, Cloud, 
-  Box, Zap, Activity, Globe, HardDrive
+  Box, Zap, Activity, Globe, HardDrive, Key, Layers
 } from 'lucide-react';
 
 // Tailwind Themes to preserve explicit class strings for PurgeCSS
@@ -20,6 +20,9 @@ const themes = {
   lbIndigo: { text: 'text-indigo-400', border: 'hover:border-indigo-500/50', borderStatic: 'border-indigo-500/30' },
   miscLightSky: { text: 'text-sky-300', border: 'hover:border-sky-400/50', borderStatic: 'border-sky-400/30' },
   defaultGray: { text: 'text-gray-400', border: 'hover:border-gray-500/50', borderStatic: 'border-gray-500/30' },
+  ebsPurple: { text: 'text-purple-400', border: 'hover:border-purple-500/50', borderStatic: 'border-purple-500/30' },
+  iamYellow: { text: 'text-yellow-400', border: 'hover:border-yellow-500/50', borderStatic: 'border-yellow-500/30' },
+  asgOrange: { text: 'text-orange-400', border: 'hover:border-orange-500/50', borderStatic: 'border-orange-500/30' },
 };
 
 // Centralized mapping of all AWS resource types mapped to icons and colors
@@ -30,6 +33,7 @@ export const RESOURCE_MAP = {
   'EKSCluster': { icon: Box, ...themes.computeEmerald },
   'ECSCluster': { icon: Box, ...themes.computeEmerald },
   'AutoScalingGroup': { icon: Box, ...themes.computeEmerald },
+  'ASG': { icon: Layers, ...themes.asgOrange },
   'ElasticBeanstalkEnvironment': { icon: Box, ...themes.computeEmerald },
   'BatchComputeEnvironment': { icon: Box, ...themes.computeEmerald },
   'AppRunnerVpcConnector': { icon: Box, ...themes.computeEmerald },
@@ -48,6 +52,7 @@ export const RESOURCE_MAP = {
   // Storage
   'S3Bucket': { icon: Box, ...themes.storageYellow },
   'EbsVolume': { icon: Box, ...themes.storageYellow },
+  'EBS': { icon: HardDrive, ...themes.ebsPurple },
   'EFSMountTarget': { icon: Box, ...themes.storageYellow },
   'FSxFileSystem': { icon: Box, ...themes.storageYellow },
 
@@ -69,6 +74,7 @@ export const RESOURCE_MAP = {
   'NetworkFirewall': { icon: Shield, ...themes.secRed },
   'NetworkAcl': { icon: Lock, ...themes.secLightRed },
   'IAMRole': { icon: Shield, ...themes.iamPink },
+  'IAM_ROLE': { icon: Key, ...themes.iamYellow },
   'SecurityAndCompliance': { icon: Shield, ...themes.iamPink },
 
   // Networking Core

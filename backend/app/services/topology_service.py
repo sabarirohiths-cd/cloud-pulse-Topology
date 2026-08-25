@@ -1,13 +1,12 @@
 import boto3
 import json
-import os
 import asyncio
-from sqlalchemy import select
-from app.services.aws.topology_builder import AWSTopologyBuilder
-from app.schemas.topology.topology import TopologyScanRequest
+from app.services.aws.topology.core.flow_builder import ComputeFlowBuilder
+from app.schemas.topology.topology import ComputeFlowRequest
 from app.core.database import SessionLocal
 from app.models.config.config_cloud_account import ConfigCloudAccount
 from app.core.security import decrypt_credentials
+from sqlalchemy import select
 
 class TopologyService:
     def __init__(self):
@@ -21,7 +20,7 @@ class TopologyService:
                 )
             else:
                 result = await session.execute(
-                    select(ConfigCloudAccount) # Fetch the first available account if none specified
+                    select(ConfigCloudAccount)
                 )
             return result.scalars().first()
 
@@ -33,281 +32,146 @@ class TopologyService:
                 return boto3.Session(region_name=region)
                 
             creds = decrypt_credentials(account.encrypted_credentials)
-            print(f"Successfully retrieved credentials for DB account '{account.account_name}' in {region}.")
             return boto3.Session(
                 aws_access_key_id=creds.get('aws_access_key_id'),
                 aws_secret_access_key=creds.get('aws_secret_access_key'),
-                aws_session_token=creds.get('aws_session_token'), # May be None, which is fine
+                aws_session_token=creds.get('aws_session_token'),
                 region_name=region
             )
         except Exception as e:
             print(f"Failed to fetch DB credentials: {e}. Falling back to env variables.")
             return boto3.Session(region_name=region)
 
-    @staticmethod
-    def _get_resource_id(resource, resource_type):
-        import uuid
-        if not isinstance(resource, dict): return str(resource)
+    async def scan_compute_flow(self, request: ComputeFlowRequest):
+        print(f"\n[DEEP FETCH] 🔍 Deep Tracing {request.compute_type} {request.resource_id} in {request.region}...\n")
         
-        # 1. Exact common primary keys
-        known_keys = [
-            'Id', 'InstanceId', 'VpcId', 'SubnetId', 'GroupId', 'NetworkAclId',
-            'DBInstanceIdentifier', 'DBClusterIdentifier', 'BucketName', 'RoleName', 
-            'AllocationId', 'ClusterName', 'AutoScalingGroupName', 'InternetGatewayId',
-            'RouteTableId', 'DhcpOptionsId', 'LoadBalancerArn', 'LoadBalancerName', 
-            'TransitGatewayId', 'NatGatewayId', 'VpnGatewayId', 'VpnConnectionId', 
-            'NetworkInterfaceId', 'FunctionName', 'DomainName', 'FileSystemId', 
-            'VolumeId', 'SnapshotId', 'ImageId', 'KeyName', 'QueueUrl', 'TopicArn', 
-            'ClusterId', 'EndpointId', 'RepositoryName', 'CacheClusterId', 'WorkspaceId', 'Name'
-        ]
+        session_aws = await self.get_aws_session(request.account_id, request.region)
         
-        for k in known_keys:
-            if resource.get(k):
-                return str(resource.get(k))
+        builder = ComputeFlowBuilder(
+            session=session_aws,
+            region=request.region,
+            compute_type=request.compute_type,
+            resource_id=request.resource_id
+        )
+        
+        loop = asyncio.get_event_loop()
+        flow_data = await loop.run_in_executor(None, builder.build)
+        
+        # Save to JSON file for easy debugging/inspection
+        import os
+        os.makedirs("data", exist_ok=True)
+        filename = "data/last_compute_flow.json"
+        
+        try:
+            if os.path.exists(filename):
+                with open(filename, "r") as f:
+                    try:
+                        existing_data = json.load(f)
+                    except:
+                        existing_data = {}
                 
-        # 2. Dynamic fallback: Look for any key ending in 'Id', 'Arn', or 'ARN'
-        for k, v in resource.items():
-            if isinstance(k, str) and (k.endswith('Id') or k.endswith('Arn') or k.endswith('ARN')) and v:
-                return str(v)
-                
-        return f"unknown_{resource_type}_{uuid.uuid4().hex}"
-
-    @staticmethod
-    def _get_resource_name(resource):
-        if not isinstance(resource, dict): return None
-        if resource.get('Name'): return resource.get('Name')
-        
-        # Check Tags for a 'Name' tag
-        tags = resource.get('Tags', [])
-        if isinstance(tags, list):
-            for t in tags:
-                if isinstance(t, dict) and t.get('Key') == 'Name':
-                    return t.get('Value')
+                # Merge nodes and edges (avoid duplicates by ID)
+                existing_nodes = {n['id']: n for n in existing_data.get('nodes', []) if 'id' in n}
+                for n in flow_data.get('nodes', []):
+                    if n['id'] in existing_nodes:
+                        old_meta = existing_nodes[n['id']].get('metadata', {})
+                        new_meta = n.get('metadata', {})
+                        # Preserve keys that are in old_meta but not in new_meta
+                        for k, v in old_meta.items():
+                            if k not in new_meta:
+                                new_meta[k] = v
+                        n['metadata'] = new_meta
+                    existing_nodes[n['id']] = n
                     
-        # Check common name fields as a fallback
-        name_keys = [
-            'ClusterName', 'AutoScalingGroupName', 'FunctionName', 
-            'DomainName', 'BucketName', 'RoleName', 'LoadBalancerName',
-            'DBInstanceIdentifier', 'DBClusterIdentifier'
-        ]
-        for k in name_keys:
-            if resource.get(k): return str(resource.get(k))
+                existing_edges = {(e.get('source'), e.get('target')): e for e in existing_data.get('edges', [])}
+                for e in flow_data.get('edges', []):
+                    existing_edges[(e.get('source'), e.get('target'))] = e
+                    
+                existing_data['nodes'] = list(existing_nodes.values())
+                existing_data['edges'] = list(existing_edges.values())
+                existing_data['last_compute_id'] = flow_data.get('compute_id')
+                
+                # Remove old duplicated data if it exists
+                existing_data.pop('last_trace', None)
+                existing_data.pop('traces', None)
+                existing_data.pop('compute_id', None)
+            else:
+                existing_data = {
+                    "last_compute_id": flow_data.get('compute_id'),
+                    "nodes": flow_data.get('nodes', []),
+                    "edges": flow_data.get('edges', [])
+                }
             
-        return None
+            with open(filename, "w") as f:
+                json.dump(existing_data, f, indent=4)
+        except Exception as e:
+            print(f"Warning: Failed to save flow to JSON: {e}")
+            
+        return flow_data
 
-    async def scan_topology(self, request: TopologyScanRequest):
-        from app.models.topology_resource import TopologyResource
-        from sqlalchemy import text
-        import json
+    async def list_compute_resources(self, account_id: str, region: str, compute_type: str):
+        print(f"\n[GLOBAL FETCH] 🚀 Scanning {compute_type} resources in {region} for account {account_id}...\n")
+        session_aws = await self.get_aws_session(account_id, region)
+        compute_type_upper = compute_type.upper()
         
-        default_region = request.regions[0] if request.regions else 'ap-south-1'
+        resources = []
         
-        # 1. Resolve Account Configuration
-        account_record = await self._get_account(request.account_id)
-        if account_record:
-            account_name = account_record.account_name
-            cloud_provider = account_record.provider
-            print(f"Running scan dynamically for account: {account_name}")
+        if compute_type_upper == 'EC2':
+            client = session_aws.client('ec2', region_name=region)
+            paginator = client.get_paginator('describe_instances')
+            for page in paginator.paginate():
+                for res in page.get('Reservations', []):
+                    for inst in res.get('Instances', []):
+                        name = next((t['Value'] for t in inst.get('Tags', []) if t['Key'] == 'Name'), None)
+                        resources.append({
+                            "id": inst['InstanceId'],
+                            "name": name,
+                            "type": "EC2",
+                            "state": inst.get('State', {}).get('Name', 'unknown'),
+                            "region": region
+                        })
         else:
-            account_name = request.account_id or "unknown-account"
-            cloud_provider = "aws"
-            print(f"Warning: No database account configured. Falling back to env variables for {account_name}.")
+            raise NotImplementedError(f"Listing for {compute_type} is not yet implemented.")
             
-        session_aws = await self.get_aws_session(request.account_id, default_region)
+        # Update JSON file with the fetched resources as nodes
+        import os
+        os.makedirs("data", exist_ok=True)
+        filename = "data/last_compute_flow.json"
         
-        builder = AWSTopologyBuilder(session=session_aws, regions=request.regions)
-        builder.build()
-        topology_data = builder.get_topology()
-
-        if request.account_id == "cpi-topology-scanner":
-            print("Injecting Mock Enterprise Topology Data as extra VPCs...")
-            try:
-                with open("data/mock_enterprise_topology.json", "r") as f:
-                    mock_data = json.load(f)
-                    
-                    if "Regions" in mock_data:
-                        for region, vpcs in mock_data["Regions"].items():
-                            if region not in topology_data["Regions"]:
-                                topology_data["Regions"][region] = []
-                            topology_data["Regions"][region].extend(vpcs)
-                            
-                    if "GlobalResources" in mock_data:
-                        if "GlobalResources" not in topology_data:
-                            topology_data["GlobalResources"] = {}
-                        for rtype, resources in mock_data["GlobalResources"].items():
-                            if rtype not in topology_data["GlobalResources"]:
-                                topology_data["GlobalResources"][rtype] = []
-                            topology_data["GlobalResources"][rtype].extend(resources)
-                            
-                    if "Edges" in mock_data:
-                        if "Edges" not in topology_data:
-                            topology_data["Edges"] = []
-                        topology_data["Edges"].extend(mock_data["Edges"])
-            except Exception as e:
-                print(f"Failed to inject mock data: {e}")
-        
-        # Post-process: Filter out empty VPCs (VPCs with no subnets and no resources)
-        for region in list(topology_data.get("Regions", {}).keys()):
-            topology_data["Regions"][region] = [
-                vpc for vpc in topology_data["Regions"][region]
-                if vpc.get("Subnets") or vpc.get("EC2Instances") or vpc.get("RDSClusters") or vpc.get("LoadBalancers")
-            ]
-        
-        async with SessionLocal() as db_session:
-            # Delete old scan data for this account and regions
-            await db_session.execute(
-                text("DELETE FROM topology_resources WHERE account_name = :acc"),
-                {'acc': account_name}
-            )
+        try:
+            existing_data = {"nodes": [], "edges": []}
+            if os.path.exists(filename):
+                with open(filename, "r") as f:
+                    try:
+                        existing_data = json.load(f)
+                    except json.JSONDecodeError:
+                        pass
             
-            resources_to_insert = []
+            existing_nodes = {n.get('id'): n for n in existing_data.get('nodes', []) if 'id' in n}
+            for res in resources:
+                if res['id'] not in existing_nodes:
+                    existing_nodes[res['id']] = {
+                        "id": res['id'],
+                        "type": res['type'],
+                        "label": res['name'] or res['id'],
+                        "status": res['state'],
+                        "metadata": {
+                            "Region": res['region']
+                        }
+                    }
+                else:
+                    # Update existing node state/region
+                    existing_nodes[res['id']]['status'] = res['state']
+                    if 'metadata' not in existing_nodes[res['id']]:
+                        existing_nodes[res['id']]['metadata'] = {}
+                    existing_nodes[res['id']]['metadata']['Region'] = res['region']
+                    
+            existing_data['nodes'] = list(existing_nodes.values())
             
-            regions_data = topology_data.get("Regions", {})
-            for region, vpcs in regions_data.items():
-                for vpc in vpcs:
-                    vpc_id = self._get_resource_id(vpc, 'VPC')
-                    vpc_name = self._get_resource_name(vpc)
-                    
-                    vpc_record = TopologyResource(
-                        resource_id=vpc_id, resource_name=vpc_name, resource_type='VPC',
-                        cloud_provider=cloud_provider, account_name=account_name, region=region,
-                        vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(vpc, default=str)
-                    )
-                    resources_to_insert.append(vpc_record)
-                    
-                    subnets = vpc.get('Subnets', [])
-                    for subnet in subnets:
-                        subnet_id = self._get_resource_id(subnet, 'Subnet')
-                        subnet_name = self._get_resource_name(subnet)
-                        
-                        subnet_record = TopologyResource(
-                            resource_id=subnet_id, resource_name=subnet_name, resource_type='Subnet',
-                            cloud_provider=cloud_provider, account_name=account_name, region=region,
-                            vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(subnet, default=str)
-                        )
-                        resources_to_insert.append(subnet_record)
-                        
-                        for key, val in subnet.items():
-                            if isinstance(val, list) and key not in ['Tags']:
-                                for res in val:
-                                    res_id = self._get_resource_id(res, key)
-                                    res_name = self._get_resource_name(res)
-                                    res_record = TopologyResource(
-                                        resource_id=res_id, resource_name=res_name, resource_type=key,
-                                        cloud_provider=cloud_provider, account_name=account_name, region=region,
-                                        vpc_id=vpc_id, subnet_id=subnet_id, saved_config_json=json.dumps(res, default=str)
-                                    )
-                                    resources_to_insert.append(res_record)
-                                    
-                    for key, val in vpc.items():
-                        if isinstance(val, list) and key not in ['Tags', 'Subnets']:
-                            for res in val:
-                                res_id = self._get_resource_id(res, key)
-                                res_name = self._get_resource_name(res)
-                                res_record = TopologyResource(
-                                    resource_id=res_id, resource_name=res_name, resource_type=key,
-                                    cloud_provider=cloud_provider, account_name=account_name, region=region,
-                                    vpc_id=vpc_id, subnet_id=None, saved_config_json=json.dumps(res, default=str)
-                                )
-                                resources_to_insert.append(res_record)
-                                
-            global_data = topology_data.get("GlobalResources", {})
-            for res_type, resources in global_data.items():
-                for res in resources:
-                    res_id = self._get_resource_id(res, res_type)
-                    res_name = self._get_resource_name(res)
-                    res_record = TopologyResource(
-                        resource_id=res_id, resource_name=res_name, resource_type=res_type,
-                        cloud_provider=cloud_provider, account_name=account_name, region='global',
-                        vpc_id=None, subnet_id=None, saved_config_json=json.dumps(res, default=str)
-                    )
-                    resources_to_insert.append(res_record)
-                    
-            # Save Graph Edges as a special global resource
-            edges_data = topology_data.get("Edges", [])
-            if edges_data:
-                edges_record = TopologyResource(
-                    resource_id=f"edges-{account_name}", resource_name="GraphEdges", resource_type="GraphEdges",
-                    cloud_provider=cloud_provider, account_name=account_name, region='global',
-                    vpc_id=None, subnet_id=None, saved_config_json=json.dumps(edges_data, default=str)
-                )
-                resources_to_insert.append(edges_record)
-
-            db_session.add_all(resources_to_insert)
-            await db_session.commit()
+            with open(filename, "w") as f:
+                json.dump(existing_data, f, indent=4)
+        except Exception as e:
+            print(f"Warning: Failed to save resources to JSON: {e}")
             
-        return topology_data
-
-    async def get_saved_topology(self, account_name: str = None):
-        from app.models.topology_resource import TopologyResource
-        
-        # If no account specified, find the first available one dynamically
-        if not account_name:
-            account_record = await self._get_account()
-            if account_record:
-                account_name = account_record.account_name
-            else:
-                account_name = "unknown-account"
-                
-        async with SessionLocal() as session:
-            result = await session.execute(
-                select(TopologyResource).where(TopologyResource.account_name == account_name)
-            )
-            records = result.scalars().all()
-            
-        merged_regions = {}
-        merged_global = {}
-        
-        vpcs_map = {}
-        subnets_map = {}
-        
-        # Pass 1: Setup VPCs, Subnets, and Globals
-        for record in records:
-            data = json.loads(record.saved_config_json)
-            if record.region == 'global':
-                merged_global.setdefault(record.resource_type, []).append(data)
-            elif record.resource_type == 'VPC':
-                # Strip out existing nested arrays so we don't duplicate them during Pass 2
-                for k in list(data.keys()):
-                    if isinstance(data[k], list) and k != 'Tags':
-                        data[k] = []
-                data.setdefault('Subnets', [])
-                vpcs_map[record.resource_id] = data
-                merged_regions.setdefault(record.region, []).append(data)
-            elif record.resource_type == 'Subnet':
-                for k in list(data.keys()):
-                    if isinstance(data[k], list) and k != 'Tags':
-                        data[k] = []
-                subnets_map[record.resource_id] = data
-                
-        # Pass 2: Connect the topology using relational DB columns
-        for record in records:
-            if record.region == 'global' or record.resource_type == 'VPC':
-                continue
-                
-            data = json.loads(record.saved_config_json)
-            
-            if record.resource_type == 'Subnet':
-                if record.vpc_id in vpcs_map:
-                    vpcs_map[record.vpc_id]['Subnets'].append(data)
-            else:
-                if record.subnet_id and record.subnet_id in subnets_map:
-                    subnets_map[record.subnet_id].setdefault(record.resource_type, []).append(data)
-                elif record.vpc_id and record.vpc_id in vpcs_map:
-                    vpcs_map[record.vpc_id].setdefault(record.resource_type, []).append(data)
-                    
-        # Extract GraphEdges from global
-        edges = []
-        if 'GraphEdges' in merged_global:
-            # We saved the entire array as one json blob
-            edges_blobs = merged_global.pop('GraphEdges')
-            for blob in edges_blobs:
-                edges.extend(blob)
-                    
-        return {
-            "Regions": merged_regions,
-            "GlobalResources": merged_global,
-            "Edges": edges
-        }
-
+        return resources
 

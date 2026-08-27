@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, List } from 'lucide-react';
 import { toast } from 'sonner';
-import { getComputeResources, scanComputeFlow, getCachedRegions, getLocalComputeFlow, getLocalComputeResources, getLocalTrace } from '../../api/topology';
+import { getComputeResources, scanComputeFlow, getCachedRegions, getLocalComputeFlow, getLocalComputeResources, getLocalTrace, getSupportedComputeTypes } from '../../api/topology';
 import { listConfigs } from '../../api/config';
 import ResourceDetailModal from './components/ResourceDetailModal';
 import ScanConfigurationModal from './components/ScanConfigurationModal';
@@ -12,16 +12,16 @@ import { FilterBar } from '../../components/ui/FilterBar';
 export default function TopologyPage() {
   const [loading, setLoading] = useState(false);
   const [tracing, setTracing] = useState(false);
-  
+
   // Two-Step State
   const [resources, setResources] = useState([]);
   const [flowData, setFlowData] = useState(null); // { nodes, edges }
 
   const [selectedNode, setSelectedNode] = useState(null);
-  
+
   // Available regions dynamically populated from cached files
   const [availableRegions, setAvailableRegions] = useState([]);
-  
+
   // Selection State
   const [viewRegions, setViewRegions] = useState([]);
   const [viewProvider, setViewProvider] = useState('');
@@ -30,11 +30,25 @@ export default function TopologyPage() {
   const [availableAccounts, setAvailableAccounts] = useState([]);
   const [configs, setConfigs] = useState([]);
 
+  const [supportedComputeTypes, setSupportedComputeTypes] = useState(['EC2']);
+  const [viewComputeType, setViewComputeType] = useState('EC2');
+
   const [activeResourceId, setActiveResourceId] = useState(null);
   const [focusNodeId, setFocusNodeId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  
+
   const [showScanModal, setShowScanModal] = useState(false);
+
+  // Observability State
+  const [observabilityOptions, setObservabilityOptions] = useState([]);
+  const [lookbackMinutes, setLookbackMinutes] = useState(15);
+  const [showDiagnosticsMenu, setShowDiagnosticsMenu] = useState(false);
+
+  const toggleObservability = (opt) => {
+    setObservabilityOptions(prev =>
+      prev.includes(opt) ? prev.filter(o => o !== opt) : [...prev, opt]
+    );
+  };
 
   const loadRegions = useCallback(async (preserveView = false) => {
     try {
@@ -52,6 +66,22 @@ export default function TopologyPage() {
 
   useEffect(() => {
     loadRegions();
+  }, [loadRegions]);
+
+  useEffect(() => {
+    async function loadComputeTypes() {
+      try {
+        const types = await getSupportedComputeTypes();
+        if (types && types.length > 0) {
+          setSupportedComputeTypes(types);
+          // Default to EC2 if available, otherwise first
+          setViewComputeType(types.includes('EC2') ? 'EC2' : types[0]);
+        }
+      } catch (e) {
+        console.warn("Failed to load compute types");
+      }
+    }
+    loadComputeTypes();
   }, []);
 
 
@@ -78,10 +108,10 @@ export default function TopologyPage() {
   useEffect(() => {
     if (configs.length > 0 && viewProvider) {
       const accountsForProvider = configs.filter(c => c.provider.toUpperCase() === viewProvider);
-      
+
       const accountNames = accountsForProvider.map(c => c.account_name);
       setAvailableAccounts(accountNames);
-      
+
       if (accountsForProvider.length > 0) {
         setViewAccount(accountsForProvider[0].account_name);
         // Automatically set the viewRegion to the default_region from the database
@@ -100,13 +130,13 @@ export default function TopologyPage() {
   // Step 1: Global Fetch (Load Resources)
   const fetchResources = useCallback(async (regionsToFetch = viewRegions) => {
     if (!viewAccount) return;
-    
+
     setLoading(true);
     setFlowData(null);
     setActiveResourceId(null);
-    
+
     try {
-      const response = await getComputeResources(viewAccount, regionsToFetch, 'EC2');
+      const response = await getComputeResources(viewAccount, regionsToFetch, viewComputeType);
       if (response && response.resources) {
         setResources(response.resources);
       } else {
@@ -129,7 +159,7 @@ export default function TopologyPage() {
       try {
         const [traceResponse, resourcesResponse] = await Promise.all([
           getLocalComputeFlow(viewRegions[0]).catch(() => null),
-          getLocalComputeResources(viewRegions[0]).catch(() => [])
+          getLocalComputeResources(viewRegions[0], viewComputeType).catch(() => [])
         ]);
 
         if (resourcesResponse && resourcesResponse.length > 0) {
@@ -153,17 +183,17 @@ export default function TopologyPage() {
       }
     }
     loadLocal();
-  }, [viewRegions]);
+  }, [viewRegions, viewComputeType]);
 
   // Step 2: Deep Trace
   const handleResourceSelect = async (resource, force = false) => {
     if (tracing) return; // Prevent concurrent duplicate fetches
     if (!force && activeResourceId === resource.id) return; // Prevent fetch if already selected
-    
+
     setFocusNodeId(null);
     setActiveResourceId(resource.id);
     setTracing(true);
-    
+
     if (!force) {
       try {
         const localTrace = await getLocalTrace(resource.id);
@@ -179,9 +209,9 @@ export default function TopologyPage() {
         // Not in cache, proceed to scan
       }
     }
-    
+
     try {
-      const response = await scanComputeFlow(viewAccount, resource.region || viewRegions[0], 'EC2', resource.id);
+      const response = await scanComputeFlow(viewAccount, resource.region || viewRegions[0], viewComputeType, resource.id, observabilityOptions, lookbackMinutes);
       if (response && response.nodes) {
         setFlowData({
           compute_id: resource.id,
@@ -221,20 +251,7 @@ export default function TopologyPage() {
               <p className="text-xs text-[#a1a1aa] mt-1">Select a compute resource to trace its end-to-end flow.</p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            {activeResourceId && (
-              <button
-                onClick={() => {
-                  const res = resources.find(r => r.id === activeResourceId);
-                  if (res) handleResourceSelect(res, true);
-                }}
-                disabled={tracing || !viewAccount}
-                className="flex items-center gap-2 px-3 py-1.5 text-xs uppercase tracking-wider font-semibold bg-[#161b22] border border-blue-500/50 text-blue-400 rounded-md hover:bg-blue-500/10 transition-colors"
-              >
-                <Zap size={14} className={tracing ? "animate-pulse" : ""} />
-                {tracing ? "Refreshing..." : "Refresh Trace"}
-              </button>
-            )}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setShowScanModal(true)}
               disabled={loading || !viewAccount}
@@ -271,6 +288,13 @@ export default function TopologyPage() {
               },
               options: availableRegions.map(r => ({ label: r, value: r })),
               width: "max-w-[150px]"
+            },
+            {
+              label: "Compute Type:",
+              value: viewComputeType,
+              onChange: setViewComputeType,
+              options: supportedComputeTypes.map(t => ({ label: t, value: t })),
+              width: "max-w-[130px]"
             }
           ]}
         />
@@ -280,9 +304,8 @@ export default function TopologyPage() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left Sidebar */}
         <aside
-          className={`bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shrink-0 ${
-            isSidebarOpen ? 'w-64 border-r border-[#1e232b]' : 'w-0 border-r-0 border-transparent'
-          }`}
+          className={`bg-[#0e1015] flex flex-col z-20 shadow-[2px_0_10px_rgba(0,0,0,0.5)] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden shrink-0 ${isSidebarOpen ? 'w-64 border-r border-[#1e232b]' : 'w-0 border-r-0 border-transparent'
+            }`}
         >
           <div className="w-64 h-full flex flex-col relative">
             {loading && (
@@ -290,32 +313,35 @@ export default function TopologyPage() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
               </div>
             )}
-            <ComputeResourcesSidebar 
-              data={resources} 
-              onNodeSelect={handleResourceSelect} 
+            <ComputeResourcesSidebar
+              data={resources}
+              onNodeSelect={handleResourceSelect}
               selectedNodeId={activeResourceId}
               flowData={flowData}
               onNodeFocus={setFocusNodeId}
               onClearTrace={() => {
-                  setFlowData(null);
-                  setActiveResourceId(null);
-                  setFocusNodeId(null);
+                setFlowData(null);
+                setActiveResourceId(null);
+                setFocusNodeId(null);
               }}
+              onCloseSidebar={() => setIsSidebarOpen(false)}
             />
           </div>
         </aside>
 
         {/* Right Main Area */}
         <main className={`flex flex-col relative transition-all duration-300 ease-in-out flex-1 bg-[#0a0a0f]`}>
-          <div className="absolute top-4 left-4 z-10">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 text-gray-400 hover:text-white hover:bg-[#2d333b] bg-[#1a1d24]/80 backdrop-blur border border-[#2d333b] rounded-lg transition-colors flex items-center justify-center focus:outline-none shadow-md"
-              title={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
-            >
-              {isSidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-            </button>
-          </div>
+          {!isSidebarOpen && (
+            <div className="absolute top-4 left-4 z-20">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#2d333b] bg-[#1a1d24]/90 backdrop-blur border border-[#2d333b] rounded transition-colors flex items-center justify-center focus:outline-none shadow-md"
+                title="Show Global Resources"
+              >
+                <List size={16} />
+              </button>
+            </div>
+          )}
 
           {showScanModal && (
             <ScanConfigurationModal
@@ -324,6 +350,70 @@ export default function TopologyPage() {
               initialRegions={viewRegions}
             />
           )}
+
+          <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
+            {activeResourceId && (
+              <div className="flex items-center gap-1 bg-[#1a1d24]/90 backdrop-blur border border-[#2d333b] rounded p-1 shadow-md">
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDiagnosticsMenu(!showDiagnosticsMenu)}
+                    className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider rounded transition-colors ${observabilityOptions.length > 0
+                        ? 'bg-indigo-500/20 text-indigo-400'
+                        : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
+                      }`}
+                  >
+                    Deep Diagnostics {observabilityOptions.length > 0 && `(${observabilityOptions.length})`}
+                  </button>
+
+                  {showDiagnosticsMenu && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-[#161b22] border border-zinc-700 rounded shadow-xl z-50 p-3 text-left">
+                      <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 mb-2">Diagnostic Tracers</div>
+
+                      <div className="flex flex-col gap-1.5 mb-3">
+                        {['METRICS', 'LOGS', 'XRAY'].map(opt => (
+                          <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={observabilityOptions.includes(opt)}
+                              onChange={() => toggleObservability(opt)}
+                              className="rounded border-zinc-600 bg-[#0e1015] text-indigo-500 focus:ring-indigo-500 w-3 h-3"
+                            />
+                            <span className="text-[11px] text-zinc-300">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 mb-2 mt-2 pt-2 border-t border-zinc-700/50">Lookback Window</div>
+                      <select
+                        value={lookbackMinutes}
+                        onChange={(e) => setLookbackMinutes(Number(e.target.value))}
+                        className="w-full bg-[#0e1015] border border-zinc-700 text-zinc-300 text-[11px] rounded px-1.5 py-1 outline-none focus:border-indigo-500"
+                      >
+                        <option value={15}>15 Minutes</option>
+                        <option value={60}>1 Hour</option>
+                        <option value={1440}>24 Hours</option>
+                        <option value={10080}>7 Days</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                <div className="w-px h-3.5 bg-zinc-700 mx-0.5"></div>
+
+                <button
+                  onClick={() => {
+                    const res = resources.find(r => r.id === activeResourceId);
+                    if (res) handleResourceSelect(res, true);
+                  }}
+                  disabled={tracing || !viewAccount}
+                  className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-semibold bg-blue-500/10 text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                >
+                  <Zap size={12} className={tracing ? "animate-pulse" : ""} />
+                  {tracing ? "Tracing..." : "Re-Run Trace"}
+                </button>
+              </div>
+            )}
+          </div>
 
           <div className="flex-1 relative min-h-0">
             {tracing ? (

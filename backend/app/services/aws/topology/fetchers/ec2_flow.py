@@ -5,14 +5,17 @@ from app.services.aws.topology.tracers.storage_tracer import StorageTracer
 from app.services.aws.topology.tracers.database_tracer import DatabaseTracer
 from app.services.aws.topology.tracers.iam_tracer import IAMTracer
 from app.services.aws.topology.tracers.security_tracer import SecurityTracer
+from app.services.aws.topology.observability.diagnostic_tracer import DiagnosticTracer
 
 logger = logging.getLogger(__name__)
 
 class EC2FlowFetcher:
-    def __init__(self, session, region: str, resource_id: str):
+    def __init__(self, session, region: str, resource_id: str, observability_options: list[str] = None, lookback_minutes: int = 15):
         self.session = session
         self.region = region
         self.resource_id = resource_id
+        self.observability_options = observability_options or []
+        self.lookback_minutes = lookback_minutes
         
         self.ec2_client = self.session.client('ec2', region_name=self.region)
         self.elbv2_client = self.session.client('elbv2', region_name=self.region)
@@ -82,17 +85,48 @@ class EC2FlowFetcher:
         
         ec2_health = "HEALTHY"
         ec2_diag = None
-        try:
-            status_resp = self.ec2_client.describe_instance_status(InstanceIds=[self.resource_id])
-            if status_resp.get('InstanceStatuses'):
-                st = status_resp['InstanceStatuses'][0]
-                sys_st = st.get('SystemStatus', {}).get('Status')
-                inst_st = st.get('InstanceStatus', {}).get('Status')
-                if sys_st == 'impaired' or inst_st == 'impaired':
-                    ec2_health = "CRITICAL"
-                    ec2_diag = f"System: {sys_st}, Instance: {inst_st}. OS/Hardware status check failing."
-        except Exception as e:
-            logger.warning(f"Failed to fetch EC2 status: {e}")
+        status_checks = None
+
+        if state != 'running':
+            ec2_health = "STOPPED" if state in ['stopped', 'terminated'] else "OFFLINE"
+            ec2_diag = f"Instance is {state}."
+        else:
+            try:
+                status_resp = self.ec2_client.describe_instance_status(
+                    InstanceIds=[self.resource_id],
+                    IncludeAllInstances=True
+                )
+                if status_resp.get('InstanceStatuses'):
+                    st = status_resp['InstanceStatuses'][0]
+                    sys_st = st.get('SystemStatus', {}).get('Status')
+                    inst_st = st.get('InstanceStatus', {}).get('Status')
+                    ebs_st = st.get('AttachedEbsStatus', {}).get('Status', 'ok') # default to ok if not present
+                    
+                    status_checks = {
+                        "system_status": sys_st,
+                        "instance_status": inst_st,
+                        "ebs_status": ebs_st,
+                        "summary": ""
+                    }
+                    
+                    failed_checks = 0
+                    if sys_st != 'ok': failed_checks += 1
+                    if inst_st != 'ok': failed_checks += 1
+                    if ebs_st != 'ok' and ebs_st != 'not-applicable': failed_checks += 1
+                    
+                    passed = 3 - failed_checks
+                    status_checks["summary"] = f"{passed}/3 checks passed"
+
+                    if sys_st != 'ok':
+                        ec2_health = "CRITICAL"
+                        ec2_diag = f"System status check failed ({sys_st}) - AWS hardware degradation."
+                    elif inst_st != 'ok':
+                        ec2_health = "UNHEALTHY"
+                        ec2_diag = f"Instance status check failed ({inst_st}) - OS/Kernel configuration issue."
+                    else:
+                        ec2_health = "HEALTHY"
+            except Exception as e:
+                logger.warning(f"Failed to fetch EC2 status: {e}")
             
         # Network Interfaces (ENI) & Elastic IPs
         enis = []
@@ -102,14 +136,18 @@ class EC2FlowFetcher:
                 eni_info['ElasticIp'] = eni['Association']['PublicIp']
             enis.append(eni_info)
             
-        self._add_node(self.resource_id, 'EC2', node_label, state, {
+        node_metadata = {
             "InstanceType": instance.get('InstanceType'),
             "PrivateIpAddress": private_ip,
             "PublicIpAddress": instance.get('PublicIpAddress'),
             "VpcId": vpc_id,
             "SubnetId": subnet_id,
             "NetworkInterfaces": enis
-        }, health_state=ec2_health, diagnostic=ec2_diag)
+        }
+        if status_checks:
+            node_metadata["status_checks"] = status_checks
+
+        self._add_node(self.resource_id, 'EC2', node_label, state, node_metadata, health_state=ec2_health, diagnostic=ec2_diag)
         
         # IAM Role
         iam_profile_arn = instance.get('IamInstanceProfile', {}).get('Arn')
@@ -161,5 +199,9 @@ class EC2FlowFetcher:
         all_sgs = [n['id'] for n in self.nodes if n['type'] == 'SECURITY_GROUP']
         if all_sgs:
             SecurityTracer(self).trace(all_sgs)
+            
+        # === 4. Observability Diagnostics (On-Demand) ===
+        if self.observability_options:
+            DiagnosticTracer(self).trace(self.resource_id, self.observability_options, self.lookback_minutes)
         
         return self.nodes, self.edges

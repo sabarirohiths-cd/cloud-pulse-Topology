@@ -238,6 +238,40 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                             <p className="text-emerald-200/70 text-[11px]">No critical issues or blocked connections detected.</p>
                         </div>
                     )}
+                    
+                    {data.metadata?.status_checks && (
+                        <div className="mt-2">
+                            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                AWS Status Checks
+                                <span className="h-px bg-zinc-800 flex-1"></span>
+                            </h3>
+                            <div className="bg-[#161b22] border border-[#26262b] rounded-xl p-3 flex flex-col gap-3 shadow-sm">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[12px] font-bold text-zinc-300">Total Summary</span>
+                                    <span className={`text-[11px] font-mono px-2 py-1 rounded-md font-bold ${data.metadata.status_checks.summary.startsWith('3/3') || data.metadata.status_checks.summary.startsWith('2/2') ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800' : 'bg-red-900/40 text-red-400 border border-red-800'}`}>
+                                        {data.metadata.status_checks.summary}
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2 mt-1">
+                                    {[
+                                        { label: 'System Check', value: data.metadata.status_checks.system_status },
+                                        { label: 'Instance Check', value: data.metadata.status_checks.instance_status },
+                                        { label: 'EBS Storage', value: data.metadata.status_checks.ebs_status }
+                                    ].map((check, idx) => (
+                                        <div key={idx} className="bg-[#0a0a0f] border border-[#2d333b] rounded-lg p-2.5 flex flex-col items-center justify-center text-center gap-2">
+                                            <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider">{check.label}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${check.value === 'ok' || check.value === 'passed' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : check.value === 'not-applicable' ? 'bg-zinc-500' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`}></div>
+                                                <span className={`text-[11px] font-bold uppercase tracking-wider ${check.value === 'ok' || check.value === 'passed' ? 'text-emerald-400' : check.value === 'not-applicable' ? 'text-zinc-400' : 'text-red-400'}`}>
+                                                    {check.value || 'N/A'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
               ) : activeTab === 'flow' ? (
                 <div className="flex flex-col gap-4">
@@ -361,7 +395,7 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                       <div className="grid grid-cols-2 gap-2">
                         {(() => {
                             const metadata = data.metadata || {};
-                            const entries = Object.entries(metadata).filter(([_, v]) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
+                            const entries = Object.entries(metadata).filter(([k, v]) => k !== 'status_checks' && v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
                             
                             if (entries.length === 0) {
                                 return <div className="text-zinc-500 text-xs italic col-span-2">No configuration metadata available.</div>;

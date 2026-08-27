@@ -20,13 +20,22 @@ export const getComputeResources = async (accountId, regions = ['ap-south-1'], c
   return { resources: results.flat() };
 };
 
-export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeType = 'EC2', resourceId) => {
-  const response = await axios.post(`${API_BASE_URL}/topology/scan/compute-flow`, {
+export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeType = 'EC2', resourceId, observabilityOptions = [], lookbackMinutes = 15) => {
+  const payload = {
     account_id: accountId,
     region: region,
     compute_type: computeType,
     resource_id: resourceId
-  });
+  };
+
+  if (observabilityOptions && observabilityOptions.length > 0) {
+    payload.observability_options = observabilityOptions;
+  }
+  if (lookbackMinutes) {
+    payload.lookback_minutes = lookbackMinutes;
+  }
+
+  const response = await axios.post(`${API_BASE_URL}/topology/scan/compute-flow`, payload);
   return response.data;
 };
 export const getLocalComputeFlow = async (region = 'ap-south-1') => {
@@ -50,9 +59,16 @@ export const getLocalTrace = async (computeId) => {
   return response.data;
 };
 
-export const getLocalComputeResources = async (region) => {
+export const getLocalComputeResources = async (region, computeType = 'EC2') => {
   const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-resources/local`, {
-    params: { region, _t: Date.now() }
+    params: { region, compute_type: computeType, _t: Date.now() }
   });
   return response.data?.resources || [];
+};
+
+export const getSupportedComputeTypes = async () => {
+  const response = await axios.get(`${API_BASE_URL}/topology/supported-compute-types`, {
+    params: { _t: Date.now() }
+  });
+  return response.data?.compute_types || ['EC2'];
 };

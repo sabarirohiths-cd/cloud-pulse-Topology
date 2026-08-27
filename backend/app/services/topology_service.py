@@ -51,7 +51,9 @@ class TopologyService:
             session=session_aws,
             region=request.region,
             compute_type=request.compute_type,
-            resource_id=request.resource_id
+            resource_id=request.resource_id,
+            observability_options=request.observability_options,
+            lookback_minutes=request.lookback_minutes
         )
         
         loop = asyncio.get_event_loop()

@@ -6,6 +6,8 @@ class ComputeFlowRequest(BaseModel):
     region: str = Field(default="ap-south-1", description="AWS Region to scan")
     compute_type: str = Field(..., description="Type of compute node (EC2, ECS, LAMBDA, APPRUNNER)")
     resource_id: str = Field(..., description="The ID of the compute resource to trace")
+    observability_options: Optional[List[str]] = Field(default=None, description="List of observability diagnostics to run (METRICS, LOGS, XRAY)")
+    lookback_minutes: Optional[int] = Field(default=15, description="Lookback window in minutes for diagnostics")
 
 class ComputeFlowResponse(BaseModel):
     status: str

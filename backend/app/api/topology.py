@@ -113,7 +113,7 @@ async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyServic
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/scan/compute-resources/local")
-async def get_local_compute_resources(region: str = None):
+async def get_local_compute_resources(region: str = None, compute_type: str = "EC2"):
     import os, json
     filename = "data/last_compute_flow.json"
     if os.path.exists(filename):
@@ -124,7 +124,7 @@ async def get_local_compute_resources(region: str = None):
                 
                 resources = []
                 for n in nodes:
-                    if n.get("type") == "EC2":
+                    if n.get("type") == compute_type:
                         # If region is specified, try to filter, but if Region metadata is missing, just include it (lenient for mock DB)
                         node_region = n.get("metadata", {}).get("Region")
                         if region and node_region and node_region != region:
@@ -159,3 +159,30 @@ async def get_compute_resources(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/supported-compute-types")
+async def get_supported_compute_types():
+    import os, json
+    
+    # Base supported list of compute types we know how to trace
+    base_compute_types = {"EC2", "ECS", "LAMBDA", "APPRUNNER"}
+    found_types = set()
+    
+    filename = "data/last_compute_flow.json"
+    if os.path.exists(filename):
+        try:
+            with open(filename, "r") as f:
+                data = json.load(f)
+                nodes = data.get("nodes", [])
+                for n in nodes:
+                    t = n.get("type", "").upper()
+                    if t in base_compute_types:
+                        found_types.add(t)
+        except Exception:
+            pass
+            
+    # Always fallback to at least EC2 if nothing found to prevent empty dropdown
+    if not found_types:
+        found_types.add("EC2")
+        
+    return {"compute_types": sorted(list(found_types))}

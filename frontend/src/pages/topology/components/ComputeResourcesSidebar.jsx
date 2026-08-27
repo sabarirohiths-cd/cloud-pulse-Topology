@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getIcon } from '../../../utils/iconMap';
-import { Search, Server, ChevronRight, ChevronDown, Globe } from 'lucide-react';
+import { Search, Server, ChevronRight, ChevronDown, Globe, X } from 'lucide-react';
 
 const TreeNode = ({ label, id, type, icon, children, onNodeClick, isSelected = false, defaultExpanded = true, rightElement }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -68,7 +68,7 @@ const TreeNode = ({ label, id, type, icon, children, onNodeClick, isSelected = f
   );
 };
 
-export default function ComputeResourcesSidebar({ data, onNodeSelect, selectedNodeId, flowData, onNodeFocus }) {
+export default function ComputeResourcesSidebar({ data, onNodeSelect, selectedNodeId, flowData, onNodeFocus, onClearTrace, onCloseSidebar }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRoots, setExpandedRoots] = useState({});
   
@@ -175,9 +175,20 @@ export default function ComputeResourcesSidebar({ data, onNodeSelect, selectedNo
   return (
     <div className="p-3 w-full h-full text-gray-300 flex flex-col">
       <div className="px-1 mb-3 shrink-0">
-        <h3 className="font-semibold text-white mb-3 uppercase tracking-wider text-[11px] border-b border-[#2d333b] pb-2 flex-shrink-0">
-          Global Resources
-        </h3>
+        <div className="flex items-center justify-between border-b border-[#2d333b] pb-2 mb-3">
+          <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] flex-shrink-0">
+            Global Resources
+          </h3>
+          {onCloseSidebar && (
+            <button 
+              onClick={onCloseSidebar}
+              className="text-zinc-500 hover:text-white transition-colors"
+              title="Close Sidebar"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
         <div className="relative">
           <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500" />
           <input

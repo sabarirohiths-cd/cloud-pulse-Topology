@@ -29,7 +29,11 @@
 				"autoscaling:DescribeAutoScalingGroups",
 				"iam:GetInstanceProfile",
 				"iam:GetRole",
-				"iam:ListAttachedRolePolicies"
+				"iam:ListAttachedRolePolicies",
+				"cloudwatch:GetMetricData",
+				"logs:StartQuery",
+				"logs:GetQueryResults",
+				"xray:GetTraceSummaries"
 			],
 			"Resource": "*"
 		}

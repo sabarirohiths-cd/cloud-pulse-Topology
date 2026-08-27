@@ -5,11 +5,13 @@ import boto3
 logger = logging.getLogger(__name__)
 
 class ComputeFlowBuilder:
-    def __init__(self, session: boto3.Session, region: str, compute_type: str, resource_id: str):
+    def __init__(self, session: boto3.Session, region: str, compute_type: str, resource_id: str, observability_options: list[str] = None, lookback_minutes: int = 15):
         self.session = session
         self.region = region
         self.compute_type = compute_type.upper()
         self.resource_id = resource_id
+        self.observability_options = observability_options or []
+        self.lookback_minutes = lookback_minutes
         
         self.nodes = []
         self.edges = []
@@ -26,7 +28,7 @@ class ComputeFlowBuilder:
             fetcher_class_name = f"{self.compute_type.upper()}FlowFetcher"
             fetcher_class = getattr(fetcher_module, fetcher_class_name)
             
-            fetcher_instance = fetcher_class(self.session, self.region, self.resource_id)
+            fetcher_instance = fetcher_class(self.session, self.region, self.resource_id, self.observability_options, self.lookback_minutes)
             nodes, edges = fetcher_instance.fetch()
             
             self.nodes.extend(nodes)

@@ -106,7 +106,7 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick, isSidebarOpen }
   const [lastCenteredNodeId, setLastCenteredNodeId] = useState(null);
   const [hoveredNodeId, setHoveredNodeId] = useState(null);
 
-  // Re-center graph when sidebar toggles
+  // Re-center graph when internal sidebar toggles
   useEffect(() => {
     // Timeout allows CSS transition (width change) to finish before centering
     const timeout = setTimeout(() => {
@@ -116,6 +116,17 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick, isSidebarOpen }
     }, 350);
     return () => clearTimeout(timeout);
   }, [isSidebarOpen, fitView, nodes.length]);
+
+  // Re-center graph when window resizes (or when main App.jsx sidebar toggles and dispatches resize)
+  useEffect(() => {
+    const handleResize = () => {
+      if (nodes.length > 0) {
+        fitView({ padding: 0.1, duration: 600, maxZoom: 1.2 });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [fitView, nodes.length]);
 
   useEffect(() => {
     if (focusNodeId && focusNodeId !== lastCenteredNodeId && nodes.length > 0) {

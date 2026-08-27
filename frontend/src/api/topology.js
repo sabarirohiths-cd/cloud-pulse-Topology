@@ -31,24 +31,28 @@ export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeT
 };
 export const getLocalComputeFlow = async (region = 'ap-south-1') => {
   const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local`, {
-    params: { region }
+    params: { region, _t: Date.now() }
   });
   return response.data;
 };
 
 export const getCachedRegions = async () => {
-  const response = await axios.get(`${API_BASE_URL}/topology/scan/regions/cached`);
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/regions/cached`, {
+    params: { _t: Date.now() }
+  });
   return response.data?.regions || [];
 };
 
 export const getLocalTrace = async (computeId) => {
-  const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local/${computeId}`);
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local/${computeId}`, {
+    params: { _t: Date.now() }
+  });
   return response.data;
 };
 
 export const getLocalComputeResources = async (region) => {
   const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-resources/local`, {
-    params: { region }
+    params: { region, _t: Date.now() }
   });
   return response.data?.resources || [];
 };

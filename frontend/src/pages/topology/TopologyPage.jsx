@@ -21,23 +21,9 @@ export default function TopologyPage() {
   
   // Available regions dynamically populated from cached files
   const [availableRegions, setAvailableRegions] = useState([]);
-
-  useEffect(() => {
-    async function loadRegions() {
-      try {
-        const regions = await getCachedRegions();
-        if (regions && regions.length > 0) {
-          setAvailableRegions(regions);
-          setViewRegions([regions[0]]);
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    loadRegions();
-  }, []);
+  
   // Selection State
-  const [viewRegions, setViewRegions] = useState(['ap-south-1']);
+  const [viewRegions, setViewRegions] = useState([]);
   const [viewProvider, setViewProvider] = useState('');
   const [availableProviders, setAvailableProviders] = useState([]);
   const [viewAccount, setViewAccount] = useState('');
@@ -49,6 +35,25 @@ export default function TopologyPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const [showScanModal, setShowScanModal] = useState(false);
+
+  const loadRegions = useCallback(async (preserveView = false) => {
+    try {
+      const regions = await getCachedRegions();
+      if (regions && regions.length > 0) {
+        setAvailableRegions(regions);
+        if (!preserveView && (!viewRegions[0] || !regions.includes(viewRegions[0]))) {
+          setViewRegions([regions[0]]);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [viewRegions]);
+
+  useEffect(() => {
+    loadRegions();
+  }, []);
+
 
   // Load Cloud Configs
   useEffect(() => {
@@ -113,8 +118,9 @@ export default function TopologyPage() {
     } finally {
       setLoading(false);
       setShowScanModal(false);
+      loadRegions(true); // Auto-refresh region dropdown
     }
-  }, [viewAccount, viewRegions]);
+  }, [viewAccount, viewRegions, loadRegions]);
 
   // Auto-load previously saved trace and resources when region changes or on page load
   useEffect(() => {
@@ -162,7 +168,10 @@ export default function TopologyPage() {
       try {
         const localTrace = await getLocalTrace(resource.id);
         if (localTrace && localTrace.nodes && localTrace.nodes.length > 0) {
-          setFlowData(localTrace);
+          setFlowData({
+            ...localTrace,
+            compute_id: resource.id
+          });
           setTracing(false);
           return; // Fast cache hit, no need to hit AWS
         }
@@ -175,6 +184,7 @@ export default function TopologyPage() {
       const response = await scanComputeFlow(viewAccount, resource.region || viewRegions[0], 'EC2', resource.id);
       if (response && response.nodes) {
         setFlowData({
+          compute_id: resource.id,
           nodes: response.nodes,
           edges: response.edges || []
         });
@@ -311,6 +321,7 @@ export default function TopologyPage() {
             <ScanConfigurationModal
               onClose={() => setShowScanModal(false)}
               onStartScan={handleStartScan}
+              initialRegions={viewRegions}
             />
           )}
 
@@ -326,6 +337,7 @@ export default function TopologyPage() {
               <ApplicationFlowVisualizer
                 data={flowData}
                 focusNodeId={focusNodeId}
+                isSidebarOpen={isSidebarOpen}
                 onNodeClick={(node) => {
                   setSelectedNode(node);
                 }}

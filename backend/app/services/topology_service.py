@@ -83,7 +83,8 @@ class TopologyService:
                         n['metadata'] = new_meta
                     existing_nodes[n['id']] = n
                     
-                existing_edges = {(e.get('source'), e.get('target')): e for e in existing_data.get('edges', [])}
+                existing_edges = {(e.get('source'), e.get('target')): e for e in existing_data.get('edges', []) 
+                                  if e.get('source') != flow_data.get('compute_id') and e.get('target') != flow_data.get('compute_id')}
                 for e in flow_data.get('edges', []):
                     existing_edges[(e.get('source'), e.get('target'))] = e
                     
@@ -122,13 +123,45 @@ class TopologyService:
             for page in paginator.paginate():
                 for res in page.get('Reservations', []):
                     for inst in res.get('Instances', []):
-                        name = next((t['Value'] for t in inst.get('Tags', []) if t['Key'] == 'Name'), None)
+                        tags = {t['Key']: t['Value'] for t in inst.get('Tags', [])}
+                        name = tags.get('Name')
+                        
+                        managed_by = None
+                        
+                        # Mapping of AWS tags to their human-readable service names
+                        MANAGED_TAGS_MAP = {
+                            'aws:autoscaling:groupname': 'ASG',
+                            'eks:cluster-name': 'EKS',
+                            'elasticbeanstalk:environment-name': 'Beanstalk',
+                            'aws:batch:compute-environment': 'Batch',
+                            'elasticmapreduce:job-flow-id': 'EMR',
+                            'aws:cloudformation:stack-name': 'CFN'
+                        }
+                        
+                        managed_by = None
+                        for tk, tv in tags.items():
+                            tk_lower = tk.lower()
+                            if tk_lower in MANAGED_TAGS_MAP:
+                                # We prioritize explicit clusters over CFN
+                                if MANAGED_TAGS_MAP[tk_lower] != 'CFN' or not managed_by:
+                                    managed_by = f"{MANAGED_TAGS_MAP[tk_lower]}: {tv}"
+                                if MANAGED_TAGS_MAP[tk_lower] != 'CFN':
+                                    break
+                            elif 'amazonecsmanaged' in tk_lower:
+                                managed_by = "ECS Worker"
+                                break
+                            
+                        state_name = inst.get('State', {}).get('Name', 'unknown')
+                        if state_name in ['terminated', 'shutting-down']:
+                            continue
+                            
                         resources.append({
                             "id": inst['InstanceId'],
                             "name": name,
                             "type": "EC2",
-                            "state": inst.get('State', {}).get('Name', 'unknown'),
-                            "region": region
+                            "state": state_name,
+                            "region": region,
+                            "managed_by": managed_by
                         })
         else:
             raise NotImplementedError(f"Listing for {compute_type} is not yet implemented.")
@@ -148,25 +181,77 @@ class TopologyService:
                         pass
             
             existing_nodes = {n.get('id'): n for n in existing_data.get('nodes', []) if 'id' in n}
+            fetched_resource_ids = {res['id'] for res in resources}
+            
+            # 1. Prune nodes that no longer exist in AWS for this compute type and region
+            keys_to_delete = set()
+            for node_id, node in existing_nodes.items():
+                if node.get('type') == compute_type_upper and node.get('metadata', {}).get('Region') == region:
+                    if node_id not in fetched_resource_ids:
+                        keys_to_delete.add(node_id)
+            
+            for k in keys_to_delete:
+                del existing_nodes[k]
+
+            # 2. Add or update fetched resources
             for res in resources:
+                metadata = {
+                    "Region": res['region']
+                }
+                if res.get('managed_by'):
+                    metadata['managed_by'] = res['managed_by']
+                    
                 if res['id'] not in existing_nodes:
                     existing_nodes[res['id']] = {
                         "id": res['id'],
                         "type": res['type'],
                         "label": res['name'] or res['id'],
                         "status": res['state'],
-                        "metadata": {
-                            "Region": res['region']
-                        }
+                        "metadata": metadata
                     }
                 else:
-                    # Update existing node state/region
                     existing_nodes[res['id']]['status'] = res['state']
                     if 'metadata' not in existing_nodes[res['id']]:
                         existing_nodes[res['id']]['metadata'] = {}
                     existing_nodes[res['id']]['metadata']['Region'] = res['region']
+                    if res.get('managed_by'):
+                        existing_nodes[res['id']]['metadata']['managed_by'] = res['managed_by']
                     
+            # 3. Clean up dangling edges
+            if keys_to_delete:
+                existing_data['edges'] = [e for e in existing_data.get('edges', []) if e.get('source') not in keys_to_delete and e.get('target') not in keys_to_delete]
+                
+            # 4. Clean up orphaned nodes (nodes not connected to any EC2 instance)
+            adj = {}
+            for e in existing_data.get('edges', []):
+                u, v = e.get('source'), e.get('target')
+                if u and v:
+                    adj.setdefault(u, []).append(v)
+                    adj.setdefault(v, []).append(u)
+            
+            roots = [n_id for n_id, n in existing_nodes.items() if n.get('type') == 'EC2']
+            visited = set()
+            queue = roots[:]
+            while queue:
+                curr = queue.pop(0)
+                if curr not in visited:
+                    visited.add(curr)
+                    for neighbor in adj.get(curr, []):
+                        if neighbor not in visited:
+                            queue.append(neighbor)
+                            
+            orphans = set(existing_nodes.keys()) - visited
+            for o in orphans:
+                del existing_nodes[o]
+                
             existing_data['nodes'] = list(existing_nodes.values())
+            
+            if orphans:
+                existing_data['edges'] = [e for e in existing_data.get('edges', []) if e.get('source') not in orphans and e.get('target') not in orphans]
+            
+            # 5. Clear last_compute_id if the focused instance was deleted
+            if existing_data.get('last_compute_id') not in existing_nodes:
+                existing_data['last_compute_id'] = None
             
             with open(filename, "w") as f:
                 json.dump(existing_data, f, indent=4)

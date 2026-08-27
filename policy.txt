@@ -23,8 +23,13 @@
 				"route53:ListResourceRecordSets",
 				"ec2:DescribeInternetGateways",
 				"ec2:DescribeNatGateways",
+				"ec2:DescribeNetworkAcls",
+				"ec2:DescribeRouteTables",
 				"ec2:DescribeVolumes",
-				"autoscaling:DescribeAutoScalingGroups"
+				"autoscaling:DescribeAutoScalingGroups",
+				"iam:GetInstanceProfile",
+				"iam:GetRole",
+				"iam:ListAttachedRolePolicies"
 			],
 			"Resource": "*"
 		}

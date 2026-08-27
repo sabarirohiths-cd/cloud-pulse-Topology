@@ -65,6 +65,23 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
       if (Array.isArray(value)) {
         if (value.length === 0) return <span className="text-gray-500 italic">Empty</span>;
         
+        if (key === 'InboundRules' || key === 'OutboundRules' || key === 'Routes') {
+           return (
+              <div className="flex flex-col gap-1.5 mt-2">
+                 {value.map((rule, idx) => {
+                    const isDeny = String(rule).toLowerCase().includes('deny');
+                    const dotColor = isDeny ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : (key === 'InboundRules' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : key === 'OutboundRules' ? 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.6)]' : 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]');
+                    return (
+                        <div key={idx} className="bg-[#0a0a0f] border border-[#26262b] rounded-lg p-2.5 flex items-center gap-3 hover:border-[#3d444d] transition-colors">
+                           <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`}></div>
+                           <span className={`text-[11px] font-mono break-all ${isDeny ? 'text-red-300' : 'text-zinc-300'}`}>{String(rule)}</span>
+                        </div>
+                    );
+                 })}
+              </div>
+           );
+        }
+
         if (typeof value[0] === 'object' && value[0] !== null) {
           const allKeys = Array.from(new Set(value.flatMap(item => Object.keys(item))));
           const displayKeys = allKeys.filter(k => typeof value[0][k] !== 'object' || Array.isArray(value[0][k]));
@@ -209,7 +226,9 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                                 <h3 className="font-bold text-xs uppercase tracking-wider">Root Cause Detected</h3>
                             </div>
                             <p className="text-red-200/90 text-[12px] leading-relaxed border-t border-red-500/20 pt-2">
-                                {data.diagnostic || 'Critical system failure detected in this resource.'}
+                                {typeof data.diagnostic === 'object' && data.diagnostic !== null 
+                                  ? (data.diagnostic.message || JSON.stringify(data.diagnostic))
+                                  : (data.diagnostic || 'Critical system failure detected in this resource.')}
                             </p>
                         </div>
                     ) : (
@@ -268,8 +287,8 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
 
                     return (
                       <>
-                        {renderEdgeGroup('Inbound Traffic / Dependencies', inboundEdges, true)}
-                        {renderEdgeGroup('Outbound Traffic / Targets', outboundEdges, false)}
+                        {renderEdgeGroup('Incoming (Upstream)', inboundEdges, true)}
+                        {renderEdgeGroup('Outgoing (Downstream)', outboundEdges, false)}
                       </>
                     );
                   })()}

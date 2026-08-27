@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useRef, useCallback } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -17,48 +17,45 @@ import dagre from '@dagrejs/dagre';
 import { getIcon, getColorClasses, getGlowColors } from '../../../utils/iconMap';
 import { CloudOff } from 'lucide-react';
 
-const CustomNode = ({ data }) => {
+const CustomNode = ({ data, selected }) => {
   const isRunning = data.status === 'running' || data.status === 'available' || data.status === 'active' || data.status === 'attached';
   const isCritical = data.health_state === 'CRITICAL';
   const isRoot = data.isRoot;
+  const isHighlighted = data.isHighlighted;
 
   const colors = getColorClasses(data.type);
 
   return (
     <div
-      className={`p-4 rounded-xl border-2 bg-[#161b22]/90 backdrop-blur ${isCritical ? 'border-red-500 ring-2 ring-red-500 animate-pulse shadow-[0_0_20px_rgba(239,68,68,0.5)]'
-        : isRoot ? 'border-sky-500 shadow-[0_0_20px_rgba(14,165,233,0.3)] ring-1 ring-sky-500'
-        : 'border-zinc-700 shadow-xl'
-        } w-[260px] flex flex-col relative transition-transform hover:scale-105`}>
-      <Handle type="target" position={Position.Top} className="!bg-zinc-500 !w-3 !h-3 !-top-1.5" />
+      className={`p-4 rounded-xl border transition-all duration-200 shadow-md ${
+          isHighlighted ? 'border-cyan-400 ring-1 ring-cyan-400/50 shadow-[0_4px_20px_rgba(34,211,238,0.2)] bg-slate-800 z-10'
+        : isCritical ? 'border-rose-500 ring-1 ring-rose-500/50 shadow-[0_4px_20px_rgba(244,63,94,0.2)] bg-rose-950/30 z-10'
+        : isRoot ? 'border-amber-500 ring-1 ring-amber-500/50 shadow-[0_4px_20px_rgba(245,158,11,0.2)] bg-amber-950/20 z-10'
+        : 'border-slate-700 hover:border-slate-500 hover:shadow-lg bg-slate-800'
+        } w-[260px] flex flex-col relative`}>
+      <Handle type="target" position={Position.Left} className="!bg-zinc-600 !w-2 !h-4 !rounded-sm !-left-1 !border-none" />
 
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex justify-between items-start mb-3">
         <div
-          className={`p-2 rounded-lg ${isRunning ? colors.text : 'bg-zinc-800 text-zinc-400'}`}
-          style={isRunning ? { backgroundColor: 'rgba(255,255,255,0.05)' } : {}}
+          className={`w-8 h-8 flex items-center justify-center rounded-full border ${isRunning ? 'border-slate-700 bg-slate-900/80 shadow-inner ' + colors.text : 'border-slate-700 bg-slate-900/50 text-slate-500'}`}
         >
-          {getIcon(data.type, 18)}
+          {getIcon(data.type, 16)}
         </div>
-        <div className="flex flex-col overflow-hidden gap-1">
-          <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[9px] font-bold text-sky-400 uppercase tracking-wider w-fit shadow-sm">{data.type}</span>
-          <div className="text-white font-bold text-sm break-words leading-tight" title={data.label}>{data.label}</div>
-        </div>
+        <span className="px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300 uppercase tracking-wider shadow-sm">{data.type}</span>
       </div>
 
-      <div className="mt-2 pt-2 border-t border-zinc-800 flex justify-between items-center">
-        <div className={`flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${isCritical ? 'text-red-400' : isRunning ? 'text-emerald-400' : 'text-amber-400'}`}>
-          <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : isRunning ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></div>
-          {isCritical ? 'CRITICAL' : data.status || 'UNKNOWN'}
-        </div>
-
-        {data.metadata?.PrivateIpAddress && (
-          <div className="text-xs text-zinc-500 font-mono">
-            {data.metadata.PrivateIpAddress}
-          </div>
-        )}
+      <div className="flex flex-col overflow-hidden gap-1 mb-4">
+        <div className="text-zinc-100 font-bold text-lg truncate" title={data.label}>{data.label}</div>
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!bg-zinc-500 !w-3 !h-3 !-bottom-1.5" />
+      <div className="pt-3 border-t border-zinc-800/50 flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${isCritical ? 'bg-red-500' : isRunning ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+        <span className={`text-[13px] font-bold tracking-wide ${isCritical ? 'text-red-400' : 'text-zinc-400'}`}>
+            {isCritical ? 'CRITICAL' : data.status || 'UNKNOWN'}
+        </span>
+      </div>
+
+      <Handle type="source" position={Position.Right} className="!bg-zinc-600 !w-2 !h-4 !rounded-sm !-right-1 !border-none" />
     </div>
   );
 };
@@ -67,14 +64,14 @@ const nodeTypes = {
   custom: CustomNode,
 };
 
-const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+const getLayoutedElements = (nodes, edges, direction = 'LR') => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
 
   const nodeWidth = 280;
   const nodeHeight = 120;
 
-  dagreGraph.setGraph({ rankdir: direction, nodesep: 50, ranksep: 100 });
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 60, ranksep: 140 });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -90,8 +87,8 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
     const nodeWithPosition = dagreGraph.node(node.id);
     return {
       ...node,
-      targetPosition: Position.Top,
-      sourcePosition: Position.Bottom,
+      targetPosition: Position.Left,
+      sourcePosition: Position.Right,
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
         y: nodeWithPosition.y - nodeHeight / 2,
@@ -102,19 +99,48 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
   return { nodes: layoutedNodes, edges };
 };
 
-function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
+function FlowVisualizerContent({ data, focusNodeId, onNodeClick, isSidebarOpen }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { setCenter, getNode } = useReactFlow();
+  const { setCenter, getNode, fitView } = useReactFlow();
+  const [lastCenteredNodeId, setLastCenteredNodeId] = useState(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState(null);
+
+  // Re-center graph when sidebar toggles
+  useEffect(() => {
+    // Timeout allows CSS transition (width change) to finish before centering
+    const timeout = setTimeout(() => {
+      if (nodes.length > 0) {
+        fitView({ padding: 0.1, duration: 600, maxZoom: 1.2 });
+      }
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [isSidebarOpen, fitView, nodes.length]);
 
   useEffect(() => {
-    if (focusNodeId && nodes.length > 0) {
-      const node = getNode(focusNodeId);
-      if (node && node.position) {
-        setCenter(node.position.x + 140, node.position.y + 60, { zoom: 1.15, duration: 800 });
-      }
+    if (focusNodeId && focusNodeId !== lastCenteredNodeId && nodes.length > 0) {
+      // Wait for React Flow to fully render and measure node dimensions in the DOM before fitting
+      const timeout = setTimeout(() => {
+        window.requestAnimationFrame(() => {
+          const node = getNode(focusNodeId);
+          if (node) {
+            const x = node.position.x + (node.measured?.width || 280) / 2;
+            const y = node.position.y + (node.measured?.height || 120) / 2;
+            setCenter(x, y, { zoom: 1.2, duration: 800 });
+          } else {
+            fitView({ padding: 0.2, duration: 800, maxZoom: 1.1 });
+          }
+        });
+        setLastCenteredNodeId(focusNodeId);
+      }, 400);
+      return () => clearTimeout(timeout);
     }
-  }, [focusNodeId, nodes, getNode, setCenter]);
+  }, [focusNodeId, nodes, fitView, setCenter, getNode, lastCenteredNodeId]);
+
+  // Also reset the tracker if data completely changes (new trace)
+  useEffect(() => {
+    setLastCenteredNodeId(null);
+  }, [data]);
 
   useEffect(() => {
     if (!data || !data.nodes) return;
@@ -129,7 +155,8 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
         metadata: n.metadata,
         health_state: n.health_state,
         diagnostic: n.diagnostic,
-        isRoot: n.id === data.compute_id || n.id === data.last_compute_id
+        isRoot: n.id === data.compute_id || n.id === data.last_compute_id,
+        isHighlighted: n.id === hoveredNodeId
       },
       position: { x: 0, y: 0 }
     }));
@@ -139,19 +166,23 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
       const targetNode = data.nodes.find(n => n.id === e.target);
       const isIncident = e.health_state === 'CRITICAL' || e.health_state === 'BLOCKED' || sourceNode?.health_state === 'CRITICAL' || targetNode?.health_state === 'CRITICAL';
 
+      const isMainEdge = sourceNode?.isRoot || targetNode?.isRoot;
+
       return {
         id: `e-${e.source}-${e.target}-${idx}`,
         source: e.source,
         target: e.target,
         label: e.relation,
-        type: 'smoothstep',
+        type: 'default', // 'default' in ReactFlow is usually bezier. Or 'bezier'
         animated: isIncident || true,
-        style: isIncident ? { stroke: '#ef4444', strokeWidth: 3, strokeDasharray: '5,5' } : { stroke: '#22c55e', strokeWidth: 2 },
-        labelStyle: { fill: isIncident ? '#ef4444' : '#22c55e', fontWeight: 700, fontSize: 10 },
-        labelBgStyle: { fill: '#161b22', fillOpacity: 0.9 },
+        style: isIncident ? { stroke: '#f43f5e', strokeWidth: 2, strokeDasharray: '5,5' } : isMainEdge ? { stroke: '#f59e0b', strokeWidth: 2 } : { stroke: '#64748b', strokeWidth: 2 },
+        labelStyle: { fill: isIncident ? '#f43f5e' : isMainEdge ? '#fbbf24' : '#cbd5e1', fontWeight: 700, fontSize: 13 },
+        labelBgStyle: { fill: '#0f172a', fillOpacity: 0.95 },
+        labelBgPadding: [6, 4],
+        labelBgBorderRadius: 4,
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: isIncident ? '#ef4444' : '#22c55e',
+          color: isIncident ? '#f43f5e' : isMainEdge ? '#f59e0b' : '#64748b',
         },
         data: {
           health_state: e.health_state,
@@ -160,15 +191,53 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
       };
     });
 
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges, 'TB');
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges, 'LR');
 
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
   }, [data, setNodes, setEdges]);
 
+  // Handle edge highlighting when a node is hovered
+  useEffect(() => {
+    if (!data || !data.nodes) return;
+
+    setEdges(eds => eds.map(e => {
+      const sourceNode = data.nodes.find(n => n.id === e.source);
+      const targetNode = data.nodes.find(n => n.id === e.target);
+      const isIncident = e.data?.health_state === 'CRITICAL' || e.data?.health_state === 'BLOCKED' || sourceNode?.health_state === 'CRITICAL' || targetNode?.health_state === 'CRITICAL';
+      
+      const isMainEdge = sourceNode?.isRoot || targetNode?.isRoot;
+      
+      let strokeColor = isMainEdge ? '#f59e0b' : '#64748b';
+      let strokeWidth = 2;
+      let labelColor = isMainEdge ? '#fbbf24' : '#94a3b8';
+      
+      if (isIncident) {
+         strokeColor = '#f43f5e';
+         labelColor = '#f43f5e';
+      } else if (hoveredNodeId && (hoveredNodeId === e.source || hoveredNodeId === e.target)) {
+         strokeColor = '#22d3ee'; // cyan-400
+         strokeWidth = 3;
+         labelColor = '#67e8f9';
+      } else if (hoveredNodeId) {
+         // Dim non-connected edges if ANY node is hovered
+         strokeColor = '#334155';
+         strokeWidth = 1;
+         labelColor = '#475569';
+      }
+
+      return {
+        ...e,
+        style: { ...e.style, stroke: strokeColor, strokeWidth },
+        labelStyle: { ...e.labelStyle, fill: labelColor },
+        markerEnd: { ...e.markerEnd, color: strokeColor }
+      };
+    }));
+  }, [hoveredNodeId, data, setEdges]);
+
   if (!data || !data.nodes || data.nodes.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 bg-[#0a0a0f] gap-4">
+      <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-[#0a0a0f] gap-4">
         <CloudOff size={48} className="opacity-20" />
         <p>No trace data available. Select a compute resource.</p>
       </div>
@@ -176,6 +245,7 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
   }
 
   const handleNodeClick = (_, node) => {
+    setHoveredNodeId(null);
     if (onNodeClick) {
       onNodeClick(node);
     }
@@ -189,6 +259,8 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={handleNodeClick}
+        onNodeMouseEnter={(_, node) => setHoveredNodeId(node.id)}
+        onNodeMouseLeave={() => setHoveredNodeId(null)}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.1, maxZoom: 1.2 }}
@@ -200,7 +272,20 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick }) {
         panOnScroll={false}
         className="bg-transparent [&>.react-flow__renderer>.react-flow__viewport]:transition-transform [&>.react-flow__renderer>.react-flow__viewport]:duration-150 [&>.react-flow__renderer>.react-flow__viewport]:ease-out"
       >
-        <Background color="#1e232b" gap={24} size={2} />
+        <Background color="#475569" gap={24} size={1.5} />
+        <MiniMap 
+          nodeColor={(n) => {
+            if (n.data?.health_state === 'CRITICAL') return '#f43f5e';
+            if (n.data?.isRoot) return '#f59e0b';
+            if (n.data?.isHighlighted) return '#22d3ee';
+            return '#1e293b';
+          }}
+          maskColor="rgba(0, 0, 0, 0.6)"
+          maskStrokeColor="#94a3b8"
+          maskStrokeWidth={1}
+          style={{ backgroundColor: '#0f172a', width: 120, height: 80 }}
+          className="!bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden"
+        />
         <Controls
           className="bg-[#161b22] border-zinc-800 shadow-xl"
           showInteractive={false}

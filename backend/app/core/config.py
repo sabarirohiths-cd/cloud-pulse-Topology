@@ -7,9 +7,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/cloud_pulse.db"
     ENCRYPTION_KEY: str
-    JWT_SECRET: str = "cloud-pulse-jwt-secret-key-98765"
+    JWT_SECRET: str
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000", "*"]
-
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore"

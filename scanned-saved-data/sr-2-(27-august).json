@@ -60,19 +60,12 @@
         {
             "id": "sg-06cefa7d6a9b4705f",
             "type": "SECURITY_GROUP",
-            "label": "launch-wizard-2",
+            "label": "sg-06cefa7d6a9b4705f",
             "status": "available",
             "metadata": {
                 "Type": "Security Group",
                 "GroupId": "sg-06cefa7d6a9b4705f",
-                "Region": "ap-south-2",
-                "InboundRules": [
-                    "Allow TCP 80 from Public (0.0.0.0/0)",
-                    "Allow TCP 22 from Public (0.0.0.0/0)"
-                ],
-                "OutboundRules": [
-                    "Allow All All to Public (0.0.0.0/0)"
-                ]
+                "Region": "ap-south-2"
             },
             "health_state": "HEALTHY",
             "diagnostic": null
@@ -101,14 +94,7 @@
                 "AvailabilityZone": "ap-south-2a",
                 "AvailableIpAddressCount": 4089,
                 "MapPublicIpOnLaunch": true,
-                "Region": "ap-south-2",
-                "NACL_Id": "acl-0dab37bd05bb647d4",
-                "InboundRules": [
-                    "#100 ALLOW ALL TRAFFIC from 0.0.0.0/0"
-                ],
-                "OutboundRules": [
-                    "#100 ALLOW ALL TRAFFIC to 0.0.0.0/0"
-                ]
+                "Region": "ap-south-2"
             },
             "health_state": "HEALTHY",
             "diagnostic": null
@@ -128,19 +114,12 @@
         {
             "id": "sg-026b88d10b34f759a",
             "type": "SECURITY_GROUP",
-            "label": "cloudpulse-test-vpc",
+            "label": "sg-026b88d10b34f759a",
             "status": "available",
             "metadata": {
                 "Type": "Security Group",
                 "GroupId": "sg-026b88d10b34f759a",
-                "Region": "ap-south-2",
-                "InboundRules": [
-                    "Allow TCP 80 from Public (0.0.0.0/0)",
-                    "Allow TCP 22 from Public (0.0.0.0/0)"
-                ],
-                "OutboundRules": [
-                    "Allow All All to Public (0.0.0.0/0)"
-                ]
+                "Region": "ap-south-2"
             },
             "health_state": "HEALTHY",
             "diagnostic": null
@@ -345,8 +324,29 @@
     ],
     "edges": [
         {
+            "source": "arn:aws:iam::879343933129:role/DemoRoleforEC2",
+            "target": "i-07b3ab70e1db07b51",
+            "relation": "GRANTS_ACCESS_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-06cefa7d6a9b4705f",
+            "target": "i-07b3ab70e1db07b51",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
             "source": "vpc-023f9a5c30e0860d9",
             "target": "subnet-03bb3e1fab67ad388",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-03bb3e1fab67ad388",
+            "target": "i-07b3ab70e1db07b51",
             "relation": "CONTAINS",
             "health_state": "HEALTHY",
             "diagnostic": null
@@ -355,6 +355,20 @@
             "source": "vpc-023f9a5c30e0860d9",
             "target": "igw-085a092a3b1372f09",
             "relation": "ATTACHED_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-026b88d10b34f759a",
+            "target": "i-0ba5b26fafe9e0bf8",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-03bb3e1fab67ad388",
+            "target": "i-0ba5b26fafe9e0bf8",
+            "relation": "CONTAINS",
             "health_state": "HEALTHY",
             "diagnostic": null
         },
@@ -441,42 +455,7 @@
             "relation": "QUERIES",
             "health_state": "HEALTHY",
             "diagnostic": null
-        },
-        {
-            "source": "arn:aws:iam::879343933129:role/DemoRoleforEC2",
-            "target": "i-07b3ab70e1db07b51",
-            "relation": "GRANTS_ACCESS_TO",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "sg-06cefa7d6a9b4705f",
-            "target": "i-07b3ab70e1db07b51",
-            "relation": "PROTECTS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "subnet-03bb3e1fab67ad388",
-            "target": "i-07b3ab70e1db07b51",
-            "relation": "CONTAINS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "sg-026b88d10b34f759a",
-            "target": "i-0ba5b26fafe9e0bf8",
-            "relation": "PROTECTS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "subnet-03bb3e1fab67ad388",
-            "target": "i-0ba5b26fafe9e0bf8",
-            "relation": "CONTAINS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
         }
     ],
-    "last_compute_id": "i-0ba5b26fafe9e0bf8"
+    "last_compute_id": "i-0ed4b53bcbda72ad4"
 }

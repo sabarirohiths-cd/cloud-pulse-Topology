@@ -20,29 +20,29 @@ const TreeNode = ({ label, id, type, icon, children, onNodeClick, isSelected = f
     <div className="select-none">
       <div
         onClick={handleClick}
-        className={`flex items-center gap-2 py-1 px-1.5 rounded cursor-pointer transition-all ${
+        className={`flex items-center gap-1.5 py-0.5 px-1 rounded cursor-pointer transition-all ${
             isSelected 
               ? 'bg-sky-500/30 ring-1 ring-sky-400 text-sky-300 font-bold shadow-[0_0_8px_rgba(14,165,233,0.3)]' 
               : 'hover:bg-[#1f242e] text-zinc-400 hover:text-sky-300'
         }`}
         title={`Click to focus on ${label || id}`}
       >
-        <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 text-zinc-500">
+        <div className="w-3 h-3 flex items-center justify-center flex-shrink-0 text-zinc-500">
           {hasChildren ? (
-            isExpanded ? <ChevronDown size={14} className="hover:text-white" /> : <ChevronRight size={14} className="hover:text-white" />
+            isExpanded ? <ChevronDown size={12} className="hover:text-white" /> : <ChevronRight size={12} className="hover:text-white" />
           ) : null}
         </div>
 
-        <div className="flex items-center justify-center flex-shrink-0 w-4 h-4">
-          {icon || getIcon(type, 14)}
+        <div className="flex items-center justify-center flex-shrink-0 w-3 h-3">
+          {icon || getIcon(type, 12)}
         </div>
 
-        <div className="flex flex-col flex-1 overflow-hidden justify-center gap-0.5">
-          <span className="text-[13px] font-medium truncate leading-tight text-zinc-200">
+        <div className="flex flex-col flex-1 overflow-hidden justify-center gap-0">
+          <span className="text-[11px] font-medium truncate leading-tight text-zinc-300">
             {label}
           </span>
           {type && (
-            <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-sky-500 opacity-80">
                 {type}
             </span>
           )}
@@ -195,30 +195,43 @@ export default function ComputeResourcesSidebar({ data, onNodeSelect, selectedNo
             <div className="text-xs text-gray-500 p-2">No resources match your search.</div>
           ) : (
             filteredResources.map((res) => {
-              const isSelected = selectedNodeId === res.id;
-              const isRunning = res.state === 'running';
-              
-              return (
-                <div key={res.id} className="flex flex-col">
-                  <div
-                    onClick={() => {
-                        if (selectedNodeId !== res.id) {
-                            onNodeSelect(res);
-                            setExpandedRoots(prev => ({ ...prev, [res.id]: true }));
-                        } else {
-                            setExpandedRoots(prev => ({ ...prev, [res.id]: !prev[res.id] }));
-                        }
-                    }}
-                    className={`flex items-center justify-between p-2 rounded cursor-pointer transition-all border ${
-                      isSelected
-                        ? 'bg-sky-500/10 border-sky-500/30 text-sky-100 shadow-[0_0_10px_rgba(14,165,233,0.1)]'
-                        : 'bg-[#161a22] border-[#2d333b] text-gray-300 hover:bg-[#1f242e] hover:border-[#3d444d]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 overflow-hidden">
-                      <div className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors">
-                        {isSelected && expandedRoots[res.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                      </div>
+                    const isSelected = selectedNodeId === res.id;
+                    const isRunning = res.state === 'running';
+                    
+                    const hasTracesData = flowData && flowData.compute_id === res.id;
+                    const childCount = hasTracesData ? flowData.nodes.filter(n => n.id !== res.id).length : -1;
+                    
+                    return (
+                        <div key={res.id} className="flex flex-col">
+                        <div
+                            onClick={() => {
+                                if (selectedNodeId !== res.id) {
+                                    onNodeSelect(res);
+                                }
+                            }}
+                            className={`flex items-center justify-between p-2 rounded cursor-pointer transition-all border ${
+                            isSelected
+                                ? 'bg-sky-500/10 border-sky-500/30 text-sky-100 shadow-[0_0_10px_rgba(14,165,233,0.1)]'
+                                : 'bg-[#161a22] border-[#2d333b] text-gray-300 hover:bg-[#1f242e] hover:border-[#3d444d]'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2 overflow-hidden">
+                            <div 
+                                className="flex items-center justify-center text-zinc-500 hover:text-white transition-colors w-4 h-4 cursor-pointer"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (selectedNodeId !== res.id) {
+                                        onNodeSelect(res);
+                                        setExpandedRoots(prev => ({ ...prev, [res.id]: true }));
+                                    } else {
+                                        setExpandedRoots(prev => ({ ...prev, [res.id]: !prev[res.id] }));
+                                    }
+                                }}
+                            >
+                                {childCount !== 0 && (
+                                    expandedRoots[res.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />
+                                )}
+                            </div>
                       <div className={`p-1.5 rounded bg-black/40 ${isSelected ? 'text-sky-400' : 'text-gray-400'}`}>
                         <Server size={14} />
                       </div>
@@ -229,6 +242,11 @@ export default function ComputeResourcesSidebar({ data, onNodeSelect, selectedNo
                         {res.name && (
                           <span className="text-[10px] text-gray-500 font-mono truncate">
                             {res.id}
+                          </span>
+                        )}
+                        {res.managed_by && (
+                          <span className="text-[9px] font-bold tracking-wider text-fuchsia-400 mt-0.5 truncate uppercase">
+                            {res.managed_by}
                           </span>
                         )}
                       </div>

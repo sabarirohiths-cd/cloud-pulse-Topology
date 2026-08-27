@@ -20,10 +20,20 @@ def extract_subgraph(data: dict, start_node_id: str) -> dict:
         changed = False
         for e in edges:
             src, tgt = e.get("source"), e.get("target")
+            
+            # Check if target is another EC2 instance
             if src in connected_nodes and tgt not in connected_nodes:
+                tgt_node = next((n for n in nodes if n.get("id") == tgt), {})
+                if tgt_node.get("type") == "EC2" and tgt != start_node_id:
+                    continue
                 connected_nodes.add(tgt)
                 changed = True
+                
+            # Check if source is another EC2 instance
             elif tgt in connected_nodes and src not in connected_nodes:
+                src_node = next((n for n in nodes if n.get("id") == src), {})
+                if src_node.get("type") == "EC2" and src != start_node_id:
+                    continue
                 connected_nodes.add(src)
                 changed = True
                 
@@ -82,7 +92,7 @@ async def get_cached_regions():
                 data = json.load(f)
                 for n in data.get("nodes", []):
                     r = n.get("metadata", {}).get("Region")
-                    if r:
+                    if r and r != "global":
                         regions.append(r)
             except:
                 pass
@@ -125,7 +135,8 @@ async def get_local_compute_resources(region: str = None):
                             "name": n.get("label"),
                             "type": n.get("type"),
                             "state": n.get("status"),
-                            "region": node_region or region or "ap-south-1"
+                            "region": node_region or region or "ap-south-1",
+                            "managed_by": n.get("metadata", {}).get("managed_by")
                         })
                 return {"resources": resources}
             except:

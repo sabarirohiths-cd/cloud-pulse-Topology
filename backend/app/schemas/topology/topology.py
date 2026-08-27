@@ -1,12 +1,27 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Any, Dict
 
-class TopologyScanRequest(BaseModel):
+class ComputeFlowRequest(BaseModel):
     account_id: Optional[str] = Field(default=None, description="The AWS Account ID to scan")
-    regions: List[str] = Field(default=["ap-south-1"], description="List of AWS Regions to scan")
-    vpc_id: Optional[str] = Field(default=None, description="Specific VPC to scan (optional)")
+    region: str = Field(default="ap-south-1", description="AWS Region to scan")
+    compute_type: str = Field(..., description="Type of compute node (EC2, ECS, LAMBDA, APPRUNNER)")
+    resource_id: str = Field(..., description="The ID of the compute resource to trace")
 
-class TopologyResponse(BaseModel):
+class ComputeFlowResponse(BaseModel):
     status: str
     message: str
-    data: Dict[str, Any]
+    compute_id: str
+    nodes: List[Dict[str, Any]]
+    edges: List[Dict[str, Any]]
+
+class ComputeResource(BaseModel):
+    id: str
+    name: Optional[str] = None
+    type: str
+    state: str
+    region: str
+
+class ComputeResourceListResponse(BaseModel):
+    status: str
+    message: str
+    resources: List[ComputeResource]

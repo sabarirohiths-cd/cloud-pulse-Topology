@@ -26,6 +26,17 @@ body {
   }
 }
 
+/* ReactFlow Dark Mode Controls Override */
+.react-flow__controls-button {
+  background-color: #161b22 !important;
+  fill: #a1a1aa !important;
+  border-bottom: 1px solid #2d333b !important;
+}
+.react-flow__controls-button:hover {
+  background-color: #1e232b !important;
+  fill: #ffffff !important;
+}
+
 /* Modern Webkit Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
@@ -47,4 +58,31 @@ body {
 
 .hide-time-icon::-webkit-calendar-picker-indicator {
   display: none;
+}
+
+@keyframes spin-shadow {
+  0% {
+    box-shadow: -8px -8px 25px var(--glow-c1, rgba(192, 132, 252, 0.6)), 8px 8px 25px var(--glow-c2, rgba(129, 140, 248, 0.6));
+  }
+
+  25% {
+    box-shadow: 8px -8px 25px var(--glow-c1, rgba(192, 132, 252, 0.6)), -8px 8px 25px var(--glow-c2, rgba(129, 140, 248, 0.6));
+  }
+
+  50% {
+    box-shadow: 8px 8px 25px var(--glow-c1, rgba(192, 132, 252, 0.6)), -8px -8px 25px var(--glow-c2, rgba(129, 140, 248, 0.6));
+  }
+
+  75% {
+    box-shadow: -8px 8px 25px var(--glow-c1, rgba(192, 132, 252, 0.6)), 8px -8px 25px var(--glow-c2, rgba(129, 140, 248, 0.6));
+  }
+
+  100% {
+    box-shadow: -8px -8px 25px var(--glow-c1, rgba(192, 132, 252, 0.6)), 8px 8px 25px var(--glow-c2, rgba(129, 140, 248, 0.6));
+  }
+}
+
+.premium-spin-glow {
+  animation: spin-shadow 1.5s linear infinite !important;
+  border: 1px solid var(--glow-c1, rgba(192, 132, 252, 0.8)) !important;
 }

@@ -32,8 +32,8 @@ const ALL_REGIONS = [
   { id: 'sa-east-1', name: 'South America (São Paulo)' }
 ];
 
-export default function ScanConfigurationModal({ onClose, onStartScan }) {
-  const [selectedRegions, setSelectedRegions] = useState(['ap-south-1']);
+export default function ScanConfigurationModal({ onClose, onStartScan, initialRegions }) {
+  const [selectedRegions, setSelectedRegions] = useState(initialRegions && initialRegions.length > 0 ? initialRegions : ['ap-south-1']);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleRegion = (regionId) => {

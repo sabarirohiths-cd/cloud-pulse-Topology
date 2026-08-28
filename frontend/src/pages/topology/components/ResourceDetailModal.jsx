@@ -27,7 +27,7 @@ const colorizeJson = (jsonObj) => {
   });
 };
 
-export default function ResourceDetailModal({ node, edges, allNodes, onClose, globalResources }) {
+export default function ResourceDetailModal({ node, edges, allNodes, onClose, globalResources, onShowDiagnostics }) {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
@@ -219,16 +219,16 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                 </div>
               ) : activeTab === 'diagnostics' ? (
                 <div className="flex flex-col gap-3">
-                    {['CRITICAL', 'BLOCKED'].includes(data.health_state) ? (
-                        <div className="p-4 bg-red-950/20 border border-red-500/30 rounded-xl flex flex-col gap-2">
-                            <div className="flex items-center gap-2 text-red-400">
-                                <AlertTriangle size={18} className="animate-pulse" />
-                                <h3 className="font-bold text-xs uppercase tracking-wider">Root Cause Detected</h3>
+                    {['CRITICAL', 'BLOCKED', 'DEGRADED'].includes(data.health_state) ? (
+                        <div className={`p-4 ${data.health_state === 'DEGRADED' ? 'bg-amber-950/20 border-amber-500/30' : 'bg-red-950/20 border-red-500/30'} border rounded-xl flex flex-col gap-2`}>
+                            <div className={`flex items-center gap-2 ${data.health_state === 'DEGRADED' ? 'text-amber-400' : 'text-red-400'}`}>
+                                <AlertTriangle size={18} className={data.health_state === 'CRITICAL' ? "animate-pulse" : ""} />
+                                <h3 className="font-bold text-xs uppercase tracking-wider">{data.health_state === 'DEGRADED' ? 'Degraded Performance' : 'Root Cause Detected'}</h3>
                             </div>
-                            <p className="text-red-200/90 text-[12px] leading-relaxed border-t border-red-500/20 pt-2">
+                            <p className={`${data.health_state === 'DEGRADED' ? 'text-amber-200/90 border-amber-500/20' : 'text-red-200/90 border-red-500/20'} text-[12px] leading-relaxed border-t pt-2`}>
                                 {typeof data.diagnostic === 'object' && data.diagnostic !== null 
                                   ? (data.diagnostic.message || JSON.stringify(data.diagnostic))
-                                  : (data.diagnostic || 'Critical system failure detected in this resource.')}
+                                  : (data.diagnostic || 'Issues detected in this resource.')}
                             </p>
                         </div>
                     ) : (
@@ -272,6 +272,17 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                             </div>
                         </div>
                     )}
+                    
+                    <button
+                        onClick={() => {
+                            if (onShowDiagnostics) onShowDiagnostics(data.id);
+                            else window.open(`/diagnostics/${data.id}`, '_blank');
+                        }}
+                        className="mt-2 w-full py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors"
+                    >
+                        <Activity size={14} />
+                        View Full Diagnostics Report
+                    </button>
                 </div>
               ) : activeTab === 'flow' ? (
                 <div className="flex flex-col gap-4">

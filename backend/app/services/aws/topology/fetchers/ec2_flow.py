@@ -5,6 +5,9 @@ from app.services.aws.topology.tracers.storage_tracer import StorageTracer
 from app.services.aws.topology.tracers.database_tracer import DatabaseTracer
 from app.services.aws.topology.tracers.iam_tracer import IAMTracer
 from app.services.aws.topology.tracers.security_tracer import SecurityTracer
+from app.services.aws.topology.tracers.xray_tracer import XRayTracer
+from app.services.aws.topology.tracers.messaging_tracer import MessagingTracer
+from app.services.aws.topology.tracers.observability_tracer import ObservabilityTracer
 from app.services.aws.topology.observability.diagnostic_tracer import DiagnosticTracer
 
 logger = logging.getLogger(__name__)
@@ -200,7 +203,14 @@ class EC2FlowFetcher:
         if all_sgs:
             SecurityTracer(self).trace(all_sgs)
             
-        # === 4. Observability Diagnostics (On-Demand) ===
+        # === 4. Dynamic Service Dependency Mapping (X-Ray) ===
+        XRayTracer(self).trace(self.lookback_minutes)
+        
+        # === 5. Global/Regional Resources (SNS, Alarms) ===
+        MessagingTracer(self).trace()
+        ObservabilityTracer(self).trace()
+            
+        # === 6. Observability Diagnostics (On-Demand) ===
         if self.observability_options:
             DiagnosticTracer(self).trace(self.resource_id, self.observability_options, self.lookback_minutes)
         

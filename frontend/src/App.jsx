@@ -4,6 +4,7 @@ import { Toaster, toast } from 'sonner';
 import { Cloud, Activity, Boxes, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import TopologyPage from './pages/topology/TopologyPage';
 import ConfigPage from './pages/config/ConfigPage';
+import DiagnosticDetailPage from './pages/diagnostics/DiagnosticDetailPage';
 
 export default function App() {
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
@@ -82,6 +83,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/topology" replace />} />
             <Route path="/topology" element={<TopologyPage />} />
             <Route path="/config" element={<ConfigPage />} />
+            <Route path="/diagnostics/:nodeId" element={<DiagnosticDetailPage />} />
           </Routes>
         </main>
       </div>

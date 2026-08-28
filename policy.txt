@@ -30,10 +30,20 @@
 				"iam:GetInstanceProfile",
 				"iam:GetRole",
 				"iam:ListAttachedRolePolicies",
+				"iam:GetPolicy",
+				"iam:GetPolicyVersion",
+				"iam:ListRolePolicies",
+				"iam:GetRolePolicy",
 				"cloudwatch:GetMetricData",
 				"logs:StartQuery",
 				"logs:GetQueryResults",
-				"xray:GetTraceSummaries"
+				"logs:DescribeLogGroups",
+				"logs:DescribeLogStreams",
+				"xray:GetTraceSummaries",
+				"xray:GetServiceGraph",
+				"ec2:DescribeFlowLogs",
+				"sns:ListTopics",
+				"cloudwatch:DescribeAlarms"
 			],
 			"Resource": "*"
 		}

@@ -25,112 +25,8 @@
                 },
                 "Region": "eu-west-1"
             },
-            "health_state": "CRITICAL",
-            "diagnostic": "4/4 Infra pre-checks passed. | Found 10 REJECTED flow log entries for eni-08803741f500c54b3. Firewall or NACL is blocking traffic. | Detected 1 application issues: Found 5 error logs in /aws/ec2/topology-test-app",
-            "diagnostic_details": {
-                "infrastructure": {
-                    "status": "HEALTHY",
-                    "summary": "4/4 Infra pre-checks passed.",
-                    "details": {
-                        "ec2_status_checks": {
-                            "system_status": "ok",
-                            "instance_status": "ok",
-                            "ebs_status": "ok",
-                            "summary": "3/3 checks passed"
-                        },
-                        "security_groups": [
-                            {
-                                "id": "sg-0482c5aff8d773825",
-                                "name": "topology-test-ec2-sg",
-                                "inbound_rules_count": 1,
-                                "outbound_rules_count": 1
-                            }
-                        ],
-                        "subnet": {
-                            "id": "subnet-0f74b1cdd88359e21",
-                            "nacl": {
-                                "id": "acl-03c96f781a7f7c50a",
-                                "inbound_rules_count": 1,
-                                "outbound_rules_count": 1
-                            },
-                            "route_table": {
-                                "id": "rtb-0a31fdb8a9a31d9cb",
-                                "routes_count": 2
-                            }
-                        }
-                    },
-                    "issues": []
-                },
-                "network_flow": {
-                    "status": "CRITICAL",
-                    "summary": "Found 10 REJECTED flow log entries for eni-08803741f500c54b3. Firewall or NACL is blocking traffic.",
-                    "details": {
-                        "eni_id": "eni-08803741f500c54b3",
-                        "log_group": "/aws/vpc/cloudpulse-flow-logs",
-                        "reject_count": 10,
-                        "sample_logs": [
-                            "2 879343933129 eni-08803741f500c54b3 79.124.58.90 10.0.1.223 44390 43843 6 1 40 1787921197 1787921220 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 85.217.140.42 10.0.1.223 37171 61498 6 1 52 1787921197 1787921220 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 66.132.172.243 10.0.1.223 37153 23115 17 1 48 1787921162 1787921190 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 151.243.11.11 10.0.1.223 61251 53 17 1 55 1787921162 1787921190 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 85.217.140.9 10.0.1.223 51521 15116 6 1 52 1787921162 1787921190 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 85.217.140.36 10.0.1.223 47586 17579 6 1 52 1787921162 1787921190 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 185.93.89.79 10.0.1.223 51028 9001 6 1 44 1787921137 1787921156 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 85.239.245.161 10.0.1.223 50823 6369 17 1 28 1787921137 1787921156 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 85.217.140.11 10.0.1.223 56070 25036 6 1 52 1787921106 1787921131 REJECT OK",
-                            "2 879343933129 eni-08803741f500c54b3 185.242.226.36 10.0.1.223 42727 9000 6 1 40 1787921106 1787921131 REJECT OK"
-                        ]
-                    }
-                },
-                "application": {
-                    "status": "CRITICAL",
-                    "summary": "Detected 1 application issues: Found 5 error logs in /aws/ec2/topology-test-app",
-                    "details": {
-                        "metrics": {
-                            "status": "HEALTHY",
-                            "issues": [],
-                            "cpu_max": 1.1082779194373615,
-                            "errors_5xx": 0,
-                            "multi_tier": {
-                                "cpu": 1.1082779194373615,
-                                "rdscpu_0": 4.791666666666667,
-                                "rdsconn_0": 0.0,
-                                "ebsqueue_0": 0.0,
-                                "ebsqueue_1": 0.0048828125
-                            }
-                        },
-                        "logs": {
-                            "issues": [
-                                "Found 5 error logs in /aws/ec2/topology-test-app"
-                            ],
-                            "traces": [
-                                "2026-08-28 12:47:44,623 ERROR    at com.cloudpulse.api.RequestHandler.handle(RequestHandler.java:18)",
-                                "2026-08-28 12:47:44,623 ERROR [X-RAY] RDS-MySQL-Query completed in 150 ms with status fault",
-                                "2026-08-28 12:47:44,623 ERROR [ERROR] NullReferenceException: Failed to query RDS database.",
-                                "2026-08-28 12:47:44,623 ERROR    at com.cloudpulse.db.Connector.connect(Connector.java:42)",
-                                "2026-08-28 12:47:26,667 ERROR    at com.cloudpulse.api.RequestHandler.handle(RequestHandler.java:18)"
-                            ],
-                            "log_group": "/aws/ec2/topology-test-app"
-                        },
-                        "xray": {
-                            "issues": [],
-                            "faulty_trace_count": 0
-                        }
-                    }
-                },
-                "synthesis": {
-                    "synthesis_statement": "Network configuration is blocking traffic, leading to application connectivity failures.",
-                    "error_classification_tags": [
-                        "NETWORK_BLOCKED",
-                        "CODE_EXCEPTION"
-                    ],
-                    "extracted_code_locations": [
-                        "RequestHandler.java:18",
-                        "Connector.java:42"
-                    ],
-                    "why_analysis_reasoning": "Network flow logs indicate 10 REJECTED packets, and application logs show connection/timeout errors. A Security Group or NACL is likely blocking outbound/inbound traffic. A Null Reference/Pointer exception was detected in the application logs, indicating an unhandled code-level error."
-                }
-            }
+            "health_state": "HEALTHY",
+            "diagnostic": null
         },
         {
             "id": "arn:aws:iam::879343933129:role/topology-test-ec2-role",
@@ -398,8 +294,29 @@
     ],
     "edges": [
         {
+            "source": "arn:aws:iam::879343933129:role/topology-test-ec2-role",
+            "target": "i-0295f0b2df9cce6d7",
+            "relation": "GRANTS_ACCESS_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-0482c5aff8d773825",
+            "target": "i-0295f0b2df9cce6d7",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
             "source": "vpc-096f5df6a1e301204",
             "target": "subnet-0f74b1cdd88359e21",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-0f74b1cdd88359e21",
+            "target": "i-0295f0b2df9cce6d7",
             "relation": "CONTAINS",
             "health_state": "HEALTHY",
             "diagnostic": null
@@ -408,6 +325,13 @@
             "source": "vpc-096f5df6a1e301204",
             "target": "igw-053ce2e5d48776218",
             "relation": "ATTACHED_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:targetgroup/topology-test-tg/a627378f14788998",
+            "target": "i-0295f0b2df9cce6d7",
+            "relation": "TARGETS",
             "health_state": "HEALTHY",
             "diagnostic": null
         },
@@ -429,6 +353,27 @@
             "source": "api.cloudpulse-topology.local",
             "target": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:loadbalancer/app/topology-test-alb/62c667998a4918b6",
             "relation": "ROUTES_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0295f0b2df9cce6d7",
+            "target": "vol-0bd84fd038c9a647b",
+            "relation": "MOUNTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0295f0b2df9cce6d7",
+            "target": "vol-07dc3c17a2ffb32c0",
+            "relation": "MOUNTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0295f0b2df9cce6d7",
+            "target": "topology-test-db",
+            "relation": "QUERIES",
             "health_state": "HEALTHY",
             "diagnostic": null
         },
@@ -457,55 +402,6 @@
             "source": "arn:aws:cloudwatch:eu-west-1:879343933129:alarm:cloudpulse-unhealthy-hosts",
             "target": "arn:aws:sns:eu-west-1:879343933129:cloudpulse-diagnostic-alerts",
             "relation": "TRIGGERS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "arn:aws:iam::879343933129:role/topology-test-ec2-role",
-            "target": "i-0295f0b2df9cce6d7",
-            "relation": "GRANTS_ACCESS_TO",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "sg-0482c5aff8d773825",
-            "target": "i-0295f0b2df9cce6d7",
-            "relation": "PROTECTS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "subnet-0f74b1cdd88359e21",
-            "target": "i-0295f0b2df9cce6d7",
-            "relation": "CONTAINS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:targetgroup/topology-test-tg/a627378f14788998",
-            "target": "i-0295f0b2df9cce6d7",
-            "relation": "TARGETS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "i-0295f0b2df9cce6d7",
-            "target": "vol-0bd84fd038c9a647b",
-            "relation": "MOUNTS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "i-0295f0b2df9cce6d7",
-            "target": "vol-07dc3c17a2ffb32c0",
-            "relation": "MOUNTS",
-            "health_state": "HEALTHY",
-            "diagnostic": null
-        },
-        {
-            "source": "i-0295f0b2df9cce6d7",
-            "target": "topology-test-db",
-            "relation": "QUERIES",
             "health_state": "HEALTHY",
             "diagnostic": null
         }

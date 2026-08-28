@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Zap, List } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Zap, List, RefreshCw, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import { getComputeResources, scanComputeFlow, getCachedRegions, getLocalComputeFlow, getLocalComputeResources, getLocalTrace, getSupportedComputeTypes } from '../../api/topology';
 import { listConfigs } from '../../api/config';
@@ -8,6 +9,7 @@ import ScanConfigurationModal from './components/ScanConfigurationModal';
 import ComputeResourcesSidebar from './components/ComputeResourcesSidebar';
 import ApplicationFlowVisualizer from './components/ApplicationFlowVisualizer';
 import { FilterBar } from '../../components/ui/FilterBar';
+import DiagnosticDetailPage from '../diagnostics/DiagnosticDetailPage';
 
 export default function TopologyPage() {
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,7 @@ export default function TopologyPage() {
   const [flowData, setFlowData] = useState(null); // { nodes, edges }
 
   const [selectedNode, setSelectedNode] = useState(null);
+  const [diagnosticsNodeId, setDiagnosticsNodeId] = useState(null);
 
   // Available regions dynamically populated from cached files
   const [availableRegions, setAvailableRegions] = useState([]);
@@ -43,6 +46,19 @@ export default function TopologyPage() {
   const [observabilityOptions, setObservabilityOptions] = useState([]);
   const [lookbackMinutes, setLookbackMinutes] = useState(15);
   const [showDiagnosticsMenu, setShowDiagnosticsMenu] = useState(false);
+  
+  // Animation state for Diagnostics button
+  const [showDiagnosticsLabel, setShowDiagnosticsLabel] = useState(false);
+
+  useEffect(() => {
+    if (activeResourceId) {
+      setShowDiagnosticsLabel(true);
+      const timer = setTimeout(() => {
+        setShowDiagnosticsLabel(false);
+      }, 2000); 
+      return () => clearTimeout(timer);
+    }
+  }, [activeResourceId]);
 
   const toggleObservability = (opt) => {
     setObservabilityOptions(prev =>
@@ -331,8 +347,8 @@ export default function TopologyPage() {
 
         {/* Right Main Area */}
         <main className={`flex flex-col relative transition-all duration-300 ease-in-out flex-1 bg-[#0a0a0f]`}>
-          {!isSidebarOpen && (
-            <div className="absolute top-4 left-4 z-20">
+          <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2">
+            {!isSidebarOpen && (
               <button
                 onClick={() => setIsSidebarOpen(true)}
                 className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#2d333b] bg-[#1a1d24]/90 backdrop-blur border border-[#2d333b] rounded transition-colors flex items-center justify-center focus:outline-none shadow-md"
@@ -340,19 +356,38 @@ export default function TopologyPage() {
               >
                 <List size={16} />
               </button>
-            </div>
-          )}
+            )}
 
-          {showScanModal && (
-            <ScanConfigurationModal
-              onClose={() => setShowScanModal(false)}
-              onStartScan={handleStartScan}
-              initialRegions={viewRegions}
-            />
-          )}
-
-          <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
             {activeResourceId && (
+              <button
+                onClick={() => {
+                  setDiagnosticsNodeId(activeResourceId);
+                }}
+                title="Deep Diagnostics Dashboard"
+                className="text-purple-400 hover:text-purple-300 hover:bg-[#2d333b] bg-[#1a1d24]/90 backdrop-blur border border-[#2d333b] rounded transition-colors flex items-center justify-center focus:outline-none shadow-md overflow-hidden"
+                style={{ padding: '6px' }}
+              >
+                <div className="flex items-center">
+                  <Activity size={16} />
+                  <AnimatePresence>
+                    {showDiagnosticsLabel && (
+                      <motion.span
+                        initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+                        animate={{ width: "auto", opacity: 1, marginLeft: 8 }}
+                        exit={{ width: 0, opacity: 0, marginLeft: 0 }}
+                        className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap overflow-hidden"
+                      >
+                        Deep Diagnostics Report
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </button>
+            )}
+          </div>
+
+          {activeResourceId && (
+            <div className="absolute top-4 right-4 z-20 flex flex-col items-end gap-2">
               <div className="flex items-center gap-1 bg-[#1a1d24]/90 backdrop-blur border border-[#2d333b] rounded p-1 shadow-md">
                 <div className="relative">
                   <button
@@ -362,7 +397,7 @@ export default function TopologyPage() {
                         : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
                       }`}
                   >
-                    Deep Diagnostics {observabilityOptions.length > 0 && `(${observabilityOptions.length})`}
+                    Trace Config {observabilityOptions.length > 0 && `(${observabilityOptions.length})`}
                   </button>
 
                   {showDiagnosticsMenu && (
@@ -406,14 +441,30 @@ export default function TopologyPage() {
                     if (res) handleResourceSelect(res, true);
                   }}
                   disabled={tracing || !viewAccount}
-                  className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-semibold bg-blue-500/10 text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                  title="Re-Run Trace"
+                  className="p-1.5 bg-blue-500/10 text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
                 >
-                  <Zap size={12} className={tracing ? "animate-pulse" : ""} />
-                  {tracing ? "Tracing..." : "Re-Run Trace"}
+                  <RefreshCw size={14} className={tracing ? "animate-spin" : ""} />
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {showScanModal && (
+            <ScanConfigurationModal
+              onClose={() => setShowScanModal(false)}
+              onStartScan={handleStartScan}
+              initialRegions={viewRegions}
+            />
+          )}
+
+          {diagnosticsNodeId && (
+            <DiagnosticDetailPage 
+              nodeId={diagnosticsNodeId} 
+              onClose={() => setDiagnosticsNodeId(null)} 
+            />
+          )}
+
 
           <div className="flex-1 relative min-h-0">
             {tracing ? (
@@ -450,6 +501,10 @@ export default function TopologyPage() {
           allNodes={flowData?.nodes || []}
           onClose={() => setSelectedNode(null)}
           globalResources={null}
+          onShowDiagnostics={(id) => {
+            setSelectedNode(null);
+            setDiagnosticsNodeId(id);
+          }}
         />
       )}
     </div>

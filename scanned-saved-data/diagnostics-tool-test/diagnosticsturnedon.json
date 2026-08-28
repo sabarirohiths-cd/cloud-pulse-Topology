@@ -1,0 +1,652 @@
+{
+    "nodes": [
+        {
+            "id": "i-07b3ab70e1db07b51",
+            "type": "EC2",
+            "label": "My First Instance",
+            "status": "stopped",
+            "metadata": {
+                "InstanceType": "t3.micro",
+                "PrivateIpAddress": "172.31.12.72",
+                "PublicIpAddress": null,
+                "VpcId": "vpc-023f9a5c30e0860d9",
+                "SubnetId": "subnet-03bb3e1fab67ad388",
+                "NetworkInterfaces": [
+                    {
+                        "NetworkInterfaceId": "eni-078da349d8cd040f9"
+                    }
+                ],
+                "Region": "ap-south-2"
+            },
+            "health_state": "STOPPED",
+            "diagnostic": "Instance is stopped."
+        },
+        {
+            "id": "i-0ba5b26fafe9e0bf8",
+            "type": "EC2",
+            "label": "cloudpulse-test-main",
+            "status": "stopped",
+            "metadata": {
+                "InstanceType": "t3.micro",
+                "PrivateIpAddress": "172.31.15.113",
+                "PublicIpAddress": null,
+                "VpcId": "vpc-023f9a5c30e0860d9",
+                "SubnetId": "subnet-03bb3e1fab67ad388",
+                "NetworkInterfaces": [
+                    {
+                        "NetworkInterfaceId": "eni-0b3e5597071b2ad68"
+                    }
+                ],
+                "Region": "ap-south-2"
+            },
+            "health_state": "STOPPED",
+            "diagnostic": "Instance is stopped."
+        },
+        {
+            "id": "arn:aws:iam::879343933129:role/DemoRoleforEC2",
+            "type": "IAM_ROLE",
+            "label": "DemoRoleforEC2",
+            "status": "available",
+            "metadata": {
+                "RoleName": "DemoRoleforEC2",
+                "CreateDate": "2026-06-23 09:58:33+00:00",
+                "AttachedPoliciesCount": 1,
+                "Type": "Instance Profile",
+                "Region": "global"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "sg-06cefa7d6a9b4705f",
+            "type": "SECURITY_GROUP",
+            "label": "launch-wizard-2",
+            "status": "available",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-06cefa7d6a9b4705f",
+                "Region": "ap-south-2",
+                "InboundRules": [
+                    "Allow TCP 80 from Public (0.0.0.0/0)",
+                    "Allow TCP 22 from Public (0.0.0.0/0)"
+                ],
+                "OutboundRules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "sg-026b88d10b34f759a",
+            "type": "SECURITY_GROUP",
+            "label": "cloudpulse-test-vpc",
+            "status": "available",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-026b88d10b34f759a",
+                "Region": "ap-south-2",
+                "InboundRules": [
+                    "Allow TCP 80 from Public (0.0.0.0/0)",
+                    "Allow TCP 22 from Public (0.0.0.0/0)"
+                ],
+                "OutboundRules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "vpc-023f9a5c30e0860d9",
+            "type": "VPC",
+            "label": "vpc-023f9a5c30e0860d9",
+            "status": "available",
+            "metadata": {
+                "CidrBlock": "172.31.0.0/16",
+                "InstanceTenancy": "default",
+                "IsDefault": true,
+                "Region": "ap-south-2"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "subnet-03bb3e1fab67ad388",
+            "type": "SUBNET",
+            "label": "subnet-03bb3e1fab67ad388",
+            "status": "available",
+            "metadata": {
+                "CidrBlock": "172.31.0.0/20",
+                "AvailabilityZone": "ap-south-2a",
+                "AvailableIpAddressCount": 4089,
+                "MapPublicIpOnLaunch": true,
+                "Region": "ap-south-2",
+                "NACL_Id": "acl-0dab37bd05bb647d4",
+                "InboundRules": [
+                    "#100 ALLOW ALL TRAFFIC from 0.0.0.0/0"
+                ],
+                "OutboundRules": [
+                    "#100 ALLOW ALL TRAFFIC to 0.0.0.0/0"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "igw-085a092a3b1372f09",
+            "type": "IGW",
+            "label": "igw-085a092a3b1372f09",
+            "status": "available",
+            "metadata": {
+                "AttachmentState": "available",
+                "Region": "ap-south-2"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "subnet-09a10a9ebc19ed18e",
+            "type": "SUBNET",
+            "label": "subnet-09a10a9ebc19ed18e",
+            "status": "available",
+            "metadata": {
+                "CidrBlock": "172.31.32.0/20",
+                "AvailabilityZone": "ap-south-2b",
+                "AvailableIpAddressCount": 4089,
+                "MapPublicIpOnLaunch": true,
+                "Region": "ap-south-2",
+                "NACL_Id": "acl-0dab37bd05bb647d4",
+                "InboundRules": [
+                    "#100 ALLOW ALL TRAFFIC from 0.0.0.0/0"
+                ],
+                "OutboundRules": [
+                    "#100 ALLOW ALL TRAFFIC to 0.0.0.0/0"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "i-0059c5fd8790f7f3f",
+            "type": "EC2",
+            "label": "Topology-Compute-Node",
+            "status": "running",
+            "metadata": {
+                "InstanceType": "t3.micro",
+                "PrivateIpAddress": "10.0.1.117",
+                "PublicIpAddress": "54.76.216.104",
+                "VpcId": "vpc-0f337b4e6b9979665",
+                "SubnetId": "subnet-07df0d2ae9a8b9e17",
+                "NetworkInterfaces": [
+                    {
+                        "NetworkInterfaceId": "eni-0d5d6fe6ebb631063",
+                        "ElasticIp": "54.76.216.104"
+                    }
+                ],
+                "status_checks": {
+                    "system_status": "ok",
+                    "instance_status": "ok",
+                    "ebs_status": "ok",
+                    "summary": "3/3 checks passed"
+                },
+                "Region": "eu-west-1"
+            },
+            "health_state": "CRITICAL",
+            "diagnostic": "4/4 Infra pre-checks passed. | Found 10 REJECTED flow log entries for eni-0d5d6fe6ebb631063. Firewall or NACL is blocking traffic. | Detected 1 application issues: Found 5 error logs in /aws/ec2/topology-test-app",
+            "diagnostic_details": {
+                "infrastructure": {
+                    "status": "HEALTHY",
+                    "summary": "4/4 Infra pre-checks passed.",
+                    "details": {
+                        "ec2_status_checks": {
+                            "system_status": "ok",
+                            "instance_status": "ok",
+                            "ebs_status": "ok",
+                            "summary": "3/3 checks passed"
+                        },
+                        "security_groups": [
+                            {
+                                "id": "sg-097ded278d4b59232",
+                                "name": "topology-test-ec2-sg",
+                                "inbound_rules_count": 1,
+                                "outbound_rules_count": 1
+                            }
+                        ],
+                        "subnet": {
+                            "id": "subnet-07df0d2ae9a8b9e17",
+                            "nacl": {
+                                "id": "acl-0ba85bdd4aa1f4c20",
+                                "inbound_rules_count": 1,
+                                "outbound_rules_count": 1
+                            },
+                            "route_table": {
+                                "id": "rtb-0e7f03d464ebce6c8",
+                                "routes_count": 2
+                            }
+                        }
+                    },
+                    "issues": []
+                },
+                "network_flow": {
+                    "status": "CRITICAL",
+                    "summary": "Found 10 REJECTED flow log entries for eni-0d5d6fe6ebb631063. Firewall or NACL is blocking traffic.",
+                    "details": {
+                        "eni_id": "eni-0d5d6fe6ebb631063",
+                        "log_group": "/aws/vpc/cloudpulse-flow-logs",
+                        "reject_count": 10,
+                        "sample_logs": [
+                            "2 879343933129 eni-0d5d6fe6ebb631063 185.242.226.58 10.0.1.117 52512 52869 6 1 40 1787909818 1787909846 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 147.185.133.2 10.0.1.117 51858 9454 6 1 44 1787909818 1787909846 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 162.216.149.54 10.0.1.117 50201 32902 6 1 44 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 35.203.210.240 10.0.1.117 52908 32400 6 1 44 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 162.216.149.103 10.0.1.117 55785 9997 6 1 44 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 205.210.31.196 10.0.1.117 53294 2002 6 1 44 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 79.124.58.90 10.0.1.117 44390 51028 6 1 40 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 79.124.58.90 10.0.1.117 44390 26641 6 1 40 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 35.203.211.231 10.0.1.117 52048 3014 6 1 44 1787909794 1787909816 REJECT OK",
+                            "2 879343933129 eni-0d5d6fe6ebb631063 147.185.132.146 10.0.1.117 49681 49762 6 1 44 1787909794 1787909816 REJECT OK"
+                        ]
+                    }
+                },
+                "application": {
+                    "status": "CRITICAL",
+                    "summary": "Detected 1 application issues: Found 5 error logs in /aws/ec2/topology-test-app",
+                    "details": {
+                        "metrics": {
+                            "status": "HEALTHY",
+                            "issues": [],
+                            "cpu_max": 0.6243860204132603,
+                            "errors_5xx": 0
+                        },
+                        "logs": {
+                            "issues": [
+                                "Found 5 error logs in /aws/ec2/topology-test-app"
+                            ],
+                            "traces": [
+                                "2026-08-28 09:37:37,188 ERROR    at com.cloudpulse.api.RequestHandler.handle(RequestHandler.java:18)",
+                                "2026-08-28 09:37:37,188 ERROR [X-RAY] RDS-MySQL-Query completed in 150 ms with status fault",
+                                "2026-08-28 09:37:37,188 ERROR [ERROR] NullReferenceException: Failed to query RDS database.",
+                                "2026-08-28 09:37:37,188 ERROR    at com.cloudpulse.db.Connector.connect(Connector.java:42)",
+                                "2026-08-28 09:37:28,228 ERROR    at com.cloudpulse.api.RequestHandler.handle(RequestHandler.java:18)"
+                            ],
+                            "log_group": "/aws/ec2/topology-test-app"
+                        },
+                        "xray": {
+                            "issues": [],
+                            "faulty_trace_count": 0
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "id": "arn:aws:iam::879343933129:role/topology-test-ec2-role",
+            "type": "IAM_ROLE",
+            "label": "topology-test-ec2-role",
+            "status": "available",
+            "metadata": {
+                "RoleName": "topology-test-ec2-role",
+                "CreateDate": "2026-08-28 06:33:45+00:00",
+                "AttachedPoliciesCount": 2,
+                "Type": "Instance Profile",
+                "Region": "global"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "sg-097ded278d4b59232",
+            "type": "SECURITY_GROUP",
+            "label": "topology-test-ec2-sg",
+            "status": "available",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-097ded278d4b59232",
+                "Region": "eu-west-1",
+                "InboundRules": [
+                    "Allow TCP 80 from sg-0de72ad0f530279f5"
+                ],
+                "OutboundRules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "vpc-0f337b4e6b9979665",
+            "type": "VPC",
+            "label": "topology-test-vpc",
+            "status": "available",
+            "metadata": {
+                "CidrBlock": "10.0.0.0/16",
+                "InstanceTenancy": "default",
+                "IsDefault": false,
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "subnet-07df0d2ae9a8b9e17",
+            "type": "SUBNET",
+            "label": "topology-test-public-a",
+            "status": "available",
+            "metadata": {
+                "CidrBlock": "10.0.1.0/24",
+                "AvailabilityZone": "eu-west-1a",
+                "AvailableIpAddressCount": 249,
+                "MapPublicIpOnLaunch": true,
+                "Region": "eu-west-1",
+                "NACL_Id": "acl-0ba85bdd4aa1f4c20",
+                "InboundRules": [
+                    "#100 ALLOW ALL TRAFFIC from 0.0.0.0/0"
+                ],
+                "OutboundRules": [
+                    "#100 ALLOW ALL TRAFFIC to 0.0.0.0/0"
+                ],
+                "RouteTable_Id": "rtb-0e7f03d464ebce6c8",
+                "Routes": [
+                    "10.0.0.0/16 -> local",
+                    "0.0.0.0/0 -> igw-0552a01c9155e96e1"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "igw-0552a01c9155e96e1",
+            "type": "IGW",
+            "label": "topology-test-igw",
+            "status": "available",
+            "metadata": {
+                "AttachmentState": "available",
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:targetgroup/topology-test-tg/40da1f4feeaa89ea",
+            "type": "TARGET_GROUP",
+            "label": "topology-test-tg",
+            "status": "active",
+            "metadata": {
+                "Protocol": "HTTP",
+                "Port": 80,
+                "TargetType": "instance",
+                "HealthCheckPath": "/",
+                "UnhealthyHostCount": 1,
+                "Region": "eu-west-1"
+            },
+            "health_state": "CRITICAL",
+            "diagnostic": "Health check failed (1 unhealthy). Web process may be down."
+        },
+        {
+            "id": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:loadbalancer/app/topology-test-alb/47c17e26ee098534",
+            "type": "ALB",
+            "label": "topology-test-alb",
+            "status": "active",
+            "metadata": {
+                "DNSName": "topology-test-alb-1785646726.eu-west-1.elb.amazonaws.com",
+                "Scheme": "internet-facing",
+                "Type": "application",
+                "VpcId": "vpc-0f337b4e6b9979665",
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "sg-0de72ad0f530279f5",
+            "type": "SECURITY_GROUP",
+            "label": "topology-test-alb-sg",
+            "status": "available",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-0de72ad0f530279f5",
+                "Region": "eu-west-1",
+                "InboundRules": [
+                    "Allow TCP 80 from Public (0.0.0.0/0)"
+                ],
+                "OutboundRules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "api.cloudpulse-topology.local",
+            "type": "ROUTE53",
+            "label": "api.cloudpulse-topology.local",
+            "status": "active",
+            "metadata": {
+                "RecordType": "A",
+                "TTL": null,
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "vol-029461f4bdcd6389c",
+            "type": "EBS",
+            "label": "vol-029461f4bdcd6389c",
+            "status": "in-use",
+            "metadata": {
+                "SizeGB": 2,
+                "VolumeType": "gp3",
+                "IOPS": 3000,
+                "Encrypted": true,
+                "Throughput": 125,
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "vol-07f599f2f76a5e235",
+            "type": "EBS",
+            "label": "vol-07f599f2f76a5e235",
+            "status": "in-use",
+            "metadata": {
+                "SizeGB": 8,
+                "VolumeType": "gp2",
+                "IOPS": 100,
+                "Encrypted": false,
+                "Throughput": null,
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "topology-test-db",
+            "type": "RDS",
+            "label": "topology-test-db",
+            "status": "available",
+            "metadata": {
+                "Engine": "mysql",
+                "AllocatedStorage": 20,
+                "InstanceClass": "db.t3.micro",
+                "MultiAZ": false,
+                "PubliclyAccessible": false,
+                "DBClusterIdentifier": null,
+                "Region": "eu-west-1"
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "id": "sg-07a7bac4d67e780b9",
+            "type": "SECURITY_GROUP",
+            "label": "topology-test-rds-sg",
+            "status": "available",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-07a7bac4d67e780b9",
+                "Region": "eu-west-1",
+                "InboundRules": [
+                    "Allow TCP 3306 from sg-097ded278d4b59232"
+                ],
+                "OutboundRules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ]
+            },
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        }
+    ],
+    "edges": [
+        {
+            "source": "vpc-023f9a5c30e0860d9",
+            "target": "subnet-03bb3e1fab67ad388",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "vpc-023f9a5c30e0860d9",
+            "target": "igw-085a092a3b1372f09",
+            "relation": "ATTACHED_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "vpc-023f9a5c30e0860d9",
+            "target": "subnet-09a10a9ebc19ed18e",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "vpc-0f337b4e6b9979665",
+            "target": "subnet-07df0d2ae9a8b9e17",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "vpc-0f337b4e6b9979665",
+            "target": "igw-0552a01c9155e96e1",
+            "relation": "ATTACHED_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:loadbalancer/app/topology-test-alb/47c17e26ee098534",
+            "target": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:targetgroup/topology-test-tg/40da1f4feeaa89ea",
+            "relation": "FORWARDS_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-0de72ad0f530279f5",
+            "target": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:loadbalancer/app/topology-test-alb/47c17e26ee098534",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "api.cloudpulse-topology.local",
+            "target": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:loadbalancer/app/topology-test-alb/47c17e26ee098534",
+            "relation": "ROUTES_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-07a7bac4d67e780b9",
+            "target": "topology-test-db",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-026b88d10b34f759a",
+            "target": "i-0ba5b26fafe9e0bf8",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-03bb3e1fab67ad388",
+            "target": "i-0ba5b26fafe9e0bf8",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "arn:aws:iam::879343933129:role/DemoRoleforEC2",
+            "target": "i-07b3ab70e1db07b51",
+            "relation": "GRANTS_ACCESS_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-06cefa7d6a9b4705f",
+            "target": "i-07b3ab70e1db07b51",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-03bb3e1fab67ad388",
+            "target": "i-07b3ab70e1db07b51",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "arn:aws:iam::879343933129:role/topology-test-ec2-role",
+            "target": "i-0059c5fd8790f7f3f",
+            "relation": "GRANTS_ACCESS_TO",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "sg-097ded278d4b59232",
+            "target": "i-0059c5fd8790f7f3f",
+            "relation": "PROTECTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "subnet-07df0d2ae9a8b9e17",
+            "target": "i-0059c5fd8790f7f3f",
+            "relation": "CONTAINS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "arn:aws:elasticloadbalancing:eu-west-1:879343933129:targetgroup/topology-test-tg/40da1f4feeaa89ea",
+            "target": "i-0059c5fd8790f7f3f",
+            "relation": "TARGETS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0059c5fd8790f7f3f",
+            "target": "vol-029461f4bdcd6389c",
+            "relation": "MOUNTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0059c5fd8790f7f3f",
+            "target": "vol-07f599f2f76a5e235",
+            "relation": "MOUNTS",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        },
+        {
+            "source": "i-0059c5fd8790f7f3f",
+            "target": "topology-test-db",
+            "relation": "QUERIES",
+            "health_state": "HEALTHY",
+            "diagnostic": null
+        }
+    ],
+    "last_compute_id": "i-0059c5fd8790f7f3f"
+}

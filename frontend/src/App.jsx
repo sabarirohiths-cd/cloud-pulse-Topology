@@ -4,7 +4,7 @@ import { Toaster, toast } from 'sonner';
 import { Cloud, Activity, Boxes, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import TopologyPage from './pages/topology/TopologyPage';
 import ConfigPage from './pages/config/ConfigPage';
-import DiagnosticDetailPage from './pages/diagnostics/DiagnosticDetailPage';
+import DiagnosticDetailPage from './pages/topology/diagnostics/DiagnosticDetailPage';
 
 export default function App() {
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);

@@ -21,7 +21,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
 SessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 async def init_db():
-    from app.models.config.config_cloud_account import ConfigCloudAccount
+    import app.models
     
     async with engine.begin() as conn:
         await conn.execute(text("PRAGMA journal_mode=WAL;"))

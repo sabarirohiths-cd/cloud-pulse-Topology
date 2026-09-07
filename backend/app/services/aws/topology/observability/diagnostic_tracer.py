@@ -41,19 +41,20 @@ class DiagnosticTracer:
             print(f" ERROR: Node {instance_id} not found in topology graph.")
             return
 
-        # Try to load existing diagnostic details from previous scans in last_compute_flow.json
-        import os, json
+        # Try to load existing diagnostic details from previous scans in SQL
         old_details = {}
-        if os.path.exists("data/last_compute_flow.json"):
-            try:
-                with open("data/last_compute_flow.json", "r") as f:
-                    old_data = json.load(f)
-                    for n in old_data.get("nodes", []):
-                        if n.get("id") == instance_id:
-                            old_details = n.get("diagnostic_details", {})
-                            break
-            except Exception:
-                pass
+        try:
+            import sqlite3, json
+            conn = sqlite3.connect("data/cloud_pulse.db")
+            cursor = conn.cursor()
+            cursor.execute("SELECT metadata_json FROM topology_nodes WHERE id = ?", (instance_id,))
+            row = cursor.fetchone()
+            if row and row[0]:
+                meta = json.loads(row[0]) if isinstance(row[0], str) else row[0]
+                old_details = meta.get("diagnostic_details", {})
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Failed to fetch old diagnostic details from DB: {e}")
 
         # Start with EXISTING diagnostic details so we merge/append new scans instead of deleting old ones
         # Fallback to the current node's details (which might be empty since it's freshly built)
@@ -78,7 +79,7 @@ class DiagnosticTracer:
                 diagnostic_details[layer.layer_name] = verdict
             except Exception as e:
                 logger.error(f"Error executing diagnostic layer {layer.layer_name}: {e}")
-                print(f"   ❌ ERROR in {layer.layer_name}: {e}")
+                print(f"    ERROR in {layer.layer_name}: {e}")
                 diagnostic_details[layer.layer_name] = {
                     "status": "ERROR",
                     "summary": f"Layer crashed: {str(e)}"

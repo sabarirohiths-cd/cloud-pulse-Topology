@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, ShieldAlert, Wifi, Server, Database, CloudRain, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
-import { getLocalTrace } from '../../api/topology';
+import { getLocalTrace } from '../../../api/topology';
 
 export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
   const params = useParams();

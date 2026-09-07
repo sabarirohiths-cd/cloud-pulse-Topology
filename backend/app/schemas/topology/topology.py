@@ -9,12 +9,33 @@ class ComputeFlowRequest(BaseModel):
     observability_options: Optional[List[str]] = Field(default=None, description="List of observability diagnostics to run (METRICS, LOGS, XRAY)")
     lookback_minutes: Optional[int] = Field(default=15, description="Lookback window in minutes for diagnostics")
 
+class TopologyNodeSchema(BaseModel):
+    id: str
+    type: str
+    label: Optional[str] = None
+    region: Optional[str] = None
+    account_name: Optional[str] = None
+    status: str = "UNKNOWN"
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    health_state: Optional[str] = None
+    diagnostic: Optional[str] = None
+    diagnostic_details: Optional[Dict[str, Any]] = None
+
+class TopologyEdgeSchema(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    health_state: Optional[str] = None
+    diagnostic: Optional[str] = None
+
 class ComputeFlowResponse(BaseModel):
     status: str
     message: str
     compute_id: str
-    nodes: List[Dict[str, Any]]
-    edges: List[Dict[str, Any]]
+    nodes: List[TopologyNodeSchema]
+    edges: List[TopologyEdgeSchema]
 
 class ComputeResource(BaseModel):
     id: str

@@ -6,8 +6,8 @@ from app.schemas.topology.topology import ComputeFlowRequest
 from app.core.database import SessionLocal
 from app.models.config.config_cloud_account import ConfigCloudAccount
 from app.core.security import decrypt_credentials
-from sqlalchemy import select
-
+from sqlalchemy import select, delete
+from app.models.topology.topology_models import TopologyNode, TopologyEdge
 class TopologyService:
     def __init__(self):
         pass
@@ -59,59 +59,69 @@ class TopologyService:
         loop = asyncio.get_event_loop()
         flow_data = await loop.run_in_executor(None, builder.build)
         
-        # Save to JSON file for easy debugging/inspection
-        import os
-        os.makedirs("data", exist_ok=True)
-        filename = "data/last_compute_flow.json"
-        
-        try:
-            if os.path.exists(filename):
-                with open(filename, "r") as f:
-                    try:
-                        existing_data = json.load(f)
-                    except json.JSONDecodeError as e:
-                        print(f"CRITICAL ERROR: Failed to parse {filename}: {e}. Backing up file and starting fresh to prevent data loss.")
-                        import shutil
-                        shutil.copy(filename, filename + ".backup")
-                        existing_data = {}
+        async with SessionLocal() as db:
+            # Upsert nodes
+            for n in flow_data.get('nodes', []):
+                result = await db.execute(select(TopologyNode).filter(TopologyNode.id == n['id']))
+                existing_node = result.scalars().first()
                 
-                # Merge nodes and edges (avoid duplicates by ID)
-                existing_nodes = {n['id']: n for n in existing_data.get('nodes', []) if 'id' in n}
-                for n in flow_data.get('nodes', []):
-                    if n['id'] in existing_nodes:
-                        old_meta = existing_nodes[n['id']].get('metadata', {})
-                        new_meta = n.get('metadata', {})
-                        # Preserve keys that are in old_meta but not in new_meta
-                        for k, v in old_meta.items():
-                            if k not in new_meta:
-                                new_meta[k] = v
-                        n['metadata'] = new_meta
-                    existing_nodes[n['id']] = n
-                    
-                existing_edges = {(e.get('source'), e.get('target')): e for e in existing_data.get('edges', []) 
-                                  if e.get('source') != flow_data.get('compute_id') and e.get('target') != flow_data.get('compute_id')}
-                for e in flow_data.get('edges', []):
-                    existing_edges[(e.get('source'), e.get('target'))] = e
-                    
-                existing_data['nodes'] = list(existing_nodes.values())
-                existing_data['edges'] = list(existing_edges.values())
-                existing_data['last_compute_id'] = flow_data.get('compute_id')
+                meta = n.get('metadata', {})
+                if "health_state" in n: meta["health_state"] = n["health_state"]
+                if "diagnostic" in n: meta["diagnostic"] = n["diagnostic"]
+                if "diagnostic_details" in n: meta["diagnostic_details"] = n["diagnostic_details"]
                 
-                # Remove old duplicated data if it exists
-                existing_data.pop('last_trace', None)
-                existing_data.pop('traces', None)
-                existing_data.pop('compute_id', None)
-            else:
-                existing_data = {
-                    "last_compute_id": flow_data.get('compute_id'),
-                    "nodes": flow_data.get('nodes', []),
-                    "edges": flow_data.get('edges', [])
-                }
+                region = meta.get("Region") or meta.get("region") or n.get("region")
+                account_name = meta.get("AccountName") or meta.get("account_name") or n.get("account_name") or "cpi-topology-scanner"
+                
+                if str(n['id']).startswith("arn:aws:"):
+                    parts = str(n['id']).split(":")
+                    if not region and len(parts) >= 4 and parts[3]: region = parts[3]
+                    
+                if existing_node:
+                    old_meta = existing_node.metadata_json or {}
+                    for k, v in old_meta.items():
+                        if k not in meta:
+                            meta[k] = v
+                    existing_node.metadata_json = meta
+                    if n.get("status"): existing_node.status = n["status"]
+                else:
+                    new_node = TopologyNode(
+                        id=n['id'],
+                        type=n.get('type', 'UNKNOWN'),
+                        label=n.get('label'),
+                        region=region,
+                        account_name=account_name,
+                        status=n.get('status', 'UNKNOWN'),
+                        metadata_json=meta
+                    )
+                    db.add(new_node)
+                    
+            # Upsert edges
+            for e in flow_data.get('edges', []):
+                source = e.get('source')
+                target = e.get('target')
+                if not source or not target: continue
+                edge_id = f"{source}::{target}"
+                
+                meta = e.get('metadata', {})
+                if "health_state" in e: meta["health_state"] = e["health_state"]
+                if "diagnostic" in e: meta["diagnostic"] = e["diagnostic"]
+                
+                result = await db.execute(select(TopologyEdge).filter(TopologyEdge.id == edge_id))
+                existing_edge = result.scalars().first()
+                if existing_edge:
+                    existing_edge.metadata_json = meta
+                else:
+                    new_edge = TopologyEdge(
+                        id=edge_id,
+                        source_id=source,
+                        target_id=target,
+                        type=e.get("relation", "LINK"),
+                        metadata_json=meta
+                    )
+                    db.add(new_edge)
             
-            with open(filename, "w") as f:
-                json.dump(existing_data, f, indent=4)
-        except Exception as e:
-            print(f"Warning: Failed to save flow to JSON: {e}")
+            await db.commit()
             
         return flow_data
 
@@ -171,73 +181,60 @@ class TopologyService:
         else:
             raise NotImplementedError(f"Listing for {compute_type} is not yet implemented.")
             
-        # Update JSON file with the fetched resources as nodes
-        import os
-        os.makedirs("data", exist_ok=True)
-        filename = "data/last_compute_flow.json"
-        
-        try:
-            existing_data = {"nodes": [], "edges": []}
-            if os.path.exists(filename):
-                with open(filename, "r") as f:
-                    try:
-                        existing_data = json.load(f)
-                    except json.JSONDecodeError as e:
-                        print(f"CRITICAL ERROR: Failed to parse {filename}: {e}. Backing up file and starting fresh to prevent data loss.")
-                        import shutil
-                        shutil.copy(filename, filename + ".backup")
-                        pass
-            
-            existing_nodes = {n.get('id'): n for n in existing_data.get('nodes', []) if 'id' in n}
-            fetched_resource_ids = {res['id'] for res in resources}
-            
+        async with SessionLocal() as db:
             # 1. Prune nodes that no longer exist in AWS for this compute type and region
-            keys_to_delete = set()
-            for node_id, node in existing_nodes.items():
-                if node.get('type') == compute_type_upper and node.get('metadata', {}).get('Region') == region:
-                    if node_id not in fetched_resource_ids:
-                        keys_to_delete.add(node_id)
+            fetched_resource_ids = {res['id'] for res in resources}
+            result = await db.execute(select(TopologyNode.id).filter(TopologyNode.type == compute_type_upper, TopologyNode.region == region))
+            existing_ids_for_type_region = {row for row in result.scalars().all()}
             
-            for k in keys_to_delete:
-                del existing_nodes[k]
-
+            keys_to_delete = existing_ids_for_type_region - fetched_resource_ids
+            if keys_to_delete:
+                await db.execute(delete(TopologyNode).where(TopologyNode.id.in_(keys_to_delete)))
+                await db.execute(delete(TopologyEdge).where(TopologyEdge.source_id.in_(keys_to_delete) | TopologyEdge.target_id.in_(keys_to_delete)))
+                
             # 2. Add or update fetched resources
             for res in resources:
-                metadata = {
-                    "Region": res['region']
-                }
+                metadata = {"Region": res['region']}
                 if res.get('managed_by'):
                     metadata['managed_by'] = res['managed_by']
                     
-                if res['id'] not in existing_nodes:
-                    existing_nodes[res['id']] = {
-                        "id": res['id'],
-                        "type": res['type'],
-                        "label": res['name'] or res['id'],
-                        "status": res['state'],
-                        "metadata": metadata
-                    }
-                else:
-                    existing_nodes[res['id']]['status'] = res['state']
-                    if 'metadata' not in existing_nodes[res['id']]:
-                        existing_nodes[res['id']]['metadata'] = {}
-                    existing_nodes[res['id']]['metadata']['Region'] = res['region']
-                    if res.get('managed_by'):
-                        existing_nodes[res['id']]['metadata']['managed_by'] = res['managed_by']
-                    
-            # 3. Clean up dangling edges
-            if keys_to_delete:
-                existing_data['edges'] = [e for e in existing_data.get('edges', []) if e.get('source') not in keys_to_delete and e.get('target') not in keys_to_delete]
+                result = await db.execute(select(TopologyNode).filter(TopologyNode.id == res['id']))
+                existing_node = result.scalars().first()
                 
-            # 4. Clean up orphaned nodes (nodes not connected to any EC2 instance)
-            adj = {}
-            for e in existing_data.get('edges', []):
-                u, v = e.get('source'), e.get('target')
-                if u and v:
-                    adj.setdefault(u, []).append(v)
-                    adj.setdefault(v, []).append(u)
+                if existing_node:
+                    existing_node.status = res['state']
+                    meta = existing_node.metadata_json or {}
+                    meta['Region'] = res['region']
+                    if res.get('managed_by'):
+                        meta['managed_by'] = res['managed_by']
+                    # Re-assign to trigger SQLAlchemy JSON mutation detection if necessary
+                    existing_node.metadata_json = dict(meta)
+                else:
+                    new_node = TopologyNode(
+                        id=res['id'],
+                        type=res['type'],
+                        label=res['name'] or res['id'],
+                        region=res['region'],
+                        account_name="cpi-topology-scanner",
+                        status=res['state'],
+                        metadata_json=metadata
+                    )
+                    db.add(new_node)
+                    
+            await db.commit()
             
-            roots = [n_id for n_id, n in existing_nodes.items() if n.get('type') == 'EC2']
+            # Orphan cleanup: nodes not connected to any EC2 instance
+            res_nodes = await db.execute(select(TopologyNode))
+            all_nodes = res_nodes.scalars().all()
+            res_edges = await db.execute(select(TopologyEdge))
+            all_edges = res_edges.scalars().all()
+            
+            adj = {}
+            for e in all_edges:
+                adj.setdefault(e.source_id, []).append(e.target_id)
+                adj.setdefault(e.target_id, []).append(e.source_id)
+                
+            roots = [n.id for n in all_nodes if n.type == 'EC2']
             visited = set()
             queue = roots[:]
             while queue:
@@ -248,23 +245,12 @@ class TopologyService:
                         if neighbor not in visited:
                             queue.append(neighbor)
                             
-            orphans = set(existing_nodes.keys()) - visited
-            for o in orphans:
-                del existing_nodes[o]
-                
-            existing_data['nodes'] = list(existing_nodes.values())
-            
+            all_node_ids = {n.id for n in all_nodes}
+            orphans = all_node_ids - visited
             if orphans:
-                existing_data['edges'] = [e for e in existing_data.get('edges', []) if e.get('source') not in orphans and e.get('target') not in orphans]
-            
-            # 5. Clear last_compute_id if the focused instance was deleted
-            if existing_data.get('last_compute_id') not in existing_nodes:
-                existing_data['last_compute_id'] = None
-            
-            with open(filename, "w") as f:
-                json.dump(existing_data, f, indent=4)
-        except Exception as e:
-            print(f"Warning: Failed to save resources to JSON: {e}")
+                await db.execute(delete(TopologyNode).where(TopologyNode.id.in_(orphans)))
+                await db.execute(delete(TopologyEdge).where(TopologyEdge.source_id.in_(orphans) | TopologyEdge.target_id.in_(orphans)))
+                await db.commit()
             
         return resources
 

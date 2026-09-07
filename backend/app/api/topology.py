@@ -49,54 +49,104 @@ def extract_subgraph(data: dict, start_node_id: str) -> dict:
 
 @router.get("/scan/compute-flow/local")
 async def get_local_compute_flow(region: str = None):
-    import os, json
-    filename = "data/last_compute_flow.json"
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            try:
-                data = json.load(f)
-                last_id = data.get("last_compute_id")
-                if last_id:
-                    start_node = next((n for n in data.get("nodes", []) if n.get("id") == last_id), None)
-                    if region and start_node and start_node.get("metadata", {}).get("Region") != region:
-                        return {"nodes": [], "edges": []}
-                    return extract_subgraph(data, last_id)
-            except json.JSONDecodeError:
-                pass
-    return {"nodes": [], "edges": []}
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode, TopologyEdge
+    async with SessionLocal() as db:
+        query = select(TopologyNode)
+        if region:
+            query = query.filter(TopologyNode.region == region)
+        nodes_res = await db.execute(query)
+        nodes = nodes_res.scalars().all()
+        
+        edges_res = await db.execute(select(TopologyEdge))
+        edges = edges_res.scalars().all()
+        
+        node_dicts = []
+        for n in nodes:
+            meta = n.metadata_json or {}
+            # Restore health_state and diagnostic back to root for the frontend schema
+            health_state = meta.get("health_state", n.status)
+            diagnostic = meta.get("diagnostic")
+            diagnostic_details = meta.get("diagnostic_details")
+            node_dicts.append({
+                "id": n.id, "type": n.type, "label": n.label, "status": n.status,
+                "metadata": meta, "region": n.region, "account_name": n.account_name,
+                "health_state": health_state, "diagnostic": diagnostic,
+                "diagnostic_details": diagnostic_details
+            })
+            
+        edge_dicts = []
+        for e in edges:
+            meta = e.metadata_json or {}
+            health_state = meta.get("health_state", "HEALTHY")
+            diagnostic = meta.get("diagnostic")
+            edge_dicts.append({
+                "source": e.source_id, "target": e.target_id, "relation": e.type,
+                "metadata": meta, "health_state": health_state, "diagnostic": diagnostic
+            })
+        
+        node_ids = {n["id"] for n in node_dicts}
+        edge_dicts = [e for e in edge_dicts if e["source"] in node_ids and e["target"] in node_ids]
+
+        compute_id = next((n["id"] for n in node_dicts if n["type"] == "EC2"), None)
+        
+        return {
+            "compute_id": compute_id,
+            "nodes": node_dicts,
+            "edges": edge_dicts
+        }
 
 @router.get("/scan/compute-flow/local/{compute_id}")
 async def get_local_trace(compute_id: str):
-    import os, json
-    filename = "data/last_compute_flow.json"
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            try:
-                data = json.load(f)
-                # Check if the node even exists in our DB
-                node_exists = any(n.get("id") == compute_id for n in data.get("nodes", []))
-                if node_exists:
-                    return extract_subgraph(data, compute_id)
-            except json.JSONDecodeError:
-                pass
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode, TopologyEdge
+    async with SessionLocal() as db:
+        nodes_res = await db.execute(select(TopologyNode))
+        all_nodes = nodes_res.scalars().all()
+        
+        edges_res = await db.execute(select(TopologyEdge))
+        all_edges = edges_res.scalars().all()
+        
+        node_dicts = []
+        for n in all_nodes:
+            meta = n.metadata_json or {}
+            health_state = meta.get("health_state", n.status)
+            diagnostic = meta.get("diagnostic")
+            diagnostic_details = meta.get("diagnostic_details")
+            node_dicts.append({
+                "id": n.id, "type": n.type, "label": n.label, "status": n.status,
+                "metadata": meta, "region": n.region, "account_name": n.account_name,
+                "health_state": health_state, "diagnostic": diagnostic,
+                "diagnostic_details": diagnostic_details
+            })
+            
+        edge_dicts = []
+        for e in all_edges:
+            meta = e.metadata_json or {}
+            health_state = meta.get("health_state", "HEALTHY")
+            diagnostic = meta.get("diagnostic")
+            edge_dicts.append({
+                "source": e.source_id, "target": e.target_id, "relation": e.type,
+                "metadata": meta, "health_state": health_state, "diagnostic": diagnostic
+            })
+        
+        node_exists = any(n["id"] == compute_id for n in node_dicts)
+        if node_exists:
+            return extract_subgraph({"nodes": node_dicts, "edges": edge_dicts}, compute_id)
+            
     raise HTTPException(status_code=404, detail="Trace not found locally")
 
 @router.get("/scan/regions/cached")
 async def get_cached_regions():
-    import os, json
-    regions = []
-    filename = "data/last_compute_flow.json"
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            try:
-                data = json.load(f)
-                for n in data.get("nodes", []):
-                    r = n.get("metadata", {}).get("Region")
-                    if r and r != "global":
-                        regions.append(r)
-            except:
-                pass
-    return {"regions": list(set(regions))}
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode
+    async with SessionLocal() as db:
+        res = await db.execute(select(TopologyNode.region).distinct())
+        regions = [r for r in res.scalars().all() if r and r != "global"]
+        return {"regions": regions}
 
 @router.post("/scan/compute-flow", response_model=ComputeFlowResponse)
 async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyService = Depends(get_topology_service)):
@@ -114,34 +164,29 @@ async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyServic
 
 @router.get("/scan/compute-resources/local")
 async def get_local_compute_resources(region: str = None, compute_type: str = "EC2"):
-    import os, json
-    filename = "data/last_compute_flow.json"
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            try:
-                data = json.load(f)
-                nodes = data.get("nodes", [])
-                
-                resources = []
-                for n in nodes:
-                    if n.get("type") == compute_type:
-                        # If region is specified, try to filter, but if Region metadata is missing, just include it (lenient for mock DB)
-                        node_region = n.get("metadata", {}).get("Region")
-                        if region and node_region and node_region != region:
-                            continue
-                            
-                        resources.append({
-                            "id": n.get("id"),
-                            "name": n.get("label"),
-                            "type": n.get("type"),
-                            "state": n.get("status"),
-                            "region": node_region or region or "ap-south-1",
-                            "managed_by": n.get("metadata", {}).get("managed_by")
-                        })
-                return {"resources": resources}
-            except:
-                pass
-    return {"resources": []}
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode
+    async with SessionLocal() as db:
+        query = select(TopologyNode).filter(TopologyNode.type == compute_type)
+        if region:
+            query = query.filter(TopologyNode.region == region)
+            
+        res = await db.execute(query)
+        nodes = res.scalars().all()
+        
+        resources = []
+        for n in nodes:
+            meta = n.metadata_json or {}
+            resources.append({
+                "id": n.id,
+                "name": n.label,
+                "type": n.type,
+                "state": n.status,
+                "region": n.region or region or "ap-south-1",
+                "managed_by": meta.get("managed_by")
+            })
+        return {"resources": resources}
 
 @router.get("/scan/compute-resources", response_model=ComputeResourceListResponse)
 async def get_compute_resources(
@@ -162,26 +207,19 @@ async def get_compute_resources(
 
 @router.get("/supported-compute-types")
 async def get_supported_compute_types():
-    import os, json
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode
     
-    # Base supported list of compute types we know how to trace
     base_compute_types = {"EC2", "ECS", "LAMBDA", "APPRUNNER"}
     found_types = set()
     
-    filename = "data/last_compute_flow.json"
-    if os.path.exists(filename):
-        try:
-            with open(filename, "r") as f:
-                data = json.load(f)
-                nodes = data.get("nodes", [])
-                for n in nodes:
-                    t = n.get("type", "").upper()
-                    if t in base_compute_types:
-                        found_types.add(t)
-        except Exception:
-            pass
-            
-    # Always fallback to at least EC2 if nothing found to prevent empty dropdown
+    async with SessionLocal() as db:
+        res = await db.execute(select(TopologyNode.type).distinct())
+        for t in res.scalars().all():
+            if t and t.upper() in base_compute_types:
+                found_types.add(t.upper())
+                
     if not found_types:
         found_types.add("EC2")
         

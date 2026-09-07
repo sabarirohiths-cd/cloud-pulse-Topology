@@ -9,7 +9,7 @@ import ScanConfigurationModal from './components/ScanConfigurationModal';
 import ComputeResourcesSidebar from './components/ComputeResourcesSidebar';
 import ApplicationFlowVisualizer from './components/ApplicationFlowVisualizer';
 import { FilterBar } from '../../components/ui/FilterBar';
-import DiagnosticDetailPage from '../diagnostics/DiagnosticDetailPage';
+import DiagnosticDetailPage from './diagnostics/DiagnosticDetailPage';
 
 export default function TopologyPage() {
   const [loading, setLoading] = useState(false);

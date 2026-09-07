@@ -38,28 +38,44 @@ class DiagnosticTracer:
         node = next((n for n in self.nodes if n['id'] == instance_id), None)
         if not node:
             logger.warning(f"Node {instance_id} not found in topology graph.")
-            print(f"❌ ERROR: Node {instance_id} not found in topology graph.")
+            print(f" ERROR: Node {instance_id} not found in topology graph.")
             return
 
-        diagnostic_details = {}
-        worst_health = "HEALTHY"
+        # Try to load existing diagnostic details from previous scans in last_compute_flow.json
+        import os, json
+        old_details = {}
+        if os.path.exists("data/last_compute_flow.json"):
+            try:
+                with open("data/last_compute_flow.json", "r") as f:
+                    old_data = json.load(f)
+                    for n in old_data.get("nodes", []):
+                        if n.get("id") == instance_id:
+                            old_details = n.get("diagnostic_details", {})
+                            break
+            except Exception:
+                pass
+
+        # Start with EXISTING diagnostic details so we merge/append new scans instead of deleting old ones
+        # Fallback to the current node's details (which might be empty since it's freshly built)
+        diagnostic_details = old_details or node.get('diagnostic_details', {}) or {}
+        
+        # We will recalculate the worst health and summaries from the merged details
         summaries = []
 
         # Execute each layer
         for layer in self.layers:
             try:
+                # Dynamic execution check
+                if layer.layer_name == "infrastructure" and "INFRASTRUCTURE" not in options:
+                    continue
+                if layer.layer_name == "network_flow" and "NETWORK_FLOW" not in options:
+                    continue
+                if layer.layer_name == "application" and not any(opt in options for opt in ["METRICS", "LOGS", "XRAY"]):
+                    continue
+
                 print(f"   ➔ Executing Diagnostic Layer: {layer.layer_name}...")
                 verdict = layer.analyze(instance_id, self, options, lookback_minutes)
                 diagnostic_details[layer.layer_name] = verdict
-                
-                layer_status = verdict.get("status", "UNKNOWN")
-                if layer_status == "CRITICAL":
-                    worst_health = "CRITICAL"
-                elif layer_status == "DEGRADED" and worst_health != "CRITICAL":
-                    worst_health = "DEGRADED"
-                    
-                if verdict.get("summary"):
-                    summaries.append(verdict["summary"])
             except Exception as e:
                 logger.error(f"Error executing diagnostic layer {layer.layer_name}: {e}")
                 print(f"   ❌ ERROR in {layer.layer_name}: {e}")
@@ -67,6 +83,21 @@ class DiagnosticTracer:
                     "status": "ERROR",
                     "summary": f"Layer crashed: {str(e)}"
                 }
+
+        # Recalculate worst_health and summaries from the full merged diagnostic_details
+        worst_health = "HEALTHY"
+        for layer_key, verdict in diagnostic_details.items():
+            if layer_key == "synthesis":
+                continue
+                
+            layer_status = verdict.get("status", "UNKNOWN")
+            if layer_status == "CRITICAL":
+                worst_health = "CRITICAL"
+            elif layer_status == "DEGRADED" and worst_health != "CRITICAL":
+                worst_health = "DEGRADED"
+                
+            if verdict.get("summary"):
+                summaries.append(verdict["summary"])
 
         # Run Synthesis Engine
         print(f"   ➔ Executing Automated Synthesis Engine...")

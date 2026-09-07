@@ -69,7 +69,10 @@ class TopologyService:
                 with open(filename, "r") as f:
                     try:
                         existing_data = json.load(f)
-                    except:
+                    except json.JSONDecodeError as e:
+                        print(f"CRITICAL ERROR: Failed to parse {filename}: {e}. Backing up file and starting fresh to prevent data loss.")
+                        import shutil
+                        shutil.copy(filename, filename + ".backup")
                         existing_data = {}
                 
                 # Merge nodes and edges (avoid duplicates by ID)
@@ -179,7 +182,10 @@ class TopologyService:
                 with open(filename, "r") as f:
                     try:
                         existing_data = json.load(f)
-                    except json.JSONDecodeError:
+                    except json.JSONDecodeError as e:
+                        print(f"CRITICAL ERROR: Failed to parse {filename}: {e}. Backing up file and starting fresh to prevent data loss.")
+                        import shutil
+                        shutil.copy(filename, filename + ".backup")
                         pass
             
             existing_nodes = {n.get('id'): n for n in existing_data.get('nodes', []) if 'id' in n}

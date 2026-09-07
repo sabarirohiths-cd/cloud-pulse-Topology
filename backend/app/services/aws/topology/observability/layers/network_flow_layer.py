@@ -12,6 +12,9 @@ class NetworkFlowLayer(DiagnosticLayer):
         return "network_flow"
 
     def analyze(self, instance_id: str, fetcher: Any, options: List[str], lookback_minutes: int) -> Dict[str, Any]:
+        if 'NETWORK_FLOW' not in options:
+            return {"status": "HEALTHY", "summary": ""}
+            
         logger.info(f"Running Network Flow Layer analysis for {instance_id}")
         
         node = next((n for n in fetcher.nodes if n['id'] == instance_id), None)

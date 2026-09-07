@@ -10,6 +10,9 @@ class InfrastructureLayer(DiagnosticLayer):
         return "infrastructure"
 
     def analyze(self, instance_id: str, fetcher: Any, options: List[str], lookback_minutes: int) -> Dict[str, Any]:
+        if 'INFRASTRUCTURE' not in options:
+            return {"status": "HEALTHY", "summary": ""}
+            
         logger.info(f"Running Infrastructure Layer analysis for {instance_id}")
         
         node = next((n for n in fetcher.nodes if n['id'] == instance_id), None)
@@ -105,6 +108,8 @@ class InfrastructureLayer(DiagnosticLayer):
         summary = f"{checks_passed}/{total_checks} Infra pre-checks passed."
         if issues:
             summary += f" Issues: {'; '.join(issues)}"
+            if status == "HEALTHY":
+                status = "DEGRADED"
             
         return {
             "status": status,

@@ -31,3 +31,16 @@ We are building a Full-Stack AWS Topology Dashboard utilizing a FastAPI backend 
 
 ## AWS Permissions
 The application requires comprehensive `Describe` and `List` permissions defined in `policy.txt` to seamlessly enumerate over 20+ different AWS services securely.
+
+---
+
+**Date:** 2026-08-28
+**Time:** 19:00:00 (IST)
+
+## Recent Accomplishments: Dynamic Runtime Discovery & Observability Integration
+
+1. **Anti-Hardcoding & Agility**: Validated and enforced that the Cloud Pulse Engine uses 100% dynamic discovery. VPC Flow Logs (`network_flow_layer.py`) and Application Logs (`application_layer.py`) dynamically resolve CloudWatch groups and streams via real-time active resource bindings instead of static string matches.
+2. **Observability Mapping (`observability_tracer.py`)**: Implemented dynamic extraction of regional CloudWatch Alarms. The tracer parses alarm `Dimensions` to automatically draw `MONITORS` edges linking alarms directly to the targeted compute or database nodes (e.g., EC2, RDS).
+3. **Messaging Dependencies (`messaging_tracer.py`)**: Added dynamic discovery of SNS topics, linking CloudWatch alarms to SNS via `TRIGGERS` edges when an `AlarmAction` matches an SNS ARN.
+4. **Deep IAM-to-S3 Tracing (`iam_tracer.py`)**: Re-architected IAM mapping to deeply inspect Instance Profiles, Attached Managed Policies, and Inline Policies. It dynamically extracts explicitly granted S3 Bucket ARNs and automatically spins up `S3_BUCKET` nodes linked via `GRANTS_ACCESS_TO` edges, cleanly bypassing global `s3:ListAllMyBuckets` pollution.
+5. **Security**: Upgraded `policy.txt` to include essential reading permissions (`sns:ListTopics`, `cloudwatch:DescribeAlarms`, `iam:GetPolicy`, `iam:GetPolicyVersion`, `iam:GetRolePolicy`, `iam:ListRolePolicies`).

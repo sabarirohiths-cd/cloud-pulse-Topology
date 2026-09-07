@@ -405,7 +405,7 @@ export default function TopologyPage() {
                       <div className="text-[11px] uppercase tracking-wider font-semibold text-zinc-400 mb-2">Diagnostic Tracers</div>
 
                       <div className="flex flex-col gap-1.5 mb-3">
-                        {['METRICS', 'LOGS', 'XRAY'].map(opt => (
+                        {['INFRASTRUCTURE', 'NETWORK_FLOW', 'METRICS', 'LOGS', 'XRAY'].map(opt => (
                           <label key={opt} className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="checkbox"

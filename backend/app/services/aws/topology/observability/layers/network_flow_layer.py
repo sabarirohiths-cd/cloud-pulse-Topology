@@ -90,31 +90,77 @@ class NetworkFlowLayer(DiagnosticLayer):
                     results = res.get('results', [])
                     break
                     
+            # Anomaly/DDoS Query (High ACCEPT connections from single IP)
+            anomaly_query = f"filter @message like '{eni_id}' | filter @message like 'ACCEPT' | parse @message '* * * * * * * * * * * * * *' as version, account_id, interface_id, srcaddr, dstaddr, srcport, dstport, protocol, packets, bytes, start, end, action, log_status | stats sum(bytes) as total_bytes, count(*) as connection_count by srcaddr | sort connection_count desc | limit 5"
+            
+            start_anomaly = logs.start_query(
+                logGroupName=log_group_name,
+                startTime=start_time,
+                endTime=end_time,
+                queryString=anomaly_query
+            )
+            
+            anomaly_id = start_anomaly['queryId']
+            anomaly_results = []
+            
+            for _ in range(5):
+                time.sleep(1)
+                res = logs.get_query_results(queryId=anomaly_id)
+                if res['status'] == 'Complete':
+                    anomaly_results = res.get('results', [])
+                    break
+            
+            ddos_ips = []
+            for r in anomaly_results:
+                conn_count = 0
+                ip = ""
+                for f in r:
+                    if f['field'] == 'connection_count':
+                        conn_count = int(f['value'])
+                    if f['field'] == 'srcaddr':
+                        ip = f['value']
+                if conn_count > 1000: # Threshold for anomaly
+                    ddos_ips.append(f"{ip} ({conn_count} conns)")
+                    
+            status = "HEALTHY"
+            summary_parts = []
+            
             if results:
-                return {
-                    "status": "CRITICAL",
-                    "summary": f"Found {len(results)} REJECTED flow log entries for {eni_id}. Firewall or NACL is blocking traffic.",
-                    "details": {
-                        "eni_id": eni_id,
-                        "log_group": log_group_name,
-                        "reject_count": len(results),
-                        "sample_logs": [next((f['value'] for f in r if f['field'] == '@message'), '') for r in results]
-                    }
-                }
-            else:
+                status = "CRITICAL"
+                summary_parts.append(f"Found {len(results)} REJECTED flow log entries. Firewall or NACL is blocking traffic.")
+                
+            if ddos_ips:
+                status = "CRITICAL"
+                summary_parts.append(f"High ACCEPT traffic anomalies detected from IPs: {', '.join(ddos_ips)} (Possible DDoS/Brute-force).")
+                
+            if not summary_parts:
                 return {
                     "status": "HEALTHY",
-                    "summary": f"No REJECTED packets detected for {eni_id} in the last {lookback_minutes}m.",
+                    "summary": "Successfully analyzed VPC Flow Logs. No anomalies or blocks detected.",
                     "details": {
                         "eni_id": eni_id,
                         "log_group": log_group_name,
-                        "reject_count": 0
+                        "reject_count": 0,
+                        "ddos_ips": []
                     }
                 }
                 
+            return {
+                "status": status,
+                "summary": " | ".join(summary_parts),
+                "details": {
+                    "eni_id": eni_id,
+                    "log_group": log_group_name,
+                    "reject_count": len(results),
+                    "ddos_ips": ddos_ips,
+                    "reject_samples": [next((f['value'] for f in r if f['field'] == '@message'), '') for r in results]
+                }
+            }
+
         except Exception as e:
-            logger.warning(f"Failed to query CloudWatch Logs Insights for Flow Logs: {e}")
+            logger.warning(f"Failed to query flow logs: {e}")
             return {
                 "status": "UNKNOWN",
-                "summary": f"Failed to query Flow Logs: {e}"
+                "summary": f"Failed to query VPC Flow Logs: {str(e)}",
+                "details": {}
             }

@@ -5,20 +5,70 @@ from .base_tracer import BaseTracer
 logger = logging.getLogger(__name__)
 
 class XRayTracer(BaseTracer):
+    def __init__(self, fetcher):
+        super().__init__(fetcher)
+        self.xray_client = getattr(fetcher, 'xray_client', self.session.client('xray', region_name=self.region))
+
     def trace(self, lookback_minutes: int):
         logger.info("Tracing dynamic service dependencies via X-Ray")
         
-        xray_client = self.session.client('xray', region_name=self.region)
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(minutes=lookback_minutes)
         
         try:
-            resp = xray_client.get_service_graph(
+            resp = self.xray_client.get_service_graph(
                 StartTime=start_time,
                 EndTime=end_time
             )
             
-            services = resp.get('Services', [])
+            all_services = resp.get('Services', [])
+            
+            # Find all relevant services by traversing from known nodes
+            known_ids = {n['id'] for n in self.fetcher.nodes}
+            known_ids.add(self.fetcher.resource_id)
+            
+            # Since XRay node names might not exactly match our IDs (e.g. they might just be "my-service-name"),
+            # we also do partial/substring matching against known resource names/labels.
+            known_names = {n['label'].lower() for n in self.fetcher.nodes if 'label' in n}
+            
+            relevant_service_refs = set()
+            
+            # Initial pass: find services that directly match known EC2/resources
+            for svc in all_services:
+                svc_name = svc.get('Name', '').lower()
+                # Match by ARN, Instance ID, or Label
+                if svc_name in known_ids or any(svc_name in kn or kn in svc_name for kn in known_names if kn):
+                    relevant_service_refs.add(svc.get('ReferenceId'))
+                    
+            # Second pass: iteratively add services that are connected to our relevant services
+            # This builds the exact sub-graph connected to our EC2 trace.
+            added_new = True
+            while added_new:
+                added_new = False
+                for svc in all_services:
+                    ref_id = svc.get('ReferenceId')
+                    if ref_id in relevant_service_refs:
+                        continue
+                        
+                    # Check if this service calls any relevant service
+                    for edge in svc.get('Edges', []):
+                        if edge.get('ReferenceId') in relevant_service_refs:
+                            relevant_service_refs.add(ref_id)
+                            added_new = True
+                            break
+                            
+                    if ref_id in relevant_service_refs: continue
+                    
+                    # Check if any relevant service calls this service
+                    for r_svc in all_services:
+                        if r_svc.get('ReferenceId') in relevant_service_refs:
+                            if any(e.get('ReferenceId') == ref_id for e in r_svc.get('Edges', [])):
+                                relevant_service_refs.add(ref_id)
+                                added_new = True
+                                break
+            
+            # Filter the services list down to just the relevant sub-graph
+            services = [s for s in all_services if s.get('ReferenceId') in relevant_service_refs]
             
             # 1. Map service IDs to readable names
             service_map = {}

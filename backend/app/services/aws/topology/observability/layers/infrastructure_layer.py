@@ -56,8 +56,8 @@ class InfrastructureLayer(DiagnosticLayer):
                 sg_node = next((n for n in fetcher.nodes if n['id'] == sg_id), None)
                 if sg_node:
                     sg_meta = sg_node.get("metadata", {})
-                    inbound = sg_meta.get("InboundRules", [])
-                    outbound = sg_meta.get("OutboundRules", [])
+                    inbound = sg_meta.get("Inbound Rules", sg_meta.get("InboundRules", []))
+                    outbound = sg_meta.get("Outbound Rules", sg_meta.get("OutboundRules", []))
                     details["security_groups"].append({
                         "id": sg_id,
                         "name": sg_node.get("label", sg_id),
@@ -105,11 +105,25 @@ class InfrastructureLayer(DiagnosticLayer):
         else:
             issues.append("Instance is not associated with any known Subnet.")
             
-        summary = f"{checks_passed}/{total_checks} Infra pre-checks passed."
+        # 5. Target Groups (extracted from fetcher nodes)
+        tg_ids = [e['source'] for e in fetcher.edges if e['target'] == instance_id and e['relation'] == 'TARGETS']
+        details['target_groups'] = []
+        for tg_id in tg_ids:
+            tg_node = next((n for n in fetcher.nodes if n['id'] == tg_id), None)
+            if tg_node:
+                meta = tg_node.get("metadata", {})
+                unhealthy = meta.get("UnhealthyHostCount", 0)
+                details['target_groups'].append({
+                    "id": tg_id,
+                    "unhealthy_count": unhealthy
+                })
+                if unhealthy > 0:
+                    issues.append(f"Target Group {tg_node.get('label', tg_id)} has {unhealthy} unhealthy host(s).")
+                    status = "CRITICAL"
+
+        summary = f"Infrastructure telemetry looks healthy ({checks_passed}/{total_checks} basic checks passed)."
         if issues:
-            summary += f" Issues: {'; '.join(issues)}"
-            if status == "HEALTHY":
-                status = "DEGRADED"
+            summary = f"Infrastructure issues detected: {'; '.join(issues)}"
             
         return {
             "status": status,

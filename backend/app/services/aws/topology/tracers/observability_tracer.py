@@ -21,6 +21,18 @@ class ObservabilityTracer(BaseTracer):
                     alarm_name = alarm['AlarmName']
                     state = alarm['StateValue'] # OK, ALARM, INSUFFICIENT_DATA
                     
+                    # Check if alarm monitors our specific EC2 or related resources
+                    is_relevant = False
+                    monitored_resources = []
+                    for dim in alarm.get('Dimensions', []):
+                        val = dim['Value']
+                        if val == self.fetcher.resource_id or any(n['id'] == val for n in self.fetcher.nodes):
+                            is_relevant = True
+                            monitored_resources.append(val)
+                            
+                    if not is_relevant:
+                        continue
+                        
                     health_state = "HEALTHY"
                     diagnostic = None
                     if state == 'ALARM':
@@ -40,14 +52,13 @@ class ObservabilityTracer(BaseTracer):
                     # Connect to SNS topics if triggered
                     for action in alarm.get('AlarmActions', []):
                         if action.startswith('arn:aws:sns:'):
+                            topic_name = action.split(':')[-1]
+                            self.add_node(action, 'SNS_TOPIC', topic_name, 'active', {"Type": "SNS Topic"})
                             self.add_edge(alarm_arn, action, 'TRIGGERS')
                             
                     # Link Alarm to the actual infrastructure it monitors
-                    for dim in alarm.get('Dimensions', []):
-                        val = dim['Value']
-                        # If the dimension value matches our root EC2 instance or any other discovered node (like RDS/ALB)
-                        if val == self.fetcher.resource_id or any(n['id'] == val for n in self.fetcher.nodes):
-                            self.add_edge(alarm_arn, val, 'MONITORS')
+                    for res_val in monitored_resources:
+                        self.add_edge(alarm_arn, res_val, 'MONITORS')
                             
         except Exception as e:
             logger.warning(f"Failed to fetch CloudWatch Alarms: {e}")

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Activity, ShieldAlert, Wifi, Server, Database, CloudRain, AlertTriangle, CheckCircle2, Info, X } from 'lucide-react';
+import { ArrowLeft, Activity, ShieldAlert, Wifi, Server, Database, CloudRain, AlertTriangle, CheckCircle2, Info, X, ListChecks, XCircle, MinusCircle } from 'lucide-react';
 import { getLocalTrace } from '../../../api/topology';
 
-export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
+export default function DiagnosticDetailPage({ nodeId: propNodeId, activeTraceId, onClose }) {
   const params = useParams();
   const navigate = useNavigate();
   const nodeId = propNodeId || params.nodeId;
@@ -11,13 +11,14 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [appInnerTab, setAppInnerTab] = useState('metrics');
 
   useEffect(() => {
     const fetchTrace = async () => {
       try {
         setLoading(true);
         // We fetch the latest local trace graph to find the node's rich diagnostic_details
-        const traceResponse = await getLocalTrace(nodeId);
+        const traceResponse = await getLocalTrace(activeTraceId || nodeId);
         if (traceResponse && traceResponse.nodes) {
           const targetNode = traceResponse.nodes.find(n => n.id === nodeId);
           if (targetNode) {
@@ -91,6 +92,54 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
       return <Info size={18} className="text-zinc-500" />;
   };
 
+  const getSynthesisColors = (healthState) => {
+      if (healthState === 'CRITICAL') return { bg: 'bg-red-950/10', border: 'border-red-500/30', headerBg: 'bg-red-950/30', headerBorder: 'border-red-500/20', text: 'text-red-400', tagBg: 'bg-red-500/10', tagBorder: 'border-red-500/20', tagText: 'text-red-400', glow: 'shadow-[0_0_30px_rgba(239,68,68,0.15)]' };
+      if (healthState === 'DEGRADED') return { bg: 'bg-amber-950/10', border: 'border-amber-500/30', headerBg: 'bg-amber-950/30', headerBorder: 'border-amber-500/20', text: 'text-amber-400', tagBg: 'bg-amber-500/10', tagBorder: 'border-amber-500/20', tagText: 'text-amber-400', glow: 'shadow-[0_0_30px_rgba(245,158,11,0.1)]' };
+      if (healthState === 'HEALTHY') return { bg: 'bg-emerald-950/10', border: 'border-emerald-500/30', headerBg: 'bg-emerald-950/30', headerBorder: 'border-emerald-500/20', text: 'text-emerald-400', tagBg: 'bg-emerald-500/10', tagBorder: 'border-emerald-500/20', tagText: 'text-emerald-400', glow: 'shadow-[0_0_30px_rgba(16,185,129,0.1)]' };
+      return { bg: 'bg-[#131315]', border: 'border-indigo-500/30', headerBg: 'bg-indigo-950/20', headerBorder: 'border-indigo-500/20', text: 'text-indigo-400', tagBg: 'bg-indigo-500/10', tagBorder: 'border-indigo-500/20', tagText: 'text-indigo-400', glow: 'shadow-[0_0_30px_rgba(99,102,241,0.1)]' };
+  };
+  const synthTheme = getSynthesisColors(nodeData.health_state);
+
+  const getTracerStatuses = () => {
+      const details = nodeData.diagnostic_details || {};
+      const infra = details.infrastructure || {};
+      const network = details.network_flow || {};
+      const appDetails = details.application?.details || {};
+      const hasInfra = !!details.infrastructure;
+      const hasNetwork = !!details.network_flow;
+      const hasMetrics = !!appDetails.metrics;
+      const hasLogs = !!appDetails.logs;
+      const hasXray = !!appDetails.xray;
+
+      return [
+          { 
+              name: 'INFRASTRUCTURE', 
+              available: hasInfra, 
+              description: hasInfra ? (infra.summary || 'Processed infrastructure checks.') : 'Tracer not selected or disabled.' 
+          },
+          { 
+              name: 'NETWORK_FLOW', 
+              available: hasNetwork, 
+              description: hasNetwork ? (network.summary || 'Processed VPC Flow Logs.') : 'Tracer not selected or flow logs disabled.' 
+          },
+          { 
+              name: 'METRICS', 
+              available: hasMetrics, 
+              description: hasMetrics ? (appDetails.metrics.issues?.length > 0 ? appDetails.metrics.issues[0] : 'Successfully pulled CloudWatch metrics.') : 'Tracer not selected.' 
+          },
+          { 
+              name: 'LOGS', 
+              available: hasLogs, 
+              description: hasLogs ? (appDetails.logs.issues?.length > 0 ? appDetails.logs.issues[0] : 'Successfully pulled and analyzed application logs.') : 'Tracer not selected.' 
+          },
+          { 
+              name: 'XRAY', 
+              available: hasXray, 
+              description: hasXray ? (appDetails.xray.issues?.length > 0 ? appDetails.xray.issues[0] : 'Successfully processed X-Ray telemetry traces.') : 'Tracer not selected.' 
+          }
+      ];
+  };
+
   return (
     <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-6">
       <div className="bg-[#0a0a0f] text-zinc-200 w-full max-w-[1100px] h-[90vh] rounded-2xl border border-zinc-800 shadow-2xl relative overflow-hidden">
@@ -155,65 +204,97 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
                 Application
                 {app.status && getStatusIcon(app.status)}
             </button>
+            <button 
+                onClick={() => setActiveTab('tracers')}
+                className={`h-full px-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors ${activeTab === 'tracers' ? 'border-indigo-500 text-indigo-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+            >
+                <ListChecks size={14} />
+                Tracer Summary
+            </button>
         </div>
 
         {/* Scrollable Content */}
         <div className="absolute top-[124px] left-0 right-0 bottom-0 overflow-y-auto custom-scrollbar p-5 md:p-6 bg-[#0a0a0f]">
             <div className="flex flex-col gap-5 w-full h-auto">
           
-        {(!details || Object.keys(details).length === 0) && (
-            <div className="bg-amber-950/20 border border-amber-500/30 p-6 rounded-xl flex items-center gap-4 text-amber-400">
-                <Info size={32} />
-                <div>
-                <h2 className="text-lg font-bold">No Deep Diagnostics Found</h2>
-                <p className="text-sm opacity-80 mt-1">This resource has not been scanned with the Deep Diagnostics tracers yet, or the scan returned no detailed layers. Go back and select "Re-Run Trace" with diagnostic options checked.</p>
-                </div>
-            </div>
-        )}
 
         {/* 0. Overview / Root Cause Synthesis */}
         {activeTab === 'overview' && details.synthesis && (
-            <div className="bg-[#131315] border border-indigo-500/30 rounded-xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-300">
-                <div className="bg-indigo-950/20 px-5 py-3 border-b border-indigo-500/20 flex items-center justify-between">
+            <div className={`border ${synthTheme.border} rounded-xl overflow-hidden ${synthTheme.glow} animate-in fade-in slide-in-from-bottom-4 duration-300 relative`}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 pointer-events-none z-0"></div>
+                
+                <div className={`${synthTheme.headerBg} px-6 py-4 border-b ${synthTheme.headerBorder} flex items-center justify-between relative z-10 backdrop-blur-md`}>
                     <div className="flex items-center gap-3">
-                        <Activity className="text-indigo-400" size={16} />
-                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-indigo-300">Root Cause Synthesis</h2>
+                        <Activity className={synthTheme.text} size={20} />
+                        <h2 className={`text-sm font-bold uppercase tracking-widest ${synthTheme.text}`}>Root Cause Synthesis</h2>
                     </div>
                 </div>
-                <div className="p-6 flex flex-col gap-5">
-                    <p className="text-lg font-medium text-zinc-200">
-                        {details.synthesis.synthesis_statement}
-                    </p>
-                    
-                    {details.synthesis.error_classification_tags?.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                            {details.synthesis.error_classification_tags.map(tag => (
-                                <span key={tag} className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md text-[10px] font-bold tracking-wider uppercase">
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-                    )}
 
-                    {details.synthesis.why_analysis_reasoning && (
-                        <div className="bg-black/30 p-4 rounded-xl border border-zinc-800">
-                            <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Analysis Reasoning</h4>
-                            <p className="text-sm text-zinc-300 leading-relaxed">{details.synthesis.why_analysis_reasoning}</p>
-                        </div>
-                    )}
-
-                    {details.synthesis.extracted_code_locations?.length > 0 && (
-                        <div className="bg-black/30 p-4 rounded-xl border border-zinc-800">
-                            <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Extracted Code Locations</h4>
-                            <div className="flex flex-wrap gap-2">
-                                {details.synthesis.extracted_code_locations.map(loc => (
-                                    <span key={loc} className="font-mono text-[11px] px-2 py-1 bg-red-950/30 text-red-400 border border-red-500/20 rounded">
-                                        {loc}
+                <div className={`p-8 flex flex-col gap-8 relative z-10 ${synthTheme.bg}`}>
+                    {/* Main Statement */}
+                    <div>
+                        <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Executive Summary</h3>
+                        <p className="text-xl font-semibold text-zinc-100 leading-snug">
+                            {details.synthesis.synthesis_statement}
+                        </p>
+                        {details.synthesis.error_classification_tags?.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                {details.synthesis.error_classification_tags.map(tag => (
+                                    <span key={tag} className={`px-3 py-1 ${synthTheme.tagBg} ${synthTheme.text} border ${synthTheme.tagBorder} rounded-lg text-[10px] font-bold tracking-widest uppercase`}>
+                                        {tag}
                                     </span>
                                 ))}
                             </div>
+                        )}
+                    </div>
+
+                    {/* Remediation Steps (NEW) */}
+                    {details.synthesis.remediation_steps?.length > 0 && (
+                        <div>
+                            <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider mb-3">Recommended Remediation</h3>
+                            <div className="bg-black/40 border border-zinc-800/80 rounded-xl p-5 shadow-inner">
+                                <ul className="flex flex-col gap-4">
+                                    {details.synthesis.remediation_steps.map((step, idx) => (
+                                        <li key={idx} className="flex items-start gap-4 text-zinc-300 text-sm">
+                                            <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${synthTheme.tagBg} ${synthTheme.text} border ${synthTheme.tagBorder} shadow-sm`}>
+                                                {idx + 1}
+                                            </span>
+                                            <span className="mt-0.5 leading-relaxed font-medium">{step}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
                     )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Analysis Reasoning */}
+                        {details.synthesis.why_analysis_reasoning && (
+                            <div className="flex flex-col gap-3">
+                                <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Diagnostic Reasoning</h4>
+                                <div className="bg-black/30 p-5 rounded-xl border border-zinc-800/50 flex-1 shadow-inner">
+                                    <p className="text-sm text-zinc-300 leading-relaxed">{details.synthesis.why_analysis_reasoning}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Extracted Code Locations */}
+                        {details.synthesis.extracted_code_locations?.length > 0 && (
+                            <div className="flex flex-col gap-3">
+                                <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Identified Trace Locations</h4>
+                                <div className="bg-black/30 p-5 rounded-xl border border-zinc-800/50 flex-1 shadow-inner">
+                                    <div className="flex flex-col gap-2">
+                                        {details.synthesis.extracted_code_locations.map(loc => (
+                                            <div key={loc} className="font-mono text-xs px-3 py-2 bg-[#1c2128] text-red-400 border border-red-500/20 rounded-lg flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                                {loc}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         )}
@@ -232,7 +313,7 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
                     </div>
                     {getStatusIcon(infra.status)}
                 </div>
-                <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                     <div className="col-span-full">
                         <p className="text-xs text-zinc-400 bg-black/20 p-2.5 rounded-lg border border-zinc-800">{infra.summary}</p>
                     </div>
@@ -302,6 +383,24 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
                             </div>
                         ) : <span className="text-[11px] text-zinc-600">No Subnet association.</span>}
                     </div>
+
+                    {/* Target Groups */}
+                    {infra.details?.target_groups && infra.details.target_groups.length > 0 && (
+                        <div className="bg-[#0a0a0f] p-3.5 rounded-xl border border-zinc-800/50 flex flex-col gap-3">
+                            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800/80 flex justify-between items-center">
+                                Target Groups
+                                {getStatusIcon(infra.details.target_groups.some(tg => tg.unhealthy_count > 0) ? 'CRITICAL' : 'HEALTHY')}
+                            </h3>
+                            <div className="flex flex-col gap-2">
+                                {infra.details.target_groups.map(tg => (
+                                    <div key={tg.id} className="text-[11px] flex flex-col gap-1 pb-2 border-b border-zinc-800/50 last:border-0 last:pb-0">
+                                        <span className="text-zinc-300 font-mono truncate" title={tg.id}>{tg.id}</span>
+                                        <span className="text-zinc-500">Unhealthy: <span className={`font-mono ${tg.unhealthy_count > 0 ? 'text-red-400' : 'text-emerald-400/70'}`}>{tg.unhealthy_count}</span></span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         )}
@@ -354,60 +453,97 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
                     </div>
                     {getStatusIcon(app.status)}
                 </div>
-                <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="col-span-full">
-                        <p className="text-xs text-zinc-400 bg-black/20 p-2.5 rounded-lg border border-zinc-800">{app.summary}</p>
-                    </div>
+                
+                <div className="flex items-center bg-[#161b22] border-b border-zinc-800 px-4 h-10">
+                    <button 
+                        onClick={() => setAppInnerTab('metrics')}
+                        className={`h-full px-4 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors ${appInnerTab === 'metrics' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        Metrics
+                    </button>
+                    <button 
+                        onClick={() => setAppInnerTab('logs')}
+                        className={`h-full px-4 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors ${appInnerTab === 'logs' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        Logs Insights
+                    </button>
+                    <button 
+                        onClick={() => setAppInnerTab('xray')}
+                        className={`h-full px-4 text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-colors ${appInnerTab === 'xray' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                    >
+                        X-Ray Traces
+                    </button>
+                </div>
 
-                    {/* Metrics */}
-                    {app.details?.metrics && (
-                        <div className="bg-[#0a0a0f] p-3.5 rounded-xl border border-zinc-800/50 flex flex-col gap-3">
-                            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800/80 flex justify-between items-center">
-                                CloudWatch Metrics
-                                {getStatusIcon(app.details.metrics.status)}
-                            </h3>
-                            <div className="flex justify-between items-center text-[11px]">
-                                <span className="text-zinc-400">Max CPU</span>
-                                <span className={`font-mono ${app.details.metrics.cpu_max > 80 ? 'text-amber-400' : 'text-zinc-200'}`}>{app.details.metrics.cpu_max?.toFixed(1) || 0}%</span>
+                <div className="p-5 flex flex-col gap-5 min-h-[300px]">
+                    {/* Metrics Inner Tab */}
+                    {appInnerTab === 'metrics' && (
+                        app.details?.metrics ? (
+                            <div className="bg-[#0a0a0f] p-4 rounded-xl border border-zinc-800/50 flex flex-col gap-4 animate-in fade-in duration-200">
+                                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800/80 flex justify-between items-center">
+                                    CloudWatch Metrics Overview
+                                    {getStatusIcon(app.details.metrics.status)}
+                                </h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-[#161b22] p-4 rounded-lg border border-zinc-800 flex flex-col gap-2">
+                                        <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-bold">Max CPU Utilization</span>
+                                        <span className={`text-2xl font-mono ${app.details.metrics.cpu_max > 80 ? 'text-amber-400' : 'text-zinc-200'}`}>
+                                            {app.details.metrics.cpu_max?.toFixed(1) || 0}%
+                                        </span>
+                                    </div>
+                                    <div className="bg-[#161b22] p-4 rounded-lg border border-zinc-800 flex flex-col gap-2">
+                                        <span className="text-zinc-500 text-[11px] uppercase tracking-wider font-bold">HTTP 5XX Errors</span>
+                                        <span className={`text-2xl font-mono ${app.details.metrics.errors_5xx > 0 ? 'text-red-400' : 'text-zinc-200'}`}>
+                                            {app.details.metrics.errors_5xx || 0}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex justify-between items-center text-[11px]">
-                                <span className="text-zinc-400">HTTP 5XX Errors</span>
-                                <span className={`font-mono ${app.details.metrics.errors_5xx > 0 ? 'text-red-400' : 'text-zinc-200'}`}>{app.details.metrics.errors_5xx || 0}</span>
-                            </div>
-                        </div>
+                        ) : <div className="text-center py-8 text-zinc-600 text-sm italic">Metrics data not available.</div>
                     )}
 
-                    {/* X-Ray */}
-                    {app.details?.xray && (
-                        <div className="bg-[#0a0a0f] p-3.5 rounded-xl border border-zinc-800/50 flex flex-col gap-3">
-                            <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800/80 flex justify-between items-center">
-                                AWS X-Ray
-                                {getStatusIcon(app.details.xray.issues?.length > 0 ? 'DEGRADED' : 'HEALTHY')}
-                            </h3>
-                            <div className="flex justify-between items-center text-[11px]">
-                                <span className="text-zinc-400">Faulty/Slow Traces</span>
-                                <span className={`font-mono ${app.details.xray.faulty_trace_count > 0 ? 'text-amber-400' : 'text-zinc-200'}`}>{app.details.xray.faulty_trace_count || 0}</span>
+                    {/* Logs Inner Tab */}
+                    {appInnerTab === 'logs' && (
+                        app.details?.logs ? (
+                            <div className="bg-[#0a0a0f] rounded-xl border border-zinc-800/50 overflow-hidden flex flex-col h-full animate-in fade-in duration-200">
+                                <div className="px-4 py-3 bg-[#161b22] border-b border-zinc-800 flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Exception Stack Traces</span>
+                                    {getStatusIcon(app.details.logs.issues?.length > 0 ? 'CRITICAL' : 'HEALTHY')}
+                                </div>
+                                <div className="p-4 text-[11px] font-mono overflow-x-auto overflow-y-auto max-h-[300px] custom-scrollbar whitespace-pre bg-red-950/5">
+                                    {app.details.logs.traces?.length > 0 ? (
+                                        app.details.logs.traces.map((trace, i) => (
+                                            <div key={i} className="mb-3 text-red-400 border-l-2 border-red-500/50 pl-3 py-1 bg-red-950/20 rounded-r opacity-90 hover:opacity-100">{trace}</div>
+                                        ))
+                                    ) : (
+                                        <span className="text-zinc-500">No error traces found in log group {app.details.logs.log_group}.</span>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        ) : <div className="text-center py-8 text-zinc-600 text-sm italic">Logs data not available.</div>
                     )}
 
-                    {/* Logs */}
-                    {app.details?.logs && (
-                        <div className="col-span-full bg-[#0a0a0f] rounded-xl border border-zinc-800/50 overflow-hidden flex flex-col">
-                            <div className="px-4 py-2.5 bg-[#161b22] border-b border-zinc-800 flex items-center justify-between">
-                                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">CloudWatch Logs Insights</span>
-                                {getStatusIcon(app.details.logs.issues?.length > 0 ? 'CRITICAL' : 'HEALTHY')}
-                            </div>
-                            <div className="p-4 text-[11px] font-mono overflow-x-auto overflow-y-auto max-h-[400px] custom-scrollbar whitespace-pre bg-red-950/5">
-                                {app.details.logs.traces?.length > 0 ? (
-                                    app.details.logs.traces.map((trace, i) => (
-                                        <div key={i} className="mb-2 text-red-400 border-l-2 border-red-500/50 pl-3 py-0.5 opacity-90 hover:opacity-100">{trace}</div>
-                                    ))
-                                ) : (
-                                    <span className="text-zinc-600">No error traces found in log group {app.details.logs.log_group}.</span>
+                    {/* X-Ray Inner Tab */}
+                    {appInnerTab === 'xray' && (
+                        app.details?.xray ? (
+                            <div className="bg-[#0a0a0f] p-4 rounded-xl border border-zinc-800/50 flex flex-col gap-4 animate-in fade-in duration-200">
+                                <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider pb-2 border-b border-zinc-800/80 flex justify-between items-center">
+                                    AWS X-Ray Faults
+                                    {getStatusIcon(app.details.xray.issues?.length > 0 ? 'DEGRADED' : 'HEALTHY')}
+                                </h3>
+                                <div className="bg-[#161b22] p-4 rounded-lg border border-zinc-800 flex items-center justify-between">
+                                    <span className="text-zinc-400 text-sm">Faulty/Slow Traces Detected</span>
+                                    <span className={`text-2xl font-mono ${app.details.xray.faulty_trace_count > 0 ? 'text-amber-400' : 'text-zinc-200'}`}>
+                                        {app.details.xray.faulty_trace_count || 0}
+                                    </span>
+                                </div>
+                                {app.details.xray.faulty_trace_count > 0 && (
+                                    <p className="text-xs text-amber-500/80 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+                                        Note: Detailed X-Ray subsegments should be reviewed directly in the AWS X-Ray console for exact latency breakdowns.
+                                    </p>
                                 )}
                             </div>
-                        </div>
+                        ) : <div className="text-center py-8 text-zinc-600 text-sm italic">X-Ray data not available.</div>
                     )}
                 </div>
             </div>
@@ -415,6 +551,33 @@ export default function DiagnosticDetailPage({ nodeId: propNodeId, onClose }) {
         
         {activeTab === 'application' && !app.status && (
             <div className="text-center py-12 text-zinc-500">No Application diagnostic data available. Enable "Metrics, Logs, or X-Ray" options in trace settings.</div>
+        )}
+
+        {/* 4. Tracer Summary */}
+        {activeTab === 'tracers' && (
+            <div className="bg-[#131315] border border-zinc-800/80 rounded-xl overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-300">
+                <div className="bg-[#1c2128] px-5 py-3 border-b border-zinc-800/80 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <ListChecks className="text-indigo-400" size={16} />
+                        <h2 className="text-[11px] font-bold uppercase tracking-widest text-zinc-300">Diagnostic Tracers</h2>
+                    </div>
+                </div>
+                <div className="p-6">
+                    <div className="flex flex-col gap-3">
+                        {getTracerStatuses().map(tracer => (
+                            <div key={tracer.name} className="bg-[#0a0a0f] border border-zinc-800/80 p-4 rounded-xl flex items-center gap-4">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tracer.available ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                                    {tracer.available ? <CheckCircle2 size={16} /> : <X size={16} />}
+                                </div>
+                                <div className="flex flex-col gap-1 flex-1">
+                                    <span className={`text-[11px] font-bold tracking-widest ${tracer.available ? 'text-zinc-200' : 'text-zinc-500'}`}>{tracer.name}</span>
+                                    <span className="text-xs text-zinc-400">{tracer.description}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         )}
 
         {/* End of content */}

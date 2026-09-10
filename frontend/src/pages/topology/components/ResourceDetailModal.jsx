@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Layers, AlertTriangle, Activity } from 'lucide-react';
+import { X, Layers, AlertTriangle, Activity, Copy, Check } from 'lucide-react';
 import { getIcon, getColorClasses } from '../../../utils/iconMap';
 
 const colorizeJson = (jsonObj) => {
   if (!jsonObj) return '';
   const cleanObj = { ...jsonObj };
-  delete cleanObj.label;
   delete cleanObj.type;
   
   const jsonStr = JSON.stringify(cleanObj, null, 2);
@@ -29,6 +28,13 @@ const colorizeJson = (jsonObj) => {
 
 export default function ResourceDetailModal({ node, edges, allNodes, onClose, globalResources, onShowDiagnostics }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [copiedKey, setCopiedKey] = useState(null);
+
+  const handleCopy = (text, key) => {
+    navigator.clipboard.writeText(typeof text === 'object' ? JSON.stringify(text, null, 2) : String(text));
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
 
   useEffect(() => {
     setActiveTab('overview');
@@ -161,10 +167,22 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                 <div className="bg-[#1c2128] p-2 rounded-lg border border-[#26262b]">
                   {getIcon(type, 24)}
                 </div>
-                <div>
-                  <h2 className="text-[15px] font-bold text-zinc-100 truncate max-w-[350px]">
-                    {data.label || 'Resource Details'}
-                  </h2>
+                <div className="flex flex-col">
+                  <div className="max-w-[340px] overflow-hidden whitespace-nowrap relative" title={data.label}>
+                    {data.label && data.label.length > 35 ? (
+                      <motion.h2 
+                        className="text-[15px] font-bold text-zinc-100 inline-block"
+                        animate={{ x: [0, -((data.label.length * 8) + 40)] }}
+                        transition={{ repeat: Infinity, ease: "linear", duration: data.label.length * 0.2 }}
+                      >
+                        {data.label} <span className="opacity-0">-----</span> {data.label}
+                      </motion.h2>
+                    ) : (
+                      <h2 className="text-[15px] font-bold text-zinc-100 truncate">
+                        {data.label || 'Resource Details'}
+                      </h2>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 mt-1">
                     <p className={`text-[11px] ${colors.text} opacity-90 uppercase tracking-wider font-bold`}>
                       {type}
@@ -187,32 +205,44 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
             </div>
             
             <div className="px-4 py-2 border-b border-[#26262b] bg-[#1a1d24] shrink-0">
-              <div className="flex items-center gap-1 bg-[#0a0a0f] p-1 rounded-lg w-fit border border-[#26262b]">
-                {tabs.map((tab) => (
-                  <button 
-                    key={tab}
-                    onClick={() => setActiveTab(tab)} 
-                    className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 capitalize ${
-                      activeTab === tab 
-                      ? (tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state)) ? 'text-red-400' : 'text-white' 
-                      : (tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state)) ? 'text-red-500/70 hover:text-red-400' : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                  >
-                    {activeTab === tab && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
-                    {tab}
-                    {tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state) && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
-                    )}
-                  </button>
-                ))}
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-1 bg-[#0a0a0f] p-1 rounded-lg w-fit border border-[#26262b]">
+                  {tabs.map((tab) => (
+                    <button 
+                      key={tab}
+                      onClick={() => setActiveTab(tab)} 
+                      className={`px-3 py-1 text-[11px] font-bold rounded-md transition-colors relative z-10 capitalize ${
+                        activeTab === tab 
+                        ? (tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state)) ? 'text-red-400' : 'text-white' 
+                        : (tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state)) ? 'text-red-500/70 hover:text-red-400' : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {activeTab === tab && <motion.div layoutId="detailTab" className="absolute inset-0 bg-[#26262b] rounded-md z-[-1]" />}
+                      {tab}
+                      {tab === 'diagnostics' && ['CRITICAL', 'BLOCKED'].includes(data.health_state) && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             <div className="p-4 overflow-y-auto custom-scrollbar bg-[#0a0a0f] flex-1 min-h-0">
               {activeTab === 'raw json' ? (
                 <div 
-                  className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f] overflow-x-auto custom-scrollbar"
+                  className="border border-[#26262b] rounded-lg shadow-sm bg-[#0a0a0f] overflow-x-auto custom-scrollbar relative group"
                 >
+                  <button 
+                    onClick={() => handleCopy(data, 'raw_json')}
+                    className="absolute top-2 right-2 p-1 bg-[#26262b] border border-[#3d444d] hover:bg-[#3d444d] rounded transition-all flex items-center gap-1 opacity-0 group-hover:opacity-100 z-10"
+                  >
+                    {copiedKey === 'raw_json' ? (
+                        <><Check size={12} className="text-emerald-400" /><span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Copied</span></>
+                    ) : (
+                        <><Copy size={12} className="text-zinc-300" /><span className="text-[9px] text-zinc-300 font-bold uppercase tracking-wider">Copy</span></>
+                    )}
+                  </button>
                   <div className="p-3 m-0 text-[11px] font-mono table w-full">
                     {colorizeJson(data)}
                   </div>
@@ -272,28 +302,18 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                             </div>
                         </div>
                     )}
-                    
-                    <button
-                        onClick={() => {
-                            if (onShowDiagnostics) onShowDiagnostics(data.id);
-                            else window.open(`/diagnostics/${data.id}`, '_blank');
-                        }}
-                        className="mt-2 w-full py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors"
-                    >
-                        <Activity size={14} />
-                        View Full Diagnostics Report
-                    </button>
                 </div>
               ) : activeTab === 'flow' ? (
                 <div className="flex flex-col gap-4">
                   {(() => {
-                    const nodeEdges = edges.filter(e => e.source === node.id || e.target === node.id);
+                    const nodeIdsToMatch = data.metadata?.groupedNodes ? data.metadata.groupedNodes.map(gn => gn.id) : [node.id];
+                    const nodeEdges = edges.filter(e => nodeIdsToMatch.includes(e.source) || nodeIdsToMatch.includes(e.target));
                     if (nodeEdges.length === 0) {
                       return <div className="text-zinc-500 text-xs italic text-center p-4">No connected nodes found in application flow.</div>;
                     }
                     
-                    const inboundEdges = nodeEdges.filter(e => e.target === node.id);
-                    const outboundEdges = nodeEdges.filter(e => e.source === node.id);
+                    const inboundEdges = nodeEdges.filter(e => nodeIdsToMatch.includes(e.target));
+                    const outboundEdges = nodeEdges.filter(e => nodeIdsToMatch.includes(e.source));
 
                     const renderEdgeGroup = (title, groupEdges, isInbound) => {
                       if (groupEdges.length === 0) return null;
@@ -306,24 +326,36 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                           <div className="flex flex-col">
                             {groupEdges.map((edge, idx) => {
                               const connectedNodeId = isInbound ? edge.source : edge.target;
+                              // Check if connected node is inside the group itself (internal edge). If so, skip or label accordingly.
+                              if (data.metadata?.groupedNodes && data.metadata.groupedNodes.find(gn => gn.id === connectedNodeId)) {
+                                  return null;
+                              }
                               const connectedNode = allNodes?.find(n => n.id === connectedNodeId);
                               const connectedType = connectedNode?.type || 'RESOURCE';
                               const connectedLabel = connectedNode?.label && connectedNode.label !== connectedNodeId ? `${connectedNode.label} (${connectedNodeId})` : connectedNodeId;
                               const isCriticalEdge = edge.health_state === 'CRITICAL' || edge.health_state === 'BLOCKED';
-                              return (
-                                <div key={idx} className={`p-3 border-b border-[#2d333b] last:border-0 flex items-center justify-between hover:bg-[#1c2128] transition-colors ${isCriticalEdge ? 'bg-red-950/10' : ''}`}>
-                                  <div className="flex flex-col max-w-[65%]">
-                                    <div className="flex items-center gap-2 mb-1.5">
-                                      <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[9px] font-bold text-sky-400 uppercase tracking-wider shadow-sm">{connectedType}</span>
-                                      <span className="text-xs font-mono text-zinc-300 truncate" title={connectedLabel}>{connectedLabel}</span>
+                                return (
+                                  <div key={idx} className={`p-3 border-b border-[#2d333b] last:border-0 flex flex-col gap-2 hover:bg-[#1c2128] transition-colors ${isCriticalEdge ? 'bg-red-950/10' : ''}`}>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex flex-col max-w-[65%]">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                          <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[9px] font-bold text-sky-400 uppercase tracking-wider shadow-sm">{connectedType}</span>
+                                          <span className="text-xs font-mono text-zinc-300 truncate" title={connectedLabel}>{connectedLabel}</span>
+                                        </div>
+                                        <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">{edge.relation}</span>
+                                      </div>
+                                      <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shrink-0 ${isCriticalEdge ? 'bg-red-900/40 text-red-400 border border-red-800' : 'bg-green-900/40 text-green-400 border border-green-800'}`}>
+                                        {edge.health_state || 'HEALTHY'}
+                                      </span>
                                     </div>
-                                    <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">{edge.relation}</span>
+                                    {edge.diagnostic && (
+                                      <div className={`mt-1 text-[11px] p-2 rounded border ${isCriticalEdge ? 'bg-red-950/30 border-red-500/20 text-red-200/90' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-300'}`}>
+                                        <AlertTriangle size={12} className="inline mr-1.5 -mt-0.5 opacity-70" />
+                                        {edge.diagnostic}
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase shrink-0 ${isCriticalEdge ? 'bg-red-900/40 text-red-400 border border-red-800' : 'bg-green-900/40 text-green-400 border border-green-800'}`}>
-                                    {edge.health_state || 'HEALTHY'}
-                                  </span>
-                                </div>
-                              );
+                                );
                             })}
                           </div>
                         </div>
@@ -337,6 +369,29 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                       </>
                     );
                   })()}
+                </div>
+              ) : data.metadata?.groupedNodes ? (
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    {data.metadata.groupedNodes.length} Aggregated Resources
+                    <span className="h-px bg-zinc-800 flex-1"></span>
+                  </h3>
+                  {data.metadata.groupedNodes.map((gn, idx) => (
+                     <div key={idx} className="bg-[#161b22] border border-[#26262b] rounded-xl p-3 flex flex-col gap-2 shadow-sm">
+                        <div className="flex items-center justify-between border-b border-[#2d333b] pb-2">
+                          <span className="font-bold text-xs text-zinc-100">{gn.label || gn.id}</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${gn.health_state === 'CRITICAL' ? 'bg-red-900/40 text-red-400 border border-red-800' : gn.health_state === 'DEGRADED' ? 'bg-amber-900/40 text-amber-400 border border-amber-800' : 'bg-green-900/40 text-green-400 border border-green-800'}`}>{gn.health_state || 'HEALTHY'}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          {Object.entries(gn.metadata || {}).filter(([k, v]) => v !== null && typeof v !== 'object').map(([k, v]) => (
+                             <div key={k} className="flex flex-col overflow-hidden">
+                               <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">{formatKey(k)}</span>
+                               <span className="text-[11px] font-bold text-zinc-300 truncate" title={String(v)}>{String(v)}</span>
+                             </div>
+                          ))}
+                        </div>
+                     </div>
+                  ))}
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
@@ -406,7 +461,8 @@ export default function ResourceDetailModal({ node, edges, allNodes, onClose, gl
                       <div className="grid grid-cols-2 gap-2">
                         {(() => {
                             const metadata = data.metadata || {};
-                            const entries = Object.entries(metadata).filter(([k, v]) => k !== 'status_checks' && v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
+                            const ignoreKeys = ['status_checks', 'health_state', 'diagnostic', 'diagnostic_details'];
+                            const entries = Object.entries(metadata).filter(([k, v]) => !ignoreKeys.includes(k) && v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0));
                             
                             if (entries.length === 0) {
                                 return <div className="text-zinc-500 text-xs italic col-span-2">No configuration metadata available.</div>;

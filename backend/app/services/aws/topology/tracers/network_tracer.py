@@ -99,18 +99,29 @@ class NetworkTracer(BaseTracer):
                     for rt in rt_resp.get('RouteTables', []):
                         rt_id = rt['RouteTableId']
                         routes = []
+                        
+                        # Find which subnets are associated with this Route Table
+                        assoc_subnet_ids = []
+                        for assoc in rt.get('Associations', []):
+                            assoc_subnet_id = assoc.get('SubnetId')
+                            if assoc_subnet_id in subnet_ids:
+                                assoc_subnet_ids.append(assoc_subnet_id)
+                                
                         for route in rt.get('Routes', []):
                             dest = route.get('DestinationCidrBlock') or route.get('DestinationIpv6CidrBlock')
                             target = route.get('GatewayId') or route.get('NatGatewayId') or route.get('InstanceId') or route.get('VpcPeeringConnectionId') or route.get('TransitGatewayId') or "Local"
                             routes.append(f"{dest} -> {target}")
                             
-                        for assoc in rt.get('Associations', []):
-                            assoc_subnet_id = assoc.get('SubnetId')
-                            if assoc_subnet_id in subnet_ids:
-                                self.add_node(assoc_subnet_id, 'SUBNET', assoc_subnet_id, 'available', {
-                                    "RouteTable_Id": rt_id,
-                                    "Routes": routes
-                                })
+                            # Draw explicit edges from the subnet to the route targets
+                            if target and (target.startswith('nat-') or target.startswith('igw-') or target.startswith('pcx-') or target.startswith('tgw-')):
+                                for s_id in assoc_subnet_ids:
+                                    self.add_edge(s_id, target, 'ROUTES_TO')
+                            
+                        for s_id in assoc_subnet_ids:
+                            self.add_node(s_id, 'SUBNET', s_id, 'available', {
+                                "RouteTable_Id": rt_id,
+                                "Routes": routes
+                            })
                 except Exception as e:
                     logger.warning(f"Failed to fetch Route Tables (possibly missing ec2:DescribeRouteTables permission): {e}")
                     
@@ -145,11 +156,28 @@ class NetworkTracer(BaseTracer):
                     "PublicIp": public_ip,
                     "PrivateIp": private_ip
                 })
-                # Link it to the subnet it resides in
+                
+                # Fetch and add the NAT's subnet if it wasn't already fetched (since it's usually a public subnet)
+                if nat_subnet and (not subnet_ids or nat_subnet not in subnet_ids):
+                    try:
+                        nat_sub_resp = self.ec2_client.describe_subnets(SubnetIds=[nat_subnet])
+                        if nat_sub_resp.get('Subnets'):
+                            sub = nat_sub_resp['Subnets'][0]
+                            sub_name = next((t['Value'] for t in sub.get('Tags', []) if t['Key'] == 'Name'), nat_subnet)
+                            self.add_node(nat_subnet, 'SUBNET', sub_name, sub.get('State', 'available'), {
+                                "CidrBlock": sub.get('CidrBlock'),
+                                "AvailabilityZone": sub.get('AvailabilityZone'),
+                                "Type": "Public Subnet (NAT)"
+                            })
+                            self.add_edge(vpc_id, nat_subnet, 'CONTAINS')
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch NAT subnet {nat_subnet}: {e}")
+                
+                # Link the NAT Gateway to the subnet it resides in structurally
                 if nat_subnet:
-                    self.add_edge(nat_subnet, nat_id, 'ROUTES_TO')
+                    self.add_edge(nat_subnet, nat_id, 'CONTAINS')
                 else:
-                    self.add_edge(vpc_id, nat_id, 'ROUTES_TO')
+                    self.add_edge(vpc_id, nat_id, 'CONTAINS')
                     
         except Exception as e:
             logger.warning(f"Failed to trace Environment/Networking resources for {root_id}: {e}")

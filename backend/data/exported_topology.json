@@ -1,0 +1,1404 @@
+{
+    "account_name": "cd-prod",
+    "total_nodes": 61,
+    "total_edges": 39,
+    "nodes": [
+        {
+            "id": "i-09b12fe77046590aa",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-DEV-DB",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "InstanceType": "t3.medium",
+                "PrivateIpAddress": "10.50.102.122",
+                "PublicIpAddress": null,
+                "VpcId": "vpc-0a3c0caf0b566931a",
+                "SubnetId": "subnet-0beb513b1c8479b85",
+                "NetworkInterfaces": [
+                    {
+                        "NetworkInterfaceId": "eni-0f3942094711deb6f"
+                    }
+                ],
+                "status_checks": {
+                    "system_status": "ok",
+                    "instance_status": "ok",
+                    "ebs_status": "ok",
+                    "summary": "3/3 checks passed"
+                },
+                "Region": "us-west-2",
+                "health_state": "DEGRADED",
+                "diagnostic": "Infrastructure issues detected: Security Group sg-09967be69b271b01e has no rules defined. | VPC Flow Logs are not enabled or pushing to CloudWatch Logs for ENI eni-0f3942094711deb6f / VPC vpc-0a3c0caf0b566931a. | Detected 1 application issues: No log groups dynamically discovered containing streams for i-09b12fe77046590aa.",
+                "diagnostic_details": {
+                    "infrastructure": {
+                        "status": "DEGRADED",
+                        "summary": "Infrastructure issues detected: Security Group sg-09967be69b271b01e has no rules defined.",
+                        "details": {
+                            "ec2_status_checks": {
+                                "system_status": "ok",
+                                "instance_status": "ok",
+                                "ebs_status": "ok",
+                                "summary": "3/3 checks passed"
+                            },
+                            "security_groups": [
+                                {
+                                    "id": "sg-09967be69b271b01e",
+                                    "name": "CONCLAVES-US-WEST-2-DEV-DB-SG (sg-09967be69b271b01e)",
+                                    "inbound_rules_count": 0,
+                                    "outbound_rules_count": 0
+                                }
+                            ],
+                            "subnet": {
+                                "id": "subnet-0beb513b1c8479b85",
+                                "nacl": {
+                                    "id": "acl-0f9769e0b44cf16ec",
+                                    "inbound_rules_count": 1,
+                                    "outbound_rules_count": 1
+                                },
+                                "route_table": {
+                                    "id": "rtb-01de65d3c68291055",
+                                    "routes_count": 2
+                                }
+                            },
+                            "target_groups": []
+                        },
+                        "issues": [
+                            "Security Group sg-09967be69b271b01e has no rules defined."
+                        ]
+                    },
+                    "network_flow": {
+                        "status": "UNKNOWN",
+                        "summary": "VPC Flow Logs are not enabled or pushing to CloudWatch Logs for ENI eni-0f3942094711deb6f / VPC vpc-0a3c0caf0b566931a.",
+                        "details": {
+                            "eni_id": "eni-0f3942094711deb6f",
+                            "vpc_id": "vpc-0a3c0caf0b566931a",
+                            "flow_logs_enabled": false
+                        }
+                    },
+                    "application": {
+                        "status": "HEALTHY",
+                        "summary": "Detected 1 application issues: No log groups dynamically discovered containing streams for i-09b12fe77046590aa.",
+                        "details": {
+                            "metrics": {
+                                "status": "HEALTHY",
+                                "issues": [],
+                                "cpu_max": 4.625077084618077,
+                                "mem_used_percent": 79.08181133304828,
+                                "errors_5xx": 0,
+                                "multi_tier": {
+                                    "cpu": 4.625077084618077,
+                                    "mem": 79.08181133304828,
+                                    "ebsqueue_0": 0.009765625
+                                }
+                            },
+                            "logs": {
+                                "status": "UNKNOWN",
+                                "issues": [
+                                    "No log groups dynamically discovered containing streams for i-09b12fe77046590aa."
+                                ],
+                                "traces": [],
+                                "log_group": "None"
+                            },
+                            "xray": {
+                                "status": "HEALTHY",
+                                "issues": [],
+                                "faulty_trace_count": 0,
+                                "failing_services": []
+                            }
+                        },
+                        "issues": [
+                            "No log groups dynamically discovered containing streams for i-09b12fe77046590aa."
+                        ]
+                    },
+                    "synthesis": {
+                        "synthesis_statement": "Anomalies detected across telemetry layers.",
+                        "error_classification_tags": [
+                            "UNKNOWN"
+                        ],
+                        "extracted_code_locations": [],
+                        "why_analysis_reasoning": "Telemetry indicates potential issues, but no definitive root cause could be synthesized.",
+                        "remediation_steps": [
+                            "Manually review CloudWatch metrics and logs for the resource.",
+                            "Ensure application tracers are properly configured."
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": "i-0ddb122bb3bc76bf8",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-DEV-APP-VM",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-06028fef82c180479",
+            "type": "EC2",
+            "label": "CONCLAVES-US-WEST-2-DEV-BASTION",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-03618c0f1cb7998c9",
+            "type": "EC2",
+            "label": "scheduleshaper-agent-uswest2-dev-eks-node-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-nonprod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-0149c5c50842dbe81",
+            "type": "EC2",
+            "label": "conclaves-uswest2-stg-ec2-bastion",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0e79ddde032a4a0e0",
+            "type": "EC2",
+            "label": "conclaves-uswest2-prod-ec2-bastion",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0ed70911109832f40",
+            "type": "EC2",
+            "label": "conclaves-uswest2-prod-ec2-bastions",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0921403f6e5d98ee9",
+            "type": "EC2",
+            "label": "scheduleshaper-db-uswest2-dev-eks-node-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-nonprod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-0294a900a1f26dc87",
+            "type": "EC2",
+            "label": "conclaves-uswest2-stg-eks-cluster",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-stg-eks-cluster"
+            }
+        },
+        {
+            "id": "i-0864acc5d004f2e34",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-QA-DB",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0d82c3b5f5faf455e",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-DEV2-DB",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0f86531842529425b",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-STAGE-TESTING-DB",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-09ac0fc6586935c94",
+            "type": "EC2",
+            "label": "conclaves-uswest2-prod-eks-app-node-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-prod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-0e42f64b77730cf8c",
+            "type": "EC2",
+            "label": "CONCLAVES-US-WEST-2-SONARQUBE",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0392c594f2a9770f1",
+            "type": "EC2",
+            "label": "scheduleshaper-redis-uswest2-dev-eks-node-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-nonprod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-0980ca4cbd9273115",
+            "type": "EC2",
+            "label": "scheduleshaper-agent-uswest2-dev-eks-nodegroup-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-nonprod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-06f77df2fd647f9f8",
+            "type": "EC2",
+            "label": "conclaves-uswest2-stg-eks-nodegroup-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "ASG: eks-conclaves-uswest2-stg-eks-nodegroup-01-8cce01c7-d566-7fd8-170a-c70ebc38c3ee"
+            }
+        },
+        {
+            "id": "i-04fac677fdeb41c9b",
+            "type": "EC2",
+            "label": "conclaves-us-west-2-demo-observability-node",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-us-west-2-demo-cluster"
+            }
+        },
+        {
+            "id": "i-03b1a83f0eab281a8",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-DEV2-APP-VM",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-005748280adf6f176",
+            "type": "EC2",
+            "label": "CONCLAVES-US-WEST-2-QA-APP-VM",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0acac59713250978a",
+            "type": "EC2",
+            "label": "conclaves-us-west-2-demo-app-node2",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-us-west-2-demo-cluster"
+            }
+        },
+        {
+            "id": "i-054878859908e1f8b",
+            "type": "EC2",
+            "label": "VA-CONCLAVES-US-WEST-2-STAGE-TESTING-APP-VM",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0df8cf9645287b10c",
+            "type": "EC2",
+            "label": "conclaves-uswest2-prod-eks-observability-node-01",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-uswest2-prod-eks-cluster"
+            }
+        },
+        {
+            "id": "i-06ac0cfdcbf1b4ceb",
+            "type": "EC2",
+            "label": "conclaves-uswest2-stg-eks-observability",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "ASG: eks-conclaves-uswest2-stg-eks-nodegroup-02-observability-18cf1f5b-8799-5166-72a5-6908dc41ade5"
+            }
+        },
+        {
+            "id": "i-0b61fc04a421da6e0",
+            "type": "EC2",
+            "label": "conclaves-us-west-2-demo-bastion",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0088bf7363cdbc1c9",
+            "type": "EC2",
+            "label": "conclaves-us-west-2-demo-app-node1",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: conclaves-us-west-2-demo-cluster"
+            }
+        },
+        {
+            "id": "i-0a7317d6bd8b5bdf5",
+            "type": "EC2",
+            "label": "CD-CAREVOY-US-WEST-2-QA-APP-VM",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-024141aa2518eaaff",
+            "type": "EC2",
+            "label": "cd-ats-nonprod-bastion",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2"
+            }
+        },
+        {
+            "id": "i-0c15aa53e3829eb46",
+            "type": "EC2",
+            "label": "i-0c15aa53e3829eb46",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "EKS: cd-ats-us-west-2-nonprod-cluster"
+            }
+        },
+        {
+            "id": "i-05960e68ff2de5864",
+            "type": "EC2",
+            "label": "i-05960e68ff2de5864",
+            "status": "running",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Region": "us-west-2",
+                "managed_by": "ASG: eks-cd-ats-us-west-2-nonprod-app-node-group-fed01cb4-6d88-812d-3096-2ed462a48f0c"
+            }
+        },
+        {
+            "id": "arn:aws:iam::575108936684:role/CloudWatchAgentServerRole",
+            "type": "IAM_ROLE",
+            "label": "CloudWatchAgentServerRole",
+            "status": "available",
+            "region": "global",
+            "account_name": "cd-prod",
+            "metadata": {
+                "RoleName": "CloudWatchAgentServerRole",
+                "CreateDate": "2026-01-23 07:42:23+00:00",
+                "AttachedPoliciesCount": 4,
+                "Type": "Instance Profile",
+                "Region": "global",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "sg-09967be69b271b01e",
+            "type": "SECURITY_GROUP",
+            "label": "sg-09967be69b271b01e",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-09967be69b271b01e",
+                "Region": "us-west-2",
+                "Inbound Rules": [
+                    "Allow TCP 5004 from sg-05e1bad1a4cebcba7",
+                    "Allow TCP 5432 from sg-023cc7dd03d2b2e5e",
+                    "Allow TCP 5432 from sg-05e1bad1a4cebcba7",
+                    "Allow TCP 22 from sg-023cc7dd03d2b2e5e",
+                    "Allow TCP 6379 from 10.50.101.0/24",
+                    "Allow TCP 5011 from sg-05e1bad1a4cebcba7",
+                    "Allow TCP 5009 from sg-05e1bad1a4cebcba7",
+                    "Allow TCP 27017 from 10.50.101.0/24",
+                    "Allow TCP 27017 from sg-023cc7dd03d2b2e5e",
+                    "Allow TCP 0 from sg-023cc7dd03d2b2e5e",
+                    "Allow TCP 3306 from 10.50.101.0/24",
+                    "Allow TCP 3306 from sg-023cc7dd03d2b2e5e",
+                    "Allow TCP 9092 from sg-05e1bad1a4cebcba7"
+                ],
+                "Outbound Rules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ],
+                "GroupName": "CONCLAVES-US-WEST-2-DEV-DB-SG",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vpc-0a3c0caf0b566931a",
+            "type": "VPC",
+            "label": "CMS & CONCLAVES-US-WEST-2-DEV-VPC",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "CidrBlock": "10.50.0.0/16",
+                "InstanceTenancy": "default",
+                "IsDefault": false,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-0beb513b1c8479b85",
+            "type": "SUBNET",
+            "label": "CONCLAVES-US-WEST-2-DEV-PRIVATE-SUBNET-2",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "CidrBlock": "10.50.102.0/24",
+                "AvailabilityZone": "us-west-2c",
+                "AvailableIpAddressCount": 215,
+                "MapPublicIpOnLaunch": false,
+                "Region": "us-west-2",
+                "NACL_Id": "acl-0f9769e0b44cf16ec",
+                "InboundRules": [
+                    "#100 ALLOW ALL TRAFFIC from 0.0.0.0/0"
+                ],
+                "OutboundRules": [
+                    "#100 ALLOW ALL TRAFFIC to 0.0.0.0/0"
+                ],
+                "RouteTable_Id": "rtb-01de65d3c68291055",
+                "Routes": [
+                    "10.50.0.0/16 -> local",
+                    "0.0.0.0/0 -> nat-01d2f1fec62bf7809"
+                ],
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "igw-03e074a5298a0ed35",
+            "type": "IGW",
+            "label": "CMS & CONCLAVES-US-WEST-2-DEV-IGW",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "AttachmentState": "available",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "nat-01d2f1fec62bf7809",
+            "type": "NAT",
+            "label": "CONCLAVES-US-WEST-2-NAT",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "PublicIp": "44.233.206.189",
+                "PrivateIp": "10.50.100.113",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-00d0be93b21e84ba8",
+            "type": "SUBNET",
+            "label": "CONCLAVES-US-WEST-2-DEV-PUBLIC-SUBNET-1",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "CidrBlock": "10.50.100.0/24",
+                "AvailabilityZone": "us-west-2a",
+                "Type": "Public Subnet (NAT)",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "nat-093c58fbf8d81c23f",
+            "type": "NAT",
+            "label": "CMS-US-WEST-2-DEV-NGW",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "PublicIp": "52.89.130.152",
+                "PrivateIp": "10.50.8.235",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-0ca3eff32d581eea2",
+            "type": "SUBNET",
+            "label": "CMS-US-WEST-2-DEV-PUBLIC-SUBNET",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "CidrBlock": "10.50.8.0/24",
+                "AvailabilityZone": "us-west-2a",
+                "Type": "Public Subnet (NAT)",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vol-04e8fbf17e60a0ae0",
+            "type": "EBS",
+            "label": "vol-04e8fbf17e60a0ae0",
+            "status": "in-use",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "SizeGB": 64,
+                "VolumeType": "gp3",
+                "IOPS": 3000,
+                "Encrypted": false,
+                "Throughput": 125,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical",
+            "type": "CLOUDWATCH_ALARM",
+            "label": "conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical",
+            "status": "ok",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "MetricName": "disk_used_percent",
+                "Namespace": "CWAgent",
+                "Statistic": "Average",
+                "Threshold": 90.0,
+                "Type": "CloudWatch Alarm",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning",
+            "type": "CLOUDWATCH_ALARM",
+            "label": "conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning",
+            "status": "ok",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "MetricName": "disk_used_percent",
+                "Namespace": "CWAgent",
+                "Statistic": "Average",
+                "Threshold": 80.0,
+                "Type": "CloudWatch Alarm",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-critical",
+            "type": "CLOUDWATCH_ALARM",
+            "label": "conclaves-ec2-i-09b12fe77046590aa-highcpu-critical",
+            "status": "ok",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Threshold": 90.0,
+                "Type": "CloudWatch Alarm",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-warning",
+            "type": "CLOUDWATCH_ALARM",
+            "label": "conclaves-ec2-i-09b12fe77046590aa-highcpu-warning",
+            "status": "ok",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Threshold": 80.0,
+                "Type": "CloudWatch Alarm",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical",
+            "type": "CLOUDWATCH_ALARM",
+            "label": "conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical",
+            "status": "ok",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "MetricName": "StatusCheckFailed",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Minimum",
+                "Threshold": 0.0,
+                "Type": "CloudWatch Alarm",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "conclaves-uswest2-dev-docdb-01",
+            "type": "RDS",
+            "label": "conclaves-uswest2-dev-docdb-01",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Engine": "docdb",
+                "AllocatedStorage": 1,
+                "InstanceClass": "db.t3.medium",
+                "MultiAZ": false,
+                "PubliclyAccessible": false,
+                "DBClusterIdentifier": "conclaves-uswest2-dev-docdb-01",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "sg-0ca5804be459eb30e",
+            "type": "SECURITY_GROUP",
+            "label": "conclaves-uswest2-dev-docdb-sg (sg-0ca5804be459eb30e)",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Type": "Security Group",
+                "GroupId": "sg-0ca5804be459eb30e",
+                "Region": "us-west-2",
+                "Inbound Rules": [
+                    "Allow TCP 27017 from sg-05e1bad1a4cebcba7",
+                    "Allow TCP 27017 from sg-023cc7dd03d2b2e5e"
+                ],
+                "Outbound Rules": [
+                    "Allow All All to Public (0.0.0.0/0)"
+                ],
+                "GroupName": "conclaves-uswest2-dev-docdb-sg",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "conclaves-uswest2-dev-docdb-012",
+            "type": "RDS",
+            "label": "conclaves-uswest2-dev-docdb-012",
+            "status": "available",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "Engine": "docdb",
+                "AllocatedStorage": 1,
+                "InstanceClass": "db.t3.medium",
+                "MultiAZ": false,
+                "PubliclyAccessible": false,
+                "DBClusterIdentifier": "conclaves-uswest2-dev-docdb-01",
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-172.20.0.1",
+            "type": "REMOTE",
+            "label": "172.20.0.1",
+            "status": "passive",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 0,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-caregiver-api",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "caregiver-api",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 2,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-caregiver-websocket",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "caregiver-websocket",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 4,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-aisvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "dev-aisvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 6,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "DEGRADED",
+                "diagnostic": "X-Ray reported 10 errors for this service."
+            }
+        },
+        {
+            "id": "xray-dev-apigatewaysvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "dev-apigatewaysvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 8,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-authservicesvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "dev-authservicesvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 10,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-frontendsvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "dev-frontendsvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 12,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-jobmanagementsvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "dev-jobmanagementsvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 14,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-mongoose",
+            "type": "REMOTE",
+            "label": "mongoose",
+            "status": "passive",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 15,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-monitoring-grafana",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "monitoring-grafana",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 17,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-postgresql",
+            "type": "DATABASE::SQL",
+            "label": "postgresql",
+            "status": "passive",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 18,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-qa-apigatewaysvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "qa-apigatewaysvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 20,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-qa-frontendsvc-ats",
+            "type": "AWS::EKS::CONTAINER",
+            "label": "qa-frontendsvc-ats",
+            "status": "active",
+            "region": "us-west-2",
+            "account_name": "cd-prod",
+            "metadata": {
+                "XRayReferenceId": 22,
+                "Faults": 0,
+                "Errors": 0,
+                "Region": "us-west-2",
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical::arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical",
+            "target": "arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "relation": "TRIGGERS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical::i-09b12fe77046590aa",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-critical",
+            "target": "i-09b12fe77046590aa",
+            "relation": "MONITORS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning::arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning",
+            "target": "arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "relation": "TRIGGERS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning::i-09b12fe77046590aa",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-EC2-i-09b12fe77046590aa-diskspaceUtilization-warning",
+            "target": "i-09b12fe77046590aa",
+            "relation": "MONITORS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-critical::arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-critical",
+            "target": "arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "relation": "TRIGGERS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-critical::i-09b12fe77046590aa",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-critical",
+            "target": "i-09b12fe77046590aa",
+            "relation": "MONITORS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-warning::arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-warning",
+            "target": "arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "relation": "TRIGGERS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-warning::i-09b12fe77046590aa",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-highcpu-warning",
+            "target": "i-09b12fe77046590aa",
+            "relation": "MONITORS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical::arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical",
+            "target": "arn:aws:sns:us-west-2:575108936684:sre-alerts",
+            "relation": "TRIGGERS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical::i-09b12fe77046590aa",
+            "source": "arn:aws:cloudwatch:us-west-2:575108936684:alarm:conclaves-ec2-i-09b12fe77046590aa-statuscheckfailed-critical",
+            "target": "i-09b12fe77046590aa",
+            "relation": "MONITORS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "arn:aws:iam::575108936684:role/CloudWatchAgentServerRole::i-09b12fe77046590aa",
+            "source": "arn:aws:iam::575108936684:role/CloudWatchAgentServerRole",
+            "target": "i-09b12fe77046590aa",
+            "relation": "GRANTS_ACCESS_TO",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "i-09b12fe77046590aa::vol-04e8fbf17e60a0ae0",
+            "source": "i-09b12fe77046590aa",
+            "target": "vol-04e8fbf17e60a0ae0",
+            "relation": "MOUNTS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "i-09b12fe77046590aa::conclaves-uswest2-dev-docdb-01",
+            "source": "i-09b12fe77046590aa",
+            "target": "conclaves-uswest2-dev-docdb-01",
+            "relation": "QUERIES",
+            "metadata": {
+                "health_state": "BLOCKED",
+                "diagnostic": "Missing SG Ingress Rule on Port 27017"
+            }
+        },
+        {
+            "id": "i-09b12fe77046590aa::conclaves-uswest2-dev-docdb-012",
+            "source": "i-09b12fe77046590aa",
+            "target": "conclaves-uswest2-dev-docdb-012",
+            "relation": "QUERIES",
+            "metadata": {
+                "health_state": "BLOCKED",
+                "diagnostic": "Missing SG Ingress Rule on Port 27017"
+            }
+        },
+        {
+            "id": "sg-09967be69b271b01e::i-09b12fe77046590aa",
+            "source": "sg-09967be69b271b01e",
+            "target": "i-09b12fe77046590aa",
+            "relation": "PROTECTS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "sg-0ca5804be459eb30e::conclaves-uswest2-dev-docdb-01",
+            "source": "sg-0ca5804be459eb30e",
+            "target": "conclaves-uswest2-dev-docdb-01",
+            "relation": "PROTECTS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "sg-0ca5804be459eb30e::conclaves-uswest2-dev-docdb-012",
+            "source": "sg-0ca5804be459eb30e",
+            "target": "conclaves-uswest2-dev-docdb-012",
+            "relation": "PROTECTS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-00d0be93b21e84ba8::nat-01d2f1fec62bf7809",
+            "source": "subnet-00d0be93b21e84ba8",
+            "target": "nat-01d2f1fec62bf7809",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-0beb513b1c8479b85::i-09b12fe77046590aa",
+            "source": "subnet-0beb513b1c8479b85",
+            "target": "i-09b12fe77046590aa",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-0beb513b1c8479b85::nat-01d2f1fec62bf7809",
+            "source": "subnet-0beb513b1c8479b85",
+            "target": "nat-01d2f1fec62bf7809",
+            "relation": "ROUTES_TO",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "subnet-0ca3eff32d581eea2::nat-093c58fbf8d81c23f",
+            "source": "subnet-0ca3eff32d581eea2",
+            "target": "nat-093c58fbf8d81c23f",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vpc-0a3c0caf0b566931a::subnet-0beb513b1c8479b85",
+            "source": "vpc-0a3c0caf0b566931a",
+            "target": "subnet-0beb513b1c8479b85",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vpc-0a3c0caf0b566931a::igw-03e074a5298a0ed35",
+            "source": "vpc-0a3c0caf0b566931a",
+            "target": "igw-03e074a5298a0ed35",
+            "relation": "ATTACHED_TO",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vpc-0a3c0caf0b566931a::subnet-00d0be93b21e84ba8",
+            "source": "vpc-0a3c0caf0b566931a",
+            "target": "subnet-00d0be93b21e84ba8",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "vpc-0a3c0caf0b566931a::subnet-0ca3eff32d581eea2",
+            "source": "vpc-0a3c0caf0b566931a",
+            "target": "subnet-0ca3eff32d581eea2",
+            "relation": "CONTAINS",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-caregiver-api::xray-mongoose",
+            "source": "xray-caregiver-api",
+            "target": "xray-mongoose",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-caregiver-api::xray-caregiver-api",
+            "source": "xray-caregiver-api",
+            "target": "xray-caregiver-api",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-caregiver-websocket::xray-caregiver-websocket",
+            "source": "xray-caregiver-websocket",
+            "target": "xray-caregiver-websocket",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-aisvc-ats::xray-dev-aisvc-ats",
+            "source": "xray-dev-aisvc-ats",
+            "target": "xray-dev-aisvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-apigatewaysvc-ats::xray-dev-apigatewaysvc-ats",
+            "source": "xray-dev-apigatewaysvc-ats",
+            "target": "xray-dev-apigatewaysvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-authservicesvc-ats::xray-postgresql",
+            "source": "xray-dev-authservicesvc-ats",
+            "target": "xray-postgresql",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-authservicesvc-ats::xray-dev-authservicesvc-ats",
+            "source": "xray-dev-authservicesvc-ats",
+            "target": "xray-dev-authservicesvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-frontendsvc-ats::xray-dev-frontendsvc-ats",
+            "source": "xray-dev-frontendsvc-ats",
+            "target": "xray-dev-frontendsvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-jobmanagementsvc-ats::xray-postgresql",
+            "source": "xray-dev-jobmanagementsvc-ats",
+            "target": "xray-postgresql",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-dev-jobmanagementsvc-ats::xray-dev-jobmanagementsvc-ats",
+            "source": "xray-dev-jobmanagementsvc-ats",
+            "target": "xray-dev-jobmanagementsvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-monitoring-grafana::xray-172.20.0.1",
+            "source": "xray-monitoring-grafana",
+            "target": "xray-172.20.0.1",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-monitoring-grafana::xray-monitoring-grafana",
+            "source": "xray-monitoring-grafana",
+            "target": "xray-monitoring-grafana",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-qa-apigatewaysvc-ats::xray-qa-apigatewaysvc-ats",
+            "source": "xray-qa-apigatewaysvc-ats",
+            "target": "xray-qa-apigatewaysvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        },
+        {
+            "id": "xray-qa-frontendsvc-ats::xray-qa-frontendsvc-ats",
+            "source": "xray-qa-frontendsvc-ats",
+            "target": "xray-qa-frontendsvc-ats",
+            "relation": "INVOKES",
+            "metadata": {
+                "health_state": "HEALTHY",
+                "diagnostic": null
+            }
+        }
+    ]
+}

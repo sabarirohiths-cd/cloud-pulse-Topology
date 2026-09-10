@@ -14,25 +14,40 @@ def extract_subgraph(data: dict, start_node_id: str) -> dict:
     if not start_node_id:
         return {"nodes": [], "edges": []}
         
+    node_types = {n.get("id"): n.get("type", "") for n in nodes}
     connected_nodes = {start_node_id}
+    
+    # Do not traverse BACKWARDS from these node types (i.e. if we are at an SNS topic, don't find other alarms that trigger it)
+    STOP_BACKWARDS = {"SNS_TOPIC"}
+    
     changed = True
     while changed:
         changed = False
         for e in edges:
             src, tgt = e.get("source"), e.get("target")
             
-            # Check if target is another EC2 instance
+            # Forward traversal: src is in connected_nodes, we found a new tgt
             if src in connected_nodes and tgt not in connected_nodes:
-                tgt_node = next((n for n in nodes if n.get("id") == tgt), {})
-                if tgt_node.get("type") == "EC2" and tgt != start_node_id:
+                tgt_type = node_types.get(tgt, "")
+                # Prevent lateral movement: if we are at a TG or ALB, do not traverse forward to other EC2s
+                if tgt_type == "EC2" and tgt != start_node_id:
                     continue
                 connected_nodes.add(tgt)
                 changed = True
                 
-            # Check if source is another EC2 instance
+            # Backward traversal: tgt is in connected_nodes, we found a new src
             elif tgt in connected_nodes and src not in connected_nodes:
-                src_node = next((n for n in nodes if n.get("id") == src), {})
-                if src_node.get("type") == "EC2" and src != start_node_id:
+                tgt_type = node_types.get(tgt, "")
+                tgt_str = str(tgt)
+                
+                # Stop backwards traversal from SNS topics (even if node type is missing) to prevent cross-alarm leakage
+                if tgt_type in STOP_BACKWARDS or tgt_str.startswith("arn:aws:sns:"):
+                    continue
+                    
+                src_type = node_types.get(src, "")
+                # We WANT to traverse backwards to TARGET_GROUP and ALB (upstream traffic).
+                # We only stop traversing backward if we hit ANOTHER EC2 (which shouldn't happen, but just in case).
+                if src_type == "EC2" and src != start_node_id:
                     continue
                 connected_nodes.add(src)
                 changed = True
@@ -48,7 +63,7 @@ def extract_subgraph(data: dict, start_node_id: str) -> dict:
     }
 
 @router.get("/scan/compute-flow/local")
-async def get_local_compute_flow(region: str = None):
+async def get_local_compute_flow(region: str = None, account_name: str = None):
     from app.core.database import SessionLocal
     from sqlalchemy import select
     from app.models.topology.topology_models import TopologyNode, TopologyEdge
@@ -56,6 +71,8 @@ async def get_local_compute_flow(region: str = None):
         query = select(TopologyNode)
         if region:
             query = query.filter(TopologyNode.region == region)
+        if account_name:
+            query = query.filter(TopologyNode.account_name == account_name)
         nodes_res = await db.execute(query)
         nodes = nodes_res.scalars().all()
         
@@ -139,14 +156,109 @@ async def get_local_trace(compute_id: str):
     raise HTTPException(status_code=404, detail="Trace not found locally")
 
 @router.get("/scan/regions/cached")
-async def get_cached_regions():
+async def get_cached_regions(account_name: str = None):
     from app.core.database import SessionLocal
     from sqlalchemy import select
     from app.models.topology.topology_models import TopologyNode
     async with SessionLocal() as db:
-        res = await db.execute(select(TopologyNode.region).distinct())
+        query = select(TopologyNode.region).distinct()
+        if account_name:
+            query = query.filter(TopologyNode.account_name == account_name)
+        res = await db.execute(query)
         regions = [r for r in res.scalars().all() if r and r != "global"]
         return {"regions": regions}
+
+@router.post("/scan/temp-reset-mock-data")
+async def temp_reset_mock_data():
+    import os, json
+    from app.core.database import SessionLocal
+    from sqlalchemy import select, delete
+    from app.models.topology.topology_models import TopologyNode, TopologyEdge
+    
+    async with SessionLocal() as db:
+        # Check if mock data exists
+        res = await db.execute(select(TopologyNode.id).filter(TopologyNode.account_name == "mock-data"))
+        existing_ids = [r for r in res.scalars().all()]
+        
+        if existing_ids:
+            # Delete mock data
+            await db.execute(delete(TopologyEdge).where(TopologyEdge.source_id.in_(existing_ids) | TopologyEdge.target_id.in_(existing_ids)))
+            await db.execute(delete(TopologyNode).where(TopologyNode.id.in_(existing_ids)))
+            await db.commit()
+            return {"status": "success", "message": "Mock data deleted", "action": "deleted"}
+        
+        # Otherwise, Insert mock data
+        filename = "data/last_compute_flow.json"
+        if not os.path.exists(filename):
+            raise HTTPException(status_code=404, detail="Mock data file not found")
+            
+        with open(filename, "r") as f:
+            data = json.load(f)
+            
+        # Insert nodes
+        for n in data.get("nodes", []):
+            meta = n.get("metadata", {})
+            if "health_state" in n: meta["health_state"] = n["health_state"]
+            if "diagnostic" in n: meta["diagnostic"] = n["diagnostic"]
+            if "diagnostic_details" in n: meta["diagnostic_details"] = n["diagnostic_details"]
+            
+            region = meta.get("Region", "eu-west-1")
+            account_name = "mock-data"
+            
+            node = TopologyNode(
+                id=f"mock-{n['id']}",
+                type=n.get("type", "UNKNOWN"),
+                label=n.get("label"),
+                region=region,
+                account_name=account_name,
+                status=n.get("status", "UNKNOWN"),
+                metadata_json=meta
+            )
+            db.add(node)
+            
+        # Insert edges
+        for e in data.get("edges", []):
+            meta = {}
+            if "health_state" in e: meta["health_state"] = e["health_state"]
+            if "diagnostic" in e: meta["diagnostic"] = e["diagnostic"]
+            
+            mock_source = f"mock-{e['source']}"
+            mock_target = f"mock-{e['target']}"
+            
+            edge = TopologyEdge(
+                id=f"{mock_source}::{mock_target}",
+                source_id=mock_source,
+                target_id=mock_target,
+                type=e.get("relation", "LINK"),
+                metadata_json=meta
+            )
+            db.add(edge)
+            
+        await db.commit()
+        
+    return {"status": "success", "message": "Database populated with mock data", "action": "inserted"}
+
+@router.post("/scan/temp-clear-all")
+async def temp_clear_all():
+    from app.core.database import SessionLocal
+    from sqlalchemy import text
+    
+    async with SessionLocal() as db:
+        await db.execute(text("DELETE FROM topology_edges"))
+        await db.execute(text("DELETE FROM topology_nodes"))
+        await db.commit()
+        
+    return {"status": "success", "message": "All topology data cleared"}
+
+@router.get("/scan/accounts/cached")
+async def get_cached_accounts():
+    from app.core.database import SessionLocal
+    from sqlalchemy import select
+    from app.models.topology.topology_models import TopologyNode
+    async with SessionLocal() as db:
+        res = await db.execute(select(TopologyNode.account_name).distinct())
+        accounts = [r for r in res.scalars().all() if r]
+        return {"accounts": accounts}
 
 @router.post("/scan/compute-flow", response_model=ComputeFlowResponse)
 async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyService = Depends(get_topology_service)):
@@ -156,6 +268,7 @@ async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyServic
             status="success",
             message=f"Compute flow successfully traced for {request.compute_type} {request.resource_id}",
             compute_id=data.get('compute_id'),
+            warnings=data.get('warnings', []),
             nodes=data.get('nodes', []),
             edges=data.get('edges', [])
         )
@@ -163,7 +276,7 @@ async def scan_compute_flow(request: ComputeFlowRequest, service: TopologyServic
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/scan/compute-resources/local")
-async def get_local_compute_resources(region: str = None, compute_type: str = "EC2"):
+async def get_local_compute_resources(region: str = None, compute_type: str = "EC2", account_name: str = None):
     from app.core.database import SessionLocal
     from sqlalchemy import select
     from app.models.topology.topology_models import TopologyNode
@@ -171,6 +284,8 @@ async def get_local_compute_resources(region: str = None, compute_type: str = "E
         query = select(TopologyNode).filter(TopologyNode.type == compute_type)
         if region:
             query = query.filter(TopologyNode.region == region)
+        if account_name:
+            query = query.filter(TopologyNode.account_name == account_name)
             
         res = await db.execute(query)
         nodes = res.scalars().all()
@@ -203,6 +318,8 @@ async def get_compute_resources(
             resources=resources
         )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/supported-compute-types")

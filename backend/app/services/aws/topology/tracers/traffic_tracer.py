@@ -13,12 +13,22 @@ class TrafficTracer(BaseTracer):
         if not vpc_id or not target_ids:
             return
 
-        target_groups = self.elbv2_client.describe_target_groups().get('TargetGroups', [])
+        # Strip None/empty values to prevent false-positive matching
+        target_ids = [t for t in target_ids if t]
+        if not target_ids:
+            return
+
+        target_groups = []
+        paginator_tg = self.elbv2_client.get_paginator('describe_target_groups')
+        for page in paginator_tg.paginate():
+            target_groups.extend(page.get('TargetGroups', []))
         
         associated_tgs = []
-        for tg in target_groups:
-            if tg.get('VpcId') != vpc_id: continue
-            
+        
+        import concurrent.futures
+
+        def check_tg(tg):
+            if tg.get('VpcId') != vpc_id: return None
             tg_arn = tg['TargetGroupArn']
             try:
                 health_response = self.elbv2_client.describe_target_health(TargetGroupArn=tg_arn)
@@ -32,26 +42,34 @@ class TrafficTracer(BaseTracer):
                     
                     if target_id in target_ids:
                         match_found = True
+                        logger.info(f"MATCH FOUND! TG: {tg_arn} | Target ID: {target_id} is in {target_ids}")
                         
                 if match_found:
-                    associated_tgs.append(tg)
-                    tg_name = tg.get('TargetGroupName')
-                    
                     unhealthy_count = sum(1 for h in health_response.get('TargetHealthDescriptions', []) if h.get('TargetHealth', {}).get('State') == 'unhealthy')
-                    tg_health = "CRITICAL" if has_unhealthy else "HEALTHY"
-                    tg_diag = f"Health check failed ({unhealthy_count} unhealthy). Web process may be down." if has_unhealthy else None
-                    
-                    self.add_node(tg_arn, 'TARGET_GROUP', tg_name, 'active', {
-                        "Protocol": tg.get('Protocol'),
-                        "Port": tg.get('Port'),
-                        "TargetType": tg.get('TargetType'),
-                        "HealthCheckPath": tg.get('HealthCheckPath'),
-                        "UnhealthyHostCount": unhealthy_count
-                    }, health_state=tg_health, diagnostic=tg_diag)
-                    self.add_edge(tg_arn, root_id, 'TARGETS')
-                    
+                    return (tg, has_unhealthy, unhealthy_count)
             except Exception as e:
                 logger.warning(f"Failed to fetch health for TG {tg_arn}: {e}")
+            return None
+
+        for tg in target_groups:
+            result = check_tg(tg)
+            if result:
+                tg, has_unhealthy, unhealthy_count = result
+                associated_tgs.append(tg)
+                tg_arn = tg['TargetGroupArn']
+                tg_name = tg.get('TargetGroupName')
+                
+                tg_health = "CRITICAL" if has_unhealthy else "HEALTHY"
+                tg_diag = f"Health check failed ({unhealthy_count} unhealthy). Web process may be down." if has_unhealthy else None
+                
+                self.add_node(tg_arn, 'TARGET_GROUP', tg_name, 'active', {
+                    "Protocol": tg.get('Protocol'),
+                    "Port": tg.get('Port'),
+                    "TargetType": tg.get('TargetType'),
+                    "HealthCheckPath": tg.get('HealthCheckPath'),
+                    "UnhealthyHostCount": unhealthy_count
+                }, health_state=tg_health, diagnostic=tg_diag)
+                self.add_edge(tg_arn, root_id, 'TARGETS')
                 
         # Trace ALBs
         lb_dns_names = []
@@ -86,29 +104,34 @@ class TrafficTracer(BaseTracer):
                     
         # Trace Route53
         if lb_dns_names:
-            zones = self.route53_client.list_hosted_zones().get('HostedZones', [])
-            for zone in zones:
-                zone_id = zone['Id']
-                records = self.route53_client.list_resource_record_sets(HostedZoneId=zone_id).get('ResourceRecordSets', [])
-                for record in records:
-                    if record['Type'] in ['A', 'CNAME']:
-                        match_found = False
-                        
-                        for val in record.get('ResourceRecords', []):
-                            if any(lb_dns in val['Value'].lower() for lb_dns in lb_dns_names):
-                                match_found = True
-                                break
+            paginator_hz = self.route53_client.get_paginator('list_hosted_zones')
+            for hz_page in paginator_hz.paginate():
+                zones = hz_page.get('HostedZones', [])
+                for zone in zones:
+                    zone_id = zone['Id']
+                    
+                    paginator_rr = self.route53_client.get_paginator('list_resource_record_sets')
+                    for rr_page in paginator_rr.paginate(HostedZoneId=zone_id):
+                        records = rr_page.get('ResourceRecordSets', [])
+                        for record in records:
+                            if record['Type'] in ['A', 'CNAME']:
+                                match_found = False
                                 
-                        if not match_found and 'AliasTarget' in record:
-                            dns_name = record['AliasTarget'].get('DNSName', '').lower()
-                            if any(lb_dns in dns_name for lb_dns in lb_dns_names):
-                                match_found = True
-                                
-                        if match_found:
-                            rec_name = record['Name'].strip('.')
-                            self.add_node(rec_name, 'ROUTE53', rec_name, 'active', {
-                                "RecordType": record.get('Type'),
-                                "TTL": record.get('TTL')
-                            })
-                            for arn in alb_arns:
-                                self.add_edge(rec_name, arn, 'ROUTES_TO')
+                                for val in record.get('ResourceRecords', []):
+                                    if any(lb_dns in val['Value'].lower() for lb_dns in lb_dns_names):
+                                        match_found = True
+                                        break
+                                        
+                                if not match_found and 'AliasTarget' in record:
+                                    dns_name = record['AliasTarget'].get('DNSName', '').lower()
+                                    if any(lb_dns in dns_name for lb_dns in lb_dns_names):
+                                        match_found = True
+                                        
+                                if match_found:
+                                    rec_name = record['Name'].strip('.')
+                                    self.add_node(rec_name, 'ROUTE53', rec_name, 'active', {
+                                        "RecordType": record.get('Type'),
+                                        "TTL": record.get('TTL')
+                                    })
+                                    for arn in alb_arns:
+                                        self.add_edge(rec_name, arn, 'ROUTES_TO')

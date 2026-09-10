@@ -74,21 +74,7 @@ async def evaluate_resource(session, sched: ControlResource):
                 )
                 logger.info(f"[{sched.resource_id}] Pre-warning sent. Extend URL: {urls['extend_url']}")
         
-        # 4. Optimize AWS API calls
-        is_db_running = sched.status in ['RUNNING', 'AVAILABLE']
-        is_db_stopped = sched.status in ['STOPPED', 'PAUSED', 'TERMINATED']
-        is_transitioning = sched.status in ['STARTING', 'STOPPING', 'TERMINATING']
-        
-        needs_aws_check = False
-        if is_transitioning:
-            needs_aws_check = True
-        elif target_action == 'START' and not is_db_running:
-            needs_aws_check = True
-        elif target_action == 'STOP' and not is_db_stopped:
-            needs_aws_check = True
-            
-        if not needs_aws_check:
-            return  # The database matches the desired schedule, save API costs!
+        # 4. Optimize AWS API calls (Removed transition logic as per read-only mode)
         
         # 5. Fetch Cloud Config
         stmt = select(ConfigCloudAccount).where(ConfigCloudAccount.account_name == sched.account_name)
@@ -109,71 +95,13 @@ async def evaluate_resource(session, sched: ControlResource):
         is_live_running = live_state_lower in ['running', 'available']
         is_live_stopped = live_state_lower in ['stopped', 'paused', 'terminated']
         
-        if target_action == 'START' and is_live_stopped:
-            logger.info(f"[{sched.resource_id}] Target: START, Live: {live_state}. Executing START.")
-            import json
-            await control_service.start_resource(config.provider, creds, sched.region, sched.service_type, sched.resource_id)
-            sched.last_action_executed = datetime.utcnow()
-            sched.status = 'STARTING'
-            config_data = json.loads(sched.saved_config_json) if sched.saved_config_json else {}
-            config_data['last_action'] = "SCHEDULE START"
-            sched.saved_config_json = json.dumps(config_data)
-            await session.commit()
-            
-        elif target_action == 'STOP' and is_live_running:
-            logger.info(f"[{sched.resource_id}] Target: STOP, Live: {live_state}. Executing STOP.")
-            import json
-            await control_service.stop_resource(config.provider, creds, sched.region, sched.service_type, sched.resource_id)
-            sched.last_action_executed = datetime.utcnow()
-            sched.status = 'STOPPING'
-            config_data = json.loads(sched.saved_config_json) if sched.saved_config_json else {}
-            config_data['last_action'] = "SCHEDULE STOP"
-            sched.saved_config_json = json.dumps(config_data)
-            await session.commit()
+        # Start/stop execution logic has been removed entirely as requested.
             
         # 8. Keep DB status perfectly in sync and detect completions
         normalized_live = live_state.upper() if live_state else "UNKNOWN"
         if sched.status != normalized_live:
-            # Prevent bouncing backwards due to AWS eventual consistency
-            if sched.status == "STOPPING" and normalized_live in ["RUNNING", "AVAILABLE"]:
-                pass # Wait for it to actually stop
-            elif sched.status == "STARTING" and normalized_live in ["STOPPED", "PAUSED"]:
-                pass # Wait for it to actually start
-            else:
-                old_status = sched.status
-                sched.status = normalized_live
-                
-                import json
-                config_data = json.loads(sched.saved_config_json) if sched.saved_config_json else {}
-                
-                if old_status in ["STARTING", "PENDING"] and is_live_running:
-                    action_type = config_data.get('last_action', 'SCHEDULE START')
-                    log_control_action(
-                        session=session,
-                        native_id=sched.resource_id,
-                        account_name=sched.account_name,
-                        provider=sched.cloud_provider,
-                        action_type=action_type,
-                        status="SUCCESS",
-                        details="Resource started successfully.",
-                        resource_name=sched.resource_name,
-                        resource_type=sched.service_type
-                    )
-                elif old_status in ["STOPPING", "SHUTTING-DOWN"] and is_live_stopped:
-                    action_type = config_data.get('last_action', 'SCHEDULE STOP')
-                    log_control_action(
-                        session=session,
-                        native_id=sched.resource_id,
-                        account_name=sched.account_name,
-                        provider=sched.cloud_provider,
-                        action_type=action_type,
-                        status="SUCCESS",
-                        details="Resource stopped successfully.",
-                        resource_name=sched.resource_name,
-                        resource_type=sched.service_type
-                    )
-                    
-                await session.commit()
+            sched.status = normalized_live
+            await session.commit()
 
     except Exception as e:
         logger.error(f"Error evaluating resource {sched.resource_id}: {e}")

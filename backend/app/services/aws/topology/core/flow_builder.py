@@ -15,6 +15,7 @@ class ComputeFlowBuilder:
         
         self.nodes = []
         self.edges = []
+        self.warnings = []
         
     def build(self):
         logger.info(f"Dynamically loading fetcher for {self.compute_type}...")
@@ -29,10 +30,19 @@ class ComputeFlowBuilder:
             fetcher_class = getattr(fetcher_module, fetcher_class_name)
             
             fetcher_instance = fetcher_class(self.session, self.region, self.resource_id, self.observability_options, self.lookback_minutes)
-            nodes, edges = fetcher_instance.fetch()
+            result = fetcher_instance.fetch()
             
+            if isinstance(result, tuple):
+                nodes, edges = result
+                warnings = []
+            else:
+                nodes = result.get('nodes', [])
+                edges = result.get('edges', [])
+                warnings = result.get('warnings', [])
+                
             self.nodes.extend(nodes)
             self.edges.extend(edges)
+            self.warnings.extend(warnings)
             
         except ImportError:
             raise NotImplementedError(f"Flow tracing fetcher for {self.compute_type} is not yet implemented.")
@@ -42,5 +52,6 @@ class ComputeFlowBuilder:
         return {
             "compute_id": self.resource_id,
             "nodes": self.nodes,
-            "edges": self.edges
+            "edges": self.edges,
+            "warnings": self.warnings
         }

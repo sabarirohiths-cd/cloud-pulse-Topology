@@ -43,7 +43,7 @@ class TopologyService:
             return boto3.Session(region_name=region)
 
     async def scan_compute_flow(self, request: ComputeFlowRequest):
-        print(f"\n[DEEP FETCH] 🔍 Deep Tracing {request.compute_type} {request.resource_id} in {request.region}...\n")
+        print(f"\n[DEEP FETCH] Deep Tracing {request.compute_type} {request.resource_id} in {request.region}...\n")
         
         session_aws = await self.get_aws_session(request.account_id, request.region)
         
@@ -71,7 +71,7 @@ class TopologyService:
                 if "diagnostic_details" in n: meta["diagnostic_details"] = n["diagnostic_details"]
                 
                 region = meta.get("Region") or meta.get("region") or n.get("region")
-                account_name = meta.get("AccountName") or meta.get("account_name") or n.get("account_name") or "cpi-topology-scanner"
+                account_name = meta.get("AccountName") or meta.get("account_name") or n.get("account_name") or request.account_id or "UNKNOWN"
                 
                 if str(n['id']).startswith("arn:aws:"):
                     parts = str(n['id']).split(":")
@@ -102,6 +102,8 @@ class TopologyService:
                 target = e.get('target')
                 if not source or not target: continue
                 edge_id = f"{source}::{target}"
+                e['id'] = edge_id
+                e['type'] = e.get("relation", "LINK")
                 
                 meta = e.get('metadata', {})
                 if "health_state" in e: meta["health_state"] = e["health_state"]
@@ -135,56 +137,67 @@ class TopologyService:
         if compute_type_upper == 'EC2':
             client = session_aws.client('ec2', region_name=region)
             paginator = client.get_paginator('describe_instances')
-            for page in paginator.paginate():
-                for res in page.get('Reservations', []):
-                    for inst in res.get('Instances', []):
-                        tags = {t['Key']: t['Value'] for t in inst.get('Tags', [])}
-                        name = tags.get('Name')
-                        
-                        managed_by = None
-                        
-                        # Mapping of AWS tags to their human-readable service names
-                        MANAGED_TAGS_MAP = {
-                            'aws:autoscaling:groupname': 'ASG',
-                            'eks:cluster-name': 'EKS',
-                            'elasticbeanstalk:environment-name': 'Beanstalk',
-                            'aws:batch:compute-environment': 'Batch',
-                            'elasticmapreduce:job-flow-id': 'EMR',
-                            'aws:cloudformation:stack-name': 'CFN'
-                        }
-                        
-                        managed_by = None
-                        for tk, tv in tags.items():
-                            tk_lower = tk.lower()
-                            if tk_lower in MANAGED_TAGS_MAP:
-                                # We prioritize explicit clusters over CFN
-                                if MANAGED_TAGS_MAP[tk_lower] != 'CFN' or not managed_by:
-                                    managed_by = f"{MANAGED_TAGS_MAP[tk_lower]}: {tv}"
-                                if MANAGED_TAGS_MAP[tk_lower] != 'CFN':
+            
+            from botocore.exceptions import ClientError
+            
+            try:
+                for page in paginator.paginate():
+                    for res in page.get('Reservations', []):
+                        for inst in res.get('Instances', []):
+                            tags = {t['Key']: t['Value'] for t in inst.get('Tags', [])}
+                            name = tags.get('Name')
+                            
+                            managed_by = None
+                            
+                            # Mapping of AWS tags to their human-readable service names
+                            MANAGED_TAGS_MAP = {
+                                'aws:autoscaling:groupname': 'ASG',
+                                'eks:cluster-name': 'EKS',
+                                'elasticbeanstalk:environment-name': 'Beanstalk',
+                                'aws:batch:compute-environment': 'Batch',
+                                'elasticmapreduce:job-flow-id': 'EMR',
+                                'aws:cloudformation:stack-name': 'CFN'
+                            }
+                            
+                            managed_by = None
+                            for tk, tv in tags.items():
+                                tk_lower = tk.lower()
+                                if tk_lower in MANAGED_TAGS_MAP:
+                                    # We prioritize explicit clusters over CFN
+                                    if MANAGED_TAGS_MAP[tk_lower] != 'CFN' or not managed_by:
+                                        managed_by = f"{MANAGED_TAGS_MAP[tk_lower]}: {tv}"
+                                    if MANAGED_TAGS_MAP[tk_lower] != 'CFN':
+                                        break
+                                elif 'amazonecsmanaged' in tk_lower:
+                                    managed_by = "ECS Worker"
                                     break
-                            elif 'amazonecsmanaged' in tk_lower:
-                                managed_by = "ECS Worker"
-                                break
-                            
-                        state_name = inst.get('State', {}).get('Name', 'unknown')
-                        if state_name in ['terminated', 'shutting-down']:
-                            continue
-                            
-                        resources.append({
-                            "id": inst['InstanceId'],
-                            "name": name,
-                            "type": "EC2",
-                            "state": state_name,
-                            "region": region,
-                            "managed_by": managed_by
-                        })
+                                
+                            state_name = inst.get('State', {}).get('Name', 'unknown')
+                            if state_name in ['terminated', 'shutting-down']:
+                                continue
+                                
+                            resources.append({
+                                "id": inst['InstanceId'],
+                                "name": name,
+                                "type": "EC2",
+                                "state": state_name,
+                                "region": region,
+                                "managed_by": managed_by
+                            })
+            except ClientError as e:
+                print(f"[WARNING] Skipping EC2 scan in {region} due to AWS error: {e}")
+                return []
         else:
             raise NotImplementedError(f"Listing for {compute_type} is not yet implemented.")
             
         async with SessionLocal() as db:
-            # 1. Prune nodes that no longer exist in AWS for this compute type and region
+            # 1. Prune nodes that no longer exist in AWS for this compute type, region, and account
             fetched_resource_ids = {res['id'] for res in resources}
-            result = await db.execute(select(TopologyNode.id).filter(TopologyNode.type == compute_type_upper, TopologyNode.region == region))
+            result = await db.execute(select(TopologyNode.id).filter(
+                TopologyNode.type == compute_type_upper, 
+                TopologyNode.region == region,
+                TopologyNode.account_name == account_id
+            ))
             existing_ids_for_type_region = {row for row in result.scalars().all()}
             
             keys_to_delete = existing_ids_for_type_region - fetched_resource_ids
@@ -215,7 +228,7 @@ class TopologyService:
                         type=res['type'],
                         label=res['name'] or res['id'],
                         region=res['region'],
-                        account_name="cpi-topology-scanner",
+                        account_name=account_id,
                         status=res['state'],
                         metadata_json=metadata
                     )

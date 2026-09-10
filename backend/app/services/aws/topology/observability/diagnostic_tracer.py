@@ -29,8 +29,8 @@ class DiagnosticTracer:
         
         # CLEAR TERMINAL MESSAGES FOR USER
         print(f"\n{'='*60}")
-        print(f"🚀 STARTED DEEP DIAGNOSTICS FOR: {instance_id}")
-        print(f"🛠️  Options: {options} | Lookback: {lookback_minutes}m")
+        print(f"STARTED DEEP DIAGNOSTICS FOR: {instance_id}")
+        print(f"Options: {options} | Lookback: {lookback_minutes}m")
         print(f"{'='*60}\n")
         
         options = [opt.upper() for opt in options]
@@ -88,7 +88,7 @@ class DiagnosticTracer:
         # Recalculate worst_health and summaries from the full merged diagnostic_details
         worst_health = "HEALTHY"
         for layer_key, verdict in diagnostic_details.items():
-            if layer_key == "synthesis":
+            if layer_key == "synthesis" or not isinstance(verdict, dict):
                 continue
                 
             layer_status = verdict.get("status", "UNKNOWN")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
+import { Toaster } from './components/ui/Toaster';
 import { Cloud, Activity, Boxes, Settings, PanelLeftClose, PanelLeft } from 'lucide-react';
 import TopologyPage from './pages/topology/TopologyPage';
 import ConfigPage from './pages/config/ConfigPage';
@@ -19,7 +20,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Toaster position="top-right" theme="dark" richColors duration={2500} />
+      <Toaster />
       <div className="flex h-screen bg-[#0a0a0f]" onClick={() => toast.dismiss()}>
         {/* Sidebar */}
         <aside className={`${isSidebarMinimized ? 'w-[72px]' : 'w-56'} transition-all duration-300 ease-in-out bg-[#0e1015] border-r border-[#1e232b] flex flex-col p-3 z-20 relative shrink-0`}>

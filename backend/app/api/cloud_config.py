@@ -6,7 +6,6 @@ from app.models import ConfigCloudAccount
 from sqlalchemy.future import select
 from app.core.security import encrypt_credentials, decrypt_credentials
 import boto3
-
 router = APIRouter(prefix="/cloud-config", tags=["Credentials"])
 
 class ConfigCloudAccountCreate(BaseModel):
@@ -14,6 +13,7 @@ class ConfigCloudAccountCreate(BaseModel):
     account_name: str
     default_region: str = "global"
     credentials: dict
+    active_modules: str = "inventory,control"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_config(payload: ConfigCloudAccountCreate, db: AsyncSession = Depends(get_db)):
@@ -24,7 +24,8 @@ async def create_config(payload: ConfigCloudAccountCreate, db: AsyncSession = De
         account_name=payload.account_name,
         default_region=payload.default_region,
         encrypted_credentials=encrypted_str,
-        verified=False
+        verified=False,
+        active_modules=payload.active_modules
     )
     db.add(db_config)
     await db.commit()
@@ -46,10 +47,17 @@ async def list_configs(db: AsyncSession = Depends(get_db)):
             "verified": c.verified,
             "auto_sync_enabled": c.auto_sync_enabled,
             "auto_sync_time": c.auto_sync_time,
-            "auto_sync_timezone": c.auto_sync_timezone
+            "auto_sync_timezone": c.auto_sync_timezone,
+            "active_modules": getattr(c, "active_modules", "topology"),
+            "last_error": getattr(c, "last_error", None),
+            "last_sync_date": getattr(c, "last_sync_date", None)
         }
         for c in configs
     ]
+
+from sqlalchemy import delete
+from app.core.database import get_db
+from app.models import ConfigCloudAccount
 
 @router.delete("/{config_id}")
 async def delete_config(config_id: int, db: AsyncSession = Depends(get_db)):
@@ -57,9 +65,37 @@ async def delete_config(config_id: int, db: AsyncSession = Depends(get_db)):
     if not db_config:
         raise HTTPException(status_code=404, detail="Configuration target not found")
         
+    provider = db_config.provider
     await db.delete(db_config)
+    
+    # We no longer wipe the associated inventory and dashboard data so it doesn't get destroyed.
+    # It remains in the database as orphaned data (or ready to be reclaimed if the config is recreated).
+    
     await db.commit()
-    return {"status": "success", "message": "Deleted config"}
+    return {"status": "success", "message": "Deleted config (dashboard data retained)"}
+
+
+class ConfigCloudAccountUpdate(BaseModel):
+    account_name: str | None = None
+    default_region: str | None = None
+    active_modules: str | None = None
+
+@router.patch("/{config_id}")
+async def update_config(config_id: int, payload: ConfigCloudAccountUpdate, db: AsyncSession = Depends(get_db)):
+    db_config = await db.get(ConfigCloudAccount, config_id)
+    if not db_config:
+        raise HTTPException(status_code=404, detail="Configuration target not found")
+        
+    if payload.account_name is not None:
+        db_config.account_name = payload.account_name
+    if payload.default_region is not None:
+        db_config.default_region = payload.default_region
+    if payload.active_modules is not None:
+        db_config.active_modules = payload.active_modules
+        
+    await db.commit()
+    return {"status": "success", "message": "Config updated successfully"}
+
 
 @router.post("/{config_id}/verify")
 async def verify_config(config_id: int, db: AsyncSession = Depends(get_db)):
@@ -74,11 +110,13 @@ async def verify_config(config_id: int, db: AsyncSession = Depends(get_db)):
             session = boto3.Session(
                 aws_access_key_id=plain_creds.get("aws_access_key_id"),
                 aws_secret_access_key=plain_creds.get("aws_secret_access_key"),
+                aws_session_token=plain_creds.get("aws_session_token"),
                 region_name=db_config.default_region if db_config.default_region != "global" else "us-east-1"
             )
             sts = session.client('sts')
             sts.get_caller_identity()
             is_valid = True
+            error_msg = None
         except Exception as e:
             is_valid = False
             error_msg = str(e)
@@ -87,9 +125,13 @@ async def verify_config(config_id: int, db: AsyncSession = Depends(get_db)):
         
     if is_valid:
         db_config.verified = True
+        db_config.last_error = None
         await db.commit()
         return {"status": "success", "message": "Connection verified successfully"}
         
+    db_config.verified = False
+    db_config.last_error = error_msg
+    await db.commit()
     raise HTTPException(status_code=400, detail=f"Cloud verification check failed: {error_msg}")
 
 class AutoSyncUpdate(BaseModel):
@@ -103,6 +145,7 @@ async def update_auto_sync(config_id: int, payload: AutoSyncUpdate, db: AsyncSes
     if not db_config:
         raise HTTPException(status_code=404, detail="Configuration target not found")
         
+    # If the time is changed, clear last_sync_date so it can run again today at the new time
     if db_config.auto_sync_time != payload.time:
         db_config.last_sync_date = None
         
@@ -112,3 +155,26 @@ async def update_auto_sync(config_id: int, payload: AutoSyncUpdate, db: AsyncSes
     await db.commit()
     
     return {"status": "success", "message": "Auto sync settings updated"}
+
+
+class CredentialsUpdate(BaseModel):
+    credentials: dict
+
+@router.patch("/{config_id}/credentials")
+async def update_credentials(config_id: int, payload: CredentialsUpdate, db: AsyncSession = Depends(get_db)):
+    db_config = await db.get(ConfigCloudAccount, config_id)
+    if not db_config:
+        raise HTTPException(status_code=404, detail="Configuration target not found")
+        
+    existing_creds = decrypt_credentials(db_config.encrypted_credentials)
+    
+    # Filter out empty values so we only merge provided updates
+    updates = {k: v for k, v in payload.credentials.items() if v}
+    existing_creds.update(updates)
+    
+    db_config.encrypted_credentials = encrypt_credentials(existing_creds)
+    db_config.verified = False
+    db_config.last_error = None
+    
+    await db.commit()
+    return {"status": "success", "message": "Credentials updated successfully"}

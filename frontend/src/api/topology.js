@@ -10,14 +10,20 @@ export const getComputeResources = async (accountId, regions = ['ap-south-1'], c
         region,
         compute_type: computeType
       }
-    }).then(res => res.data?.resources || []).catch(err => {
+    }).then(res => {
+      const resources = res.data?.resources || [];
+      return { region, count: resources.length, resources, error: null };
+    }).catch(err => {
       console.warn(`Failed to load resources for region ${region}:`, err);
-      return [];
+      return { region, count: 0, resources: [], error: err.response?.data?.detail || err.message };
     })
   );
 
   const results = await Promise.all(promises);
-  return { resources: results.flat() };
+  return { 
+    resources: results.map(r => r.resources).flat(),
+    summaries: results
+  };
 };
 
 export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeType = 'EC2', resourceId, observabilityOptions = [], lookbackMinutes = 15) => {
@@ -38,18 +44,39 @@ export const scanComputeFlow = async (accountId, region = 'ap-south-1', computeT
   const response = await axios.post(`${API_BASE_URL}/topology/scan/compute-flow`, payload);
   return response.data;
 };
-export const getLocalComputeFlow = async (region = 'ap-south-1') => {
+export const getLocalComputeFlow = async (region = 'ap-south-1', accountName) => {
   const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-flow/local`, {
-    params: { region, _t: Date.now() }
+    params: { region, account_name: accountName, _t: Date.now() }
   });
   return response.data;
 };
 
-export const getCachedRegions = async () => {
+export const tempResetMockData = async () => {
+  const response = await axios.post(`${API_BASE_URL}/topology/scan/temp-reset-mock-data`);
+  return response.data;
+};
+
+export const tempClearAllTopology = async () => {
+  const response = await axios.post(`${API_BASE_URL}/topology/scan/temp-clear-all`);
+  return response.data;
+};
+
+export const getCachedRegions = async (accountName = null) => {
+  const params = { _t: Date.now() };
+  if (accountName) {
+    params.account_name = accountName;
+  }
   const response = await axios.get(`${API_BASE_URL}/topology/scan/regions/cached`, {
-    params: { _t: Date.now() }
+    params
   });
   return response.data?.regions || [];
+};
+
+export const getCachedAccounts = async () => {
+  const response = await axios.get(`${API_BASE_URL}/topology/scan/accounts/cached`, {
+    params: { _t: Date.now() }
+  });
+  return response.data?.accounts || [];
 };
 
 export const getLocalTrace = async (computeId) => {
@@ -59,9 +86,9 @@ export const getLocalTrace = async (computeId) => {
   return response.data;
 };
 
-export const getLocalComputeResources = async (region, computeType = 'EC2') => {
+export const getLocalComputeResources = async (region, computeType = 'EC2', accountName) => {
   const response = await axios.get(`${API_BASE_URL}/topology/scan/compute-resources/local`, {
-    params: { region, compute_type: computeType, _t: Date.now() }
+    params: { region, compute_type: computeType, account_name: accountName, _t: Date.now() }
   });
   return response.data?.resources || [];
 };

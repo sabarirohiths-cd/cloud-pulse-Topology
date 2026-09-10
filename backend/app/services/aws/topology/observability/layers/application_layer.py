@@ -57,7 +57,11 @@ class ApplicationLayer(DiagnosticLayer):
             details["logs"] = logs_res
             if logs_res.get("issues"):
                 issues.extend(logs_res["issues"])
+            log_status = logs_res.get("status", "HEALTHY")
+            if log_status == "CRITICAL":
                 status = "CRITICAL"
+            elif log_status == "DEGRADED" and status != "CRITICAL":
+                status = "DEGRADED"
                 
         # 3. X-Ray
         if 'XRAY' in options:
@@ -69,12 +73,13 @@ class ApplicationLayer(DiagnosticLayer):
                 
         summary = "Application telemetry looks healthy."
         if issues:
-            summary = f"Detected {len(issues)} application issues: {'; '.join(issues[:2])}" + ("..." if len(issues) > 2 else "")
+            summary = f"Detected {len(issues)} application issues: {'; '.join(issues)}"
             
         return {
             "status": status,
             "summary": summary,
-            "details": details
+            "details": details,
+            "issues": issues
         }
         
     def _check_metrics(self, instance_id, fetcher, lookback_minutes):
@@ -119,6 +124,22 @@ class ApplicationLayer(DiagnosticLayer):
             },
             'ReturnData': True
         })
+        
+        # Memory Metric (requires CWAgent)
+        if node_type == 'EC2':
+            queries.append({
+                'Id': 'mem',
+                'MetricStat': {
+                    'Metric': {
+                        'Namespace': 'CWAgent',
+                        'MetricName': 'mem_used_percent',
+                        'Dimensions': [{'Name': 'InstanceId', 'Value': instance_id}]
+                    },
+                    'Period': 300,
+                    'Stat': 'Maximum',
+                },
+                'ReturnData': True
+            })
         
         # ALB Metrics
         if alb_arn and tg_arn:
@@ -214,6 +235,7 @@ class ApplicationLayer(DiagnosticLayer):
         issues = []
         status = "HEALTHY"
         cpu_val = 0
+        mem_val = 0
         err_val = 0
         
         multi_tier_metrics = {}
@@ -237,6 +259,11 @@ class ApplicationLayer(DiagnosticLayer):
                     if cpu_val > 90:
                         issues.append(f"High EC2 CPU Utilization ({cpu_val:.1f}%)")
                         status = "DEGRADED"
+                elif res['Id'] == 'mem':
+                    mem_val = val
+                    if mem_val > 90:
+                        issues.append(f"High Memory Utilization ({mem_val:.1f}%)")
+                        status = "CRITICAL"
                 elif res['Id'] == 'errors5xx':
                     err_val = val
                     if err_val > 0:
@@ -266,6 +293,7 @@ class ApplicationLayer(DiagnosticLayer):
             "status": status,
             "issues": issues,
             "cpu_max": cpu_val,
+            "mem_used_percent": mem_val,
             "errors_5xx": err_val,
             "multi_tier": multi_tier_metrics
         }
@@ -284,7 +312,8 @@ class ApplicationLayer(DiagnosticLayer):
         
         try:
             paginator = logs.get_paginator('describe_log_groups')
-            # Filter by prefix to narrow down search space for efficiency
+            # Searching all log groups sequentially makes O(N) API calls (500+ log groups = massive delay).
+            # We MUST filter by prefix to keep scans fast (e.g., under 2-3 seconds).
             for page in paginator.paginate(logGroupNamePrefix=log_prefix):
                 for lg in page.get('logGroups', []):
                     lg_name = lg['logGroupName']
@@ -306,6 +335,7 @@ class ApplicationLayer(DiagnosticLayer):
         if not discovered_log_groups:
             issues.append(f"No log groups dynamically discovered containing streams for {instance_id}.")
             return {
+                "status": "UNKNOWN",
                 "issues": issues,
                 "traces": [],
                 "log_group": "None"
@@ -319,7 +349,7 @@ class ApplicationLayer(DiagnosticLayer):
         end_time = int(time.time())
         start_time = end_time - (lookback_minutes * 60)
         
-        query = "fields @timestamp, @message | filter @message like /(?i)(error|exception|fatal|timeout|NullReferenceException|OOM)/ | sort @timestamp desc | limit 5"
+        query = "fields @timestamp, @message, level | filter (@message like /(?i)(error|exception|fatal|timeout|NullReferenceException|OOM)/ OR level in ['error', 'fatal', 'critical']) | sort @timestamp desc | limit 5"
         
         try:
             start_resp = logs.start_query(
@@ -358,46 +388,51 @@ class ApplicationLayer(DiagnosticLayer):
                         
             if results:
                 issues.append(f"Found {len(results)} error logs in {log_group_name}")
-                for row in results:
-                    msg = next((f['value'] for f in row if f['field'] == '@message'), '')
+                for r in results:
+                    msg = next((f['value'] for f in r if f['field'] == '@message'), '')
                     if msg:
-                        traces.append(msg)
-                        
+                        traces.append(msg.strip())
+            else:
+                issues.append(f"No error traces found in log group {log_group_name}.")
+                
         except Exception as e:
-            logger.warning(f"Failed to query CloudWatch Logs Insights: {e}")
-            issues.append(f"Failed to query CloudWatch Logs Insights: {str(e)}")
+            logger.warning(f"Failed to query logs: {e}")
+            issues.append(f"Failed to query logs: {str(e)}")
             
         return {
+            "status": "CRITICAL" if traces else "HEALTHY",
             "issues": issues,
             "traces": traces,
             "log_group": log_group_name
         }
 
     def _check_xray(self, instance_id, fetcher, lookback_minutes):
-        xray = fetcher.session.client('xray', region_name=fetcher.region)
-        end_time = datetime.utcnow()
-        start_time = end_time - timedelta(minutes=lookback_minutes)
-        
         issues = []
         faulty_traces = 0
+        failing_services = set()
         
         try:
-            resp = xray.get_trace_summaries(
-                StartTime=start_time,
-                EndTime=end_time
-            )
+            # Instead of a global un-filtered X-Ray API call, we just look at the 
+            # X-Ray microservice nodes that were successfully tied to this EC2 graph by the XRayTracer.
+            microservices = [n for n in fetcher.nodes if n.get('type') == 'MICROSERVICE' and 'XRay_Id' in n.get('metadata', {})]
             
-            all_summaries = resp.get('TraceSummaries', [])
-            summaries = [s for s in all_summaries if s.get('HasFault', False) or s.get('Duration', 0) > 3]
+            for svc in microservices:
+                if svc.get('health_state') in ['CRITICAL', 'DEGRADED']:
+                    faulty_traces += 1
+                    failing_services.add(svc.get('label'))
             
-            if summaries:
-                faulty_traces = len(summaries)
-                issues.append(f"Found {faulty_traces} faulty/slow X-Ray traces")
+            if faulty_traces > 0:
+                issues.append(f"Found {faulty_traces} faulty/slow X-Ray microservices connected to this resource.")
+                for svc_name in failing_services:
+                    issues.append(f"Service {svc_name} is reporting faults in X-Ray.")
                 
         except Exception as e:
-            logger.warning(f"Failed to fetch X-Ray traces: {e}")
+            logger.warning(f"Failed to analyze X-Ray traces from graph: {e}")
+            issues.append(f"Failed to analyze X-Ray: {str(e)}")
             
         return {
+            "status": "CRITICAL" if faulty_traces > 0 else "HEALTHY",
             "issues": issues,
-            "faulty_trace_count": faulty_traces
+            "faulty_trace_count": faulty_traces,
+            "failing_services": list(failing_services)
         }

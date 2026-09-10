@@ -15,15 +15,18 @@ class MessagingTracer(BaseTracer):
         """
         logger.info("Tracing Messaging Resources (SNS)")
         try:
-            paginator = self.sns_client.get_paginator('list_topics')
-            for page in paginator.paginate():
-                for topic in page.get('Topics', []):
-                    topic_arn = topic['TopicArn']
-                    topic_name = topic_arn.split(':')[-1]
+            # Only add nodes for SNS topics that have been explicitly triggered/referenced by other resources (e.g. Alarms)
+            referenced_sns_arns = set()
+            for e in self.fetcher.edges:
+                if e['target'].startswith('arn:aws:sns:'):
+                    referenced_sns_arns.add(e['target'])
                     
-                    self.add_node(topic_arn, 'SNS_TOPIC', topic_name, 'available', {
-                        "TopicArn": topic_arn,
-                        "Type": "SNS Topic"
-                    })
+            for topic_arn in referenced_sns_arns:
+                topic_name = topic_arn.split(':')[-1]
+                
+                self.add_node(topic_arn, 'SNS_TOPIC', topic_name, 'available', {
+                    "TopicArn": topic_arn,
+                    "Type": "SNS Topic"
+                })
         except Exception as e:
             logger.warning(f"Failed to fetch SNS Topics: {e}")

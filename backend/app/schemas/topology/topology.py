@@ -26,6 +26,7 @@ class TopologyEdgeSchema(BaseModel):
     source: str
     target: str
     type: Optional[str] = None
+    relation: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
     health_state: Optional[str] = None
     diagnostic: Optional[str] = None
@@ -34,6 +35,7 @@ class ComputeFlowResponse(BaseModel):
     status: str
     message: str
     compute_id: str
+    warnings: List[str] = Field(default_factory=list)
     nodes: List[TopologyNodeSchema]
     edges: List[TopologyEdgeSchema]
 

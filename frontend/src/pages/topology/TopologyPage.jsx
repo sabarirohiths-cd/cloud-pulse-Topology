@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Zap, List, RefreshCw, Activity } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, List, RefreshCw, Activity, Database, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getComputeResources, scanComputeFlow, getCachedRegions, getLocalComputeFlow, getLocalComputeResources, getLocalTrace, getSupportedComputeTypes } from '../../api/topology';
+import { getComputeResources, scanComputeFlow, getCachedRegions, getLocalComputeFlow, getLocalComputeResources, getLocalTrace, getSupportedComputeTypes, getCachedAccounts, tempResetMockData, tempClearAllTopology } from '../../api/topology';
 import { listConfigs } from '../../api/config';
 import ResourceDetailModal from './components/ResourceDetailModal';
 import ScanConfigurationModal from './components/ScanConfigurationModal';
@@ -24,6 +24,7 @@ export default function TopologyPage() {
 
   // Available regions dynamically populated from cached files
   const [availableRegions, setAvailableRegions] = useState([]);
+  const [cachedAccounts, setCachedAccounts] = useState([]);
 
   // Selection State
   const [viewRegions, setViewRegions] = useState([]);
@@ -66,23 +67,36 @@ export default function TopologyPage() {
     );
   };
 
-  const loadRegions = useCallback(async (preserveView = false) => {
+  const loadRegionsAndAccounts = useCallback(async (preserveView = false) => {
     try {
-      const regions = await getCachedRegions();
+      const [regions, accounts] = await Promise.all([
+        getCachedRegions(viewAccount).catch(() => []),
+        getCachedAccounts().catch(() => [])
+      ]);
+      
       if (regions && regions.length > 0) {
         setAvailableRegions(regions);
         if (!preserveView && (!viewRegions[0] || !regions.includes(viewRegions[0]))) {
           setViewRegions([regions[0]]);
         }
+      } else {
+        setAvailableRegions([]);
+        if (!preserveView && viewRegions.length > 0) {
+          setViewRegions([]);
+        }
+      }
+      
+      if (accounts && accounts.length > 0) {
+        setCachedAccounts(accounts);
       }
     } catch (e) {
       // ignore
     }
-  }, [viewRegions]);
+  }, [viewRegions, viewAccount]);
 
   useEffect(() => {
-    loadRegions();
-  }, [loadRegions]);
+    loadRegionsAndAccounts();
+  }, [loadRegionsAndAccounts]);
 
   useEffect(() => {
     async function loadComputeTypes() {
@@ -122,26 +136,36 @@ export default function TopologyPage() {
   }, []);
 
   useEffect(() => {
+    let accountNames = [];
+    let defaultRegion = null;
+    
     if (configs.length > 0 && viewProvider) {
       const accountsForProvider = configs.filter(c => c.provider.toUpperCase() === viewProvider);
-
-      const accountNames = accountsForProvider.map(c => c.account_name);
-      setAvailableAccounts(accountNames);
-
+      accountNames = accountsForProvider.map(c => c.account_name);
       if (accountsForProvider.length > 0) {
-        setViewAccount(accountsForProvider[0].account_name);
-        // Automatically set the viewRegion to the default_region from the database
-        if (accountsForProvider[0].default_region) {
-          setViewRegions([accountsForProvider[0].default_region]);
-        }
-      } else {
-        setViewAccount('');
+        defaultRegion = accountsForProvider[0].default_region;
+      }
+    }
+    
+    // Only merge 'mock-data' from the dynamically discovered accounts
+    if (cachedAccounts.length > 0) {
+      const validCached = cachedAccounts.filter(a => a === 'mock-data');
+      accountNames = [...new Set([...accountNames, ...validCached])];
+    }
+    
+    setAvailableAccounts(accountNames);
+    
+    if (accountNames.length > 0) {
+      if (!accountNames.includes(viewAccount)) {
+        setViewAccount(accountNames[0]);
+      }
+      if (defaultRegion && (!viewRegions[0] || !availableRegions.includes(viewRegions[0]))) {
+        setViewRegions([defaultRegion]);
       }
     } else {
-      setAvailableAccounts([]);
       setViewAccount('');
     }
-  }, [viewProvider, configs]);
+  }, [viewProvider, configs, cachedAccounts, viewAccount, viewRegions, availableRegions]);
 
   // Step 1: Global Fetch (Load Resources)
   const fetchResources = useCallback(async (regionsToFetch = viewRegions) => {
@@ -153,10 +177,66 @@ export default function TopologyPage() {
 
     try {
       const response = await getComputeResources(viewAccount, regionsToFetch, viewComputeType);
+      
       if (response && response.resources) {
         setResources(response.resources);
       } else {
         setResources([]);
+      }
+
+      if (response && response.summaries) {
+        if (response.summaries.length === 1) {
+          const summary = response.summaries[0];
+          if (summary.error) {
+             if (summary.error.includes("AuthFailure") || summary.error.includes("UnauthorizedOperation") || summary.error.includes("validate the provided access credentials")) {
+                toast.error(`Region ${summary.region} blocked: Access Denied`);
+             } else {
+                toast.error(`Failed scanning ${summary.region}: ${summary.error}`);
+             }
+          } else if (summary.count === 0) {
+             toast.info(`No instances found in ${summary.region}`);
+          } else {
+             toast.success(`Found ${summary.count} instances in ${summary.region}`);
+          }
+        } else {
+          const hasSuccess = response.summaries.some(s => !s.error && s.count > 0);
+          const hasError = response.summaries.some(s => s.error);
+          
+          let toastFn = toast.info;
+          if (hasError && !hasSuccess) toastFn = toast.error;
+          else if (hasSuccess) toastFn = toast.success;
+
+          toastFn(
+            <div className="flex flex-col gap-1.5 w-full">
+              <div className="font-bold text-sm mb-1">Scan completed ({response.summaries.length} regions)</div>
+              <ul className="text-xs space-y-2 max-h-40 overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+                {response.summaries.map(s => {
+                  if (s.error) {
+                    let reason = s.error;
+                    if (s.error.includes("RequestExpired")) {
+                        reason = "AWS Credentials Expired (Update Config)";
+                    } else if (s.error.includes("AuthFailure") || s.error.includes("validate the provided access credentials")) {
+                        reason = "Opt-In Required / Invalid STS";
+                    } else if (s.error.includes("UnauthorizedOperation") || s.error.includes("service control policy")) {
+                        reason = "Blocked by AWS Service Control Policy (SCP)";
+                    }
+                    return (
+                      <li key={s.region} className="flex flex-col">
+                        <div className="flex justify-between text-red-400 font-medium"><span>{s.region}:</span> <span>Blocked</span></div>
+                        <span className="text-[10.5px] text-red-400/80 mt-0.5 leading-snug">{reason}</span>
+                      </li>
+                    );
+                  } else if (s.count === 0) {
+                    return <li key={s.region} className="text-blue-400 flex justify-between font-medium"><span>{s.region}:</span> <span>0 instances</span></li>;
+                  } else {
+                    return <li key={s.region} className="text-emerald-400 flex justify-between font-medium"><span>{s.region}:</span> <span>{s.count} instances</span></li>;
+                  }
+                })}
+              </ul>
+            </div>,
+            { duration: 7000 }
+          );
+        }
       }
     } catch (error) {
       toast.error('Failed to load resources: ' + (error.response?.data?.detail || error.message));
@@ -164,31 +244,34 @@ export default function TopologyPage() {
     } finally {
       setLoading(false);
       setShowScanModal(false);
-      loadRegions(true); // Auto-refresh region dropdown
+      loadRegionsAndAccounts(true); // Auto-refresh region and accounts dropdown
     }
-  }, [viewAccount, viewRegions, loadRegions]);
+  }, [viewAccount, viewRegions, loadRegionsAndAccounts]);
 
   // Auto-load previously saved trace and resources when region changes or on page load
   useEffect(() => {
     async function loadLocal() {
-      if (!viewRegions[0]) return;
+      if (!viewRegions[0] || !viewAccount) return;
       try {
-        const [traceResponse, resourcesResponse] = await Promise.all([
-          getLocalComputeFlow(viewRegions[0]).catch(() => null),
-          getLocalComputeResources(viewRegions[0], viewComputeType).catch(() => [])
-        ]);
+        const resourcesResponse = await getLocalComputeResources(viewRegions[0], viewComputeType, viewAccount).catch(() => []);
+
+        let traceResponse = null;
+        let activeId = null;
 
         if (resourcesResponse && resourcesResponse.length > 0) {
           setResources(resourcesResponse);
+          activeId = resourcesResponse[0].id;
+          traceResponse = await getLocalTrace(activeId).catch(() => null);
         } else {
           setResources([]);
         }
 
         if (traceResponse && traceResponse.nodes && traceResponse.nodes.length > 0) {
-          setFlowData(traceResponse);
-          if (traceResponse.compute_id) {
-            setActiveResourceId(traceResponse.compute_id);
-          }
+          setFlowData({
+            ...traceResponse,
+            compute_id: activeId
+          });
+          setActiveResourceId(activeId);
         } else {
           setFlowData(null);
           setActiveResourceId(null);
@@ -199,7 +282,7 @@ export default function TopologyPage() {
       }
     }
     loadLocal();
-  }, [viewRegions, viewComputeType]);
+  }, [viewRegions, viewComputeType, viewAccount]);
 
   // Step 2: Deep Trace
   const handleResourceSelect = async (resource, force = false) => {
@@ -268,6 +351,55 @@ export default function TopologyPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {(() => {
+              const hasMockData = availableAccounts.includes('mock-data');
+              return (
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      try {
+                        toast.loading(`${hasMockData ? "Deleting" : "Inserting"} mock data...`);
+                        await tempResetMockData();
+                        toast.success(`Mock data ${hasMockData ? "deleted" : "inserted"} successfully!`);
+                        window.location.reload();
+                      } catch (e) {
+                        toast.error(`Failed to ${hasMockData ? "delete" : "insert"} mock data`);
+                      }
+                    }}
+                    title={hasMockData ? "[TEMP] Delete Mock Data" : "[TEMP] Insert Mock Data"}
+                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors ${
+                      hasMockData 
+                        ? "bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30" 
+                        : "bg-orange-500/20 text-orange-400 border border-orange-500/50 hover:bg-orange-500/30"
+                    }`}
+                  >
+                    <Database size={16} />
+                  </button>
+                  <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-bold">Mock</span>
+                </div>
+              );
+            })()}
+            <div className="flex flex-col items-center gap-1">
+              <button
+                onClick={async () => {
+                  if (window.confirm("Are you sure you want to clear ALL topology data? This will not delete your cloud credentials.")) {
+                    try {
+                      toast.loading("Clearing all topology data...");
+                      await tempClearAllTopology();
+                      toast.success("All topology data cleared successfully!");
+                      window.location.reload();
+                    } catch (e) {
+                      toast.error("Failed to clear topology data");
+                    }
+                  }
+                }}
+                title="[TEMP] Clear All Topology DB"
+                className="flex items-center justify-center w-8 h-8 bg-red-500/20 text-red-400 border border-red-500/50 rounded-md hover:bg-red-500/30 transition-colors"
+              >
+                <Trash2 size={16} />
+              </button>
+              <span className="text-[9px] text-zinc-500 uppercase tracking-wider font-bold">Clear</span>
+            </div>
             <button
               onClick={() => setShowScanModal(true)}
               disabled={loading || !viewAccount}
@@ -298,11 +430,11 @@ export default function TopologyPage() {
             },
             {
               label: "Region:",
-              value: viewRegions[0] || 'ap-south-1',
+              value: availableRegions.length > 0 ? (viewRegions[0] || availableRegions[0]) : 'None',
               onChange: (val) => {
-                setViewRegions([val]);
+                if (val !== 'None') setViewRegions([val]);
               },
-              options: availableRegions.map(r => ({ label: r, value: r })),
+              options: availableRegions.length > 0 ? availableRegions.map(r => ({ label: r, value: r })) : [{ label: 'No Scanned Regions', value: 'None' }],
               width: "max-w-[150px]"
             },
             {
@@ -461,6 +593,7 @@ export default function TopologyPage() {
           {diagnosticsNodeId && (
             <DiagnosticDetailPage 
               nodeId={diagnosticsNodeId} 
+              activeTraceId={activeResourceId}
               onClose={() => setDiagnosticsNodeId(null)} 
             />
           )}

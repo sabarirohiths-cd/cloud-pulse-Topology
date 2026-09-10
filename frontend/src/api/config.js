@@ -28,3 +28,13 @@ export const updateAutoSync = async (id, enabled, time, timezone) => {
   const response = await apiClient.patch(`/cloud-config/${id}/auto-sync`, { enabled, time, timezone });
   return response.data;
 };
+
+export const editConfig = async (id, payload) => {
+  const response = await apiClient.patch(`/cloud-config/${id}`, payload);
+  return response.data;
+};
+
+export const updateCredentials = async (id, credentials) => {
+  const response = await apiClient.patch(`/cloud-config/${id}/credentials`, { credentials });
+  return response.data;
+};

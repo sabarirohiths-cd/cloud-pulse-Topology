@@ -36,10 +36,10 @@ const CustomNode = ({ data, selected }) => {
       )}
       <div
         className={`p-4 rounded-xl border transition-all duration-200 shadow-md ${isHighlighted ? 'border-cyan-400 ring-1 ring-cyan-400/50 shadow-[0_4px_20px_rgba(34,211,238,0.2)] bg-slate-800 z-10'
-            : isCritical ? 'border-rose-500 ring-1 ring-rose-500/50 shadow-[0_4px_20px_rgba(244,63,94,0.2)] bg-rose-950/30 z-10'
-              : isRoot ? 'border-amber-500 ring-1 ring-amber-500/50 shadow-[0_4px_20px_rgba(245,158,11,0.2)] bg-amber-950/20 z-10'
-                : isGroup ? 'border-purple-500/70 shadow-[0_4px_20px_rgba(168,85,247,0.15)] bg-slate-800 z-10'
-                  : 'border-slate-700 hover:border-slate-500 hover:shadow-lg bg-slate-800'
+          : isCritical ? 'border-rose-500 ring-1 ring-rose-500/50 shadow-[0_4px_20px_rgba(244,63,94,0.2)] bg-rose-950/30 z-10'
+            : isRoot ? 'border-amber-500 ring-1 ring-amber-500/50 shadow-[0_4px_20px_rgba(245,158,11,0.2)] bg-amber-950/20 z-10'
+              : isGroup ? 'border-purple-500/70 shadow-[0_4px_20px_rgba(168,85,247,0.15)] bg-slate-800 z-10'
+                : 'border-slate-700 hover:border-slate-500 hover:shadow-lg bg-slate-800'
           } w-[260px] flex flex-col relative bg-slate-800`}>
 
         {isGroup && (
@@ -299,6 +299,19 @@ function FlowVisualizerContent({ data, focusNodeId, onNodeClick, isSidebarOpen }
           diagnostic: e.diagnostic
         }
       };
+    });
+
+    // Sort nodes and edges deterministically to prevent layout jitter on refresh
+    // Grouping by root status, then type, then id ensures a beautiful semantic arrangement
+    rfNodes.sort((a, b) => {
+      if (a.data.isRoot !== b.data.isRoot) return a.data.isRoot ? -1 : 1;
+      if (a.data.type !== b.data.type) return a.data.type.localeCompare(b.data.type);
+      return a.id.localeCompare(b.id);
+    });
+
+    rfEdges.sort((a, b) => {
+      const sourceCompare = a.source.localeCompare(b.source);
+      return sourceCompare !== 0 ? sourceCompare : a.target.localeCompare(b.target);
     });
 
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges, 'LR');
